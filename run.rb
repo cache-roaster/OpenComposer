@@ -57,6 +57,7 @@ def create_conf
   halt 500, "In conf.yml, \"scheduler:\" must be defined."  if conf["scheduler"].nil?
 
   conf["dataroot"]          ||= ENV["HOME"] + "/composer"
+  conf["bin_path"]          ||= nil
   conf["ssh_wrapper"]       ||= nil
   conf["footer"]            ||= "&nbsp;"
   conf["thumbnail_width"]   ||= "100"
@@ -147,6 +148,7 @@ def show_website(job_id = nil, error_msg = nil, scheduler = nil)
     @name             = "History"
     @login_node       = @conf["login_node"]
     @scheduler        = scheduler || create_scheduler(@conf["scheduler"])
+    @bin_path         = @conf["bin_path"]
     @ssh_wrapper      = @conf["ssh_wrapper"]
     @status           = params["status"] || "all"
     @filter           = params["filter"]
