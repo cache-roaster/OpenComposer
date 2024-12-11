@@ -29,9 +29,9 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 | form_color | フォームページのテキストエリアの背景色 |
 
 ## Open OnDemandへの登録（管理者）
-Open Composerを`/var/www/ood/apps/sys/`に保存すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます。もしOpen Composerのアイコンが表示されない場合は、Open OnDemand用の設定ファイル`./OpenComposer/manifest.yml`を編集ください。
+Open Composerを`/var/www/ood/apps/sys/`に保存すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます。もしOpen Composerのアイコンが表示されない場合は、Open OnDemand用の設定ファイル`./OpenComposer/manifest.yml`を確認してください。
 
-Open Composer上の各アプリケーションをOpen OnDemandのトップページに表示することもできます。例えば、`./OpenComposer/apps/Slurm/`というアプリケーションを表示させたい場合は、同名のディレクトリをOpen OnDemandのアプリケーションディレクトリに作成します（`# mkdir /var/www/ood/apps/sys/Slurm`）。そして、そのディレクトリ内にOpen OnDemand用の設定ファイル`manifest.yml`を作成します。
+Open Composer上のアプリケーションをOpen OnDemandのトップページに表示することもできます。例えば、`./OpenComposer/apps/Slurm/`というアプリケーションを表示させたい場合は、同名のディレクトリをOpen OnDemandのアプリケーションディレクトリに作成します（`# mkdir /var/www/ood/apps/sys/Slurm`）。そして、そのディレクトリ内に下記のようなOpen OnDemand用の設定ファイル`manifest.yml`を作成します。
 
 ```
 # cat /var/www/ood/apps/sys/Slurm/manifest.yml
@@ -56,13 +56,21 @@ tile:
 Open OnDemand上からOpen Composerをインストールする方法と、コマンドラインでインストール方法の2通りがあります。インストール後は、上記と同じ手順で`./OpenComposer/manifest.yml`を編集すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます（このアイコンはインストールしたユーザでしか表示されません）。
 
 ### Open OnDemand上からインストールする場合
-ナビゲーションバーの「</> Develop」の「My Sandbox Apps (Development)」を選択します。
+ナビゲーションバーの「</> Develop」の「My Sandbox Apps (Development)」を選択します（Webブラウザのウィンドウサイズが小さい場合は、「</> Develop」ではなく「</>」と表示されますので注意ください）。
 
 ![Navbar](img/navbar.png)
 
-Open Composerの「Details」をクリックします。
+「New App」をクリックします。
 
-![Details](img/details.png)
+![New App](img/newapp.png)
+
+「Clone Existing App」をクリックします。
+
+![Clone an existing app](img/clone.png)
+
+「Directory name」に任意の名前（ここではOpenComposer）、「Git remote」に「[https://github.com/RIKEN-RCCS/OpenComposer.git](https://github.com/RIKEN-RCCS/OpenComposer.git)」を記入し、「Submit」をクリックします。
+
+![New repository](img/new_repo.png)
 
 「Bundle Install」をクリックした後、「Launch Open Composer」をクリックします。
 
@@ -77,3 +85,8 @@ $ cd OpenComposer
 $ bundle config path --local vendor/bundle
 $ bundle install
 ```
+
+## 補足
+- Open OnDemand上からインストールする場合、「Bundle Install」が失敗することがあります。コマンドラインでインストールを行ってください。
+- コマンドラインでインストールする場合、`bundle`コマンドのバージョンが古くて失敗することがあります。最新バージョンにアップデートする場合は、`gem install bundler`コマンドを実行してください。
+- `bundle install`コマンドはOpen OnDemandがインストールされているサーバで実行してください。Open OnDemandのWebターミナル機能でログインできるノードはOpen OnDemandがインストールされたノードでない場合があります。
