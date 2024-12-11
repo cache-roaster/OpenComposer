@@ -1,0 +1,7 @@
+name: Open Composer
+category: Jobs
+description: |-
+  Open Composer allows the creation and submission of batch jobs
+icon: fas://hat-wizard
+tile:
+  sub_caption: |

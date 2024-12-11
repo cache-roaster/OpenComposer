@@ -1,0 +1,6 @@
+# General
+.DS_Store
+
+# bundle
+Gemfile.lock
+vendor/

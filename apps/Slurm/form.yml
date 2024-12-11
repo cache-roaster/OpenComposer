@@ -1,0 +1,65 @@
+---
+form:
+  partition:
+    widget: select
+    label: Partition
+    options:
+      - [ fx700,    [fx700,    system/fx700 FJSVstclanga],       set-label-nodes: Number of nodes (1 - 40), set-max-nodes: 40 ]
+      - [ a100,     [a100,     system/a100 nvhpc],               set-label-nodes: Number of nodes (1 - 2),  set-max-nodes:  2 ]
+      - [ mi100,    [mi100,    system/mi100 rocm],               set-label-nodes: Number of nodes (1),      set-max-nodes:  1 ]
+      - [ r340,     [r340,     ""],                              set-label-nodes: Number of nodes (1 - 2),  set-max-nodes:  2 ]
+      - [ genoa,    [genoa,    system/genoa mpi/openmpi-x86_64], set-label-nodes: Number of nodes (1 - 16), set-max-nodes: 16 ]
+      - [ qc-a100,  [qc-a100,  system/qc-a100 nvhpc],            set-label-nodes: Number of nodes (1 - 2),  set-max-nodes:  2 ]
+      - [ qc-h100,  [qc-h100,  system/qc-h100 nvhpc],            set-label-nodes: Number of nodes (1),      set-max-nodes:  1 ]
+      - [ qc-gh200, [qc-gh200, system/qc-gh200 nvhpc],           set-label-nodes: Number of nodes (1 - 8),  set-max-nodes:  8 ]
+      - [ qc-mi250, [qc-mi250, system/qc-mi250 rocm],            set-label-nodes: Number of nodes (1 - 4),  set-max-nodes:  4 ]
+      - [ qc-pvc,   [qc-pvc,   system/qc-pvc],                   set-label-nodes: Number of nodes (1 - 2),  set-max-nodes:  2 ]
+      - [ ai-h100l, [ai-h100l, system/ai-h100l nvhpc],           set-label-nodes: Number of nodes (1 - 2),  set-max-nodes:  2 ]
+
+  nodes:
+    widget: number
+    label: Number of nodes
+    value:  1
+
+  time:
+    widget:   number
+    label:    [ Maximum run time hours (0 - 24), Maximum run minutes (0 - 59) ]
+    size:     2
+    value:    [  1,  0 ]
+    min:      [  0,  0 ]
+    max:      [ 24, 59 ]
+    step:     [  1,  1 ]
+
+  advanced_options:
+    widget: checkbox
+    options:
+      - [Advanced options, a, show-array, show-log ]
+      
+  array:
+    widget: number
+    label: [ Array Job (start index), Array Job (last index) ]
+    size: 2
+    min:  [0, 0]
+    help: Each job executed from an array job is assigned a task ID, which can be referenced in the shell script via the environment variable SLURM_ARRAY_TASK_ID.
+
+  log:
+    widget: text
+    size: 2
+    label: [Standard log (e.g. stdout.%j), Error log (e.g. stderr.%j)]
+    help: The symbol %j will be replaced with the job ID.
+  
+script: |
+  #!/usr/bin/env bash
+  #SBATCH -p #{partition_1}
+  #SBATCH -N #{nodes}
+  #SBATCH -t #{time_1}:#{time_2}:00
+  #SBATCH --array=#{array_1}-#{array_2}
+  #SBATCH --output=#{log_1}
+  #SBATCH --error=#{log_2}
+  module load #{partition_2}
+
+check: |
+  if @time_1.to_i == 24 && @time_2.to_i > 0
+    halt 500, "The run time is within 24 hours."
+   end
+   

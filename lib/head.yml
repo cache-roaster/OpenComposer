@@ -1,0 +1,15 @@
+---
+form:
+  _script_location:
+    widget:     path
+    label:      Script Location
+    show_files: false
+    required:   true
+
+  _script:
+    widget:   text
+    size :    2
+    label:    [Script Name, Job Name]
+    value:    [job.sh, ""]
+    required: [true, false]
+

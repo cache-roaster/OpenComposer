@@ -1,0 +1,115 @@
+<% if @job_id && @error_msg.nil? %>
+  <div class="alert alert-success alert-dismissible mx-1 mb-0">
+    Job was successfully submitted (Job ID is <%= @job_id %>). 
+    Go to the <a href="./history">History page</a>.
+    <button class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<% elsif @error_msg %>
+  <div class="alert alert-warning alert-dismissible mx-1 mb-0">
+    Job submission failed. (<%= @error_msg %>)
+    <button class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<% end %>
+
+<form action="<%= @current_path %>" method="post">
+  <div class="row px-3 text-white">
+    <!-- Application Info Section -->
+    <div class="col pt-2 bg-gradient" style="background:<%= @conf['description_color'] %>; color: white;">
+      <h3>
+        <a href="/<%= @manifest['dirname'] %>" style="color: inherit; text-decoration: none;">
+          <%= @manifest['name'] %>
+        </a>
+      </h3>
+      <input type="hidden" name="<%= JOB_APP_NAME %>" value="<%= @manifest['name'] %>">
+      <input type="hidden" name="<%= JOB_APP_PATH %>" value="<%= @path_info %>">
+      <p><%= @manifest['description'] %></p>
+    </div>
+
+    <!-- Form Header -->
+    <div class="col pt-2 pb-3 bg-gradient" style="background: <%= @conf['description_color'] %>;">
+      <%= output_head(@head) %>
+    </div>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-2 px-3">
+    <!-- Form Body -->
+    <div class="col py-3 bg-gradient" style="background: <%= @conf['form_color'] %>;">
+      <%= output_body(@body, @head) %>
+    </div>
+
+    <!-- Script Contents Section -->
+    <div class="col py-3 bg-gradient d-flex flex-column" style="background: <%= @conf['form_color'] %>;">
+      <label for="<%= JOB_SCRIPT_CONTENTS %>">Script Contents</label>
+      <textarea id="<%= JOB_SCRIPT_CONTENTS %>" name="<%= JOB_SCRIPT_CONTENTS %>" class="form-control mt-1 mb-3 flex-grow-1" tabindex="<%= @table_index %>" accesskey="s" oninput="ocForm.updateHeight()" required>
+        (Something wrong)
+      </textarea>
+      <!-- Submit Button -->
+      <input type="submit" class="btn btn-primary d-block w-100" id="<%= SUBMIT_BUTTON %>" value="Submit" tabindex="<%= @table_index + 1 %>">
+    </div>
+  </div>
+</form>
+<script>
+var ocForm = ocForm || {};
+ocForm.textArea = document.getElementById('<%= JOB_SCRIPT_CONTENTS %>');
+</script>
+<script src="form.js"></script>
+<script>
+// Executes functions that should run once.
+ocForm.onceExec = function() {
+<%= @js["once"].chomp %>
+};
+
+// Initialize dynamic form widgets.
+ocForm.initDynamicWidget = function(fromId) {
+<%= @js["init_dw"].lines.map(&:chomp).sort.uniq.join("\n") %>
+};
+
+// Execute dynamic form widgets.
+ocForm.execDynamicWidget = function(fromId) {
+<%= @js["exec_dw"].chomp %>
+};
+
+// Update the commands.
+ocForm.updateContents = function(selectedValues) {
+<%= @js["script"].chomp %>
+};
+
+// Check if a cache file exists.
+ocForm.isCacheFile = function() {
+  return <%= @script_contents != nil %>;
+};
+
+// Load cache file contents.
+ocForm.loadCacheFile = function() {
+  return <%= @script_contents.to_json %>;
+};
+
+// Prevent default behavior for Enter key unless specific elements are focused.
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Enter' && (event.target.id !== '<%= JOB_SCRIPT_CONTENTS %>' && event.target.id !== '_submitButton')) {
+    event.preventDefault();
+  }
+});
+
+ocForm.isFirst = true;
+ocForm.multiSelectDisabledIndexes = {};
+ocForm.updateValues = function(fromId) {
+  let selectedValues = [];
+  ocForm.initDynamicWidget(fromId);
+  ocForm.execDynamicWidget(fromId);
+
+  if (ocForm.isFirst) {
+    ocForm.isFirst = false;
+    ocForm.onceExec();
+    ocForm.updateContents(selectedValues);
+    ocForm.textArea.value = ocForm.isCacheFile() ? ocForm.loadCacheFile() : Object.values(selectedValues).join('\n');
+  }
+  else {
+    ocForm.updateContents(selectedValues);
+    ocForm.textArea.value = Object.values(selectedValues).join('\n');
+  }
+  ocForm.textArea.value += "\n";
+  ocForm.updateHeight();
+};
+window.onload = ocForm.updateValues();
+</script>
