@@ -4,9 +4,6 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 ```
 # cd /var/www/ood/apps/sys/
 # git clone https://github.com/RIKEN-RCCS/OpenComposer.git
-# cd OpenComposer
-# bundle config path --local vendor/bundle
-# bundle install
 ```
 
 ## Open Composerの設定
@@ -15,7 +12,8 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 | 項目名 | 設定内容 |
 | ---- | ---- |
 | login_node | 履歴ページからOpen OnDemandのWebターミナルを起動した際のログイン先 |
-| dataroot | データの保存先 |
+| apps_dir | アプリケーションのディレクトリ |
+| history_dir | 投入したジョブの情報のディレクトリ |
 | scheduler | 利用するスケジューラ|
 | bin_path | ジョブスケジューラのPATH |
 | ssh_wrapper | SSHを用いて他のノードのジョブスケジューラを用いる場合のログイン先 |
@@ -29,7 +27,7 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 | form_color | フォームページのテキストエリアの背景色 |
 
 ## Open OnDemandへの登録（管理者）
-Open Composerを`/var/www/ood/apps/sys/`に保存すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます。もしOpen Composerのアイコンが表示されない場合は、Open OnDemand用の設定ファイル`./OpenComposer/manifest.yml`を確認してください。
+Open Composerを`/var/www/ood/apps/sys/`に保存すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます。Open Composerのアイコンが表示されない場合は、Open OnDemand用の設定ファイル`./OpenComposer/manifest.yml`を確認してください。
 
 Open Composer上のアプリケーションをOpen OnDemandのトップページに表示することもできます。例えば、`./OpenComposer/apps/Slurm/`というアプリケーションを表示させたい場合は、同名のディレクトリをOpen OnDemandのアプリケーションディレクトリに作成します（`# mkdir /var/www/ood/apps/sys/Slurm`）。そして、そのディレクトリ内に下記のようなOpen OnDemand用の設定ファイル`manifest.yml`を作成します。
 
@@ -45,13 +43,7 @@ tile:
 ```
 
 ## Open OnDemandへの登録（一般ユーザ）
-一般ユーザ権限でOpen Composerをインストールすることもできます。ただし、事前に管理者権限でOpen OnDemandの[App Development](https://osc.github.io/ood-documentation/latest/how-tos/app-development/enabling-development-mode.html)の機能を有効化する必要があります。例えば、`efranz`というユーザに対してApp Developmentの機能を有効化するには、下記のように行います。
-
-```
-# mkdir -p /var/www/ood/apps/dev/efranz
-# cd /var/www/ood/apps/dev/efranz
-# ln -s /home/efranz/ondemand/dev gateway
-```
+一般ユーザ権限でOpen Composerをインストールすることもできます。ただし、事前に管理者権限でOpen OnDemandの[App Development](https://osc.github.io/ood-documentation/latest/how-tos/app-development/enabling-development-mode.html)の機能を有効化する必要があります。
 
 Open OnDemand上からOpen Composerをインストールする方法と、コマンドラインでインストール方法の2通りがあります。インストール後は、上記と同じ手順で`./OpenComposer/manifest.yml`を編集すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます（このアイコンはインストールしたユーザでしか表示されません）。
 
@@ -72,7 +64,7 @@ Open OnDemand上からOpen Composerをインストールする方法と、コマ
 
 ![New repository](img/new_repo.png)
 
-「Bundle Install」をクリックした後、「Launch Open Composer」をクリックします。
+「Launch Open Composer」をクリックします。
 
 ![Bundle Install](img/bundle.png)
 
@@ -81,12 +73,7 @@ Open OnDemand上からOpen Composerをインストールする方法と、コマ
 ```
 $ cd ${HOME}/ondemand/dev
 $ git clone https://github.com/RIKEN-RCCS/OpenComposer.git
-$ cd OpenComposer
-$ bundle config path --local vendor/bundle
-$ bundle install
 ```
 
-## 補足
-- Open OnDemand上からインストールする場合、「Bundle Install」が失敗することがあります。コマンドラインでインストールを行ってください。
-- コマンドラインでインストールする場合、`bundle`コマンドのバージョンが古くて失敗することがあります。最新バージョンにアップデートする場合は、`gem install bundler`コマンドを実行してください。
-- `bundle install`コマンドはOpen OnDemandがインストールされているサーバで実行してください。Open OnDemandのWebターミナル機能でログインできるノードはOpen OnDemandがインストールされたノードでない場合があります。
+ナビゲーションバーの「</> Develop」の「My Sandbox Apps (Development)」内にOpen Composerが表示されていますので、「Launch Open Composer」をクリックください。
+

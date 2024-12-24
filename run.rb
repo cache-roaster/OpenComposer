@@ -13,7 +13,6 @@ set :erb, trim: "-"
 
 # Internal Constants
 VERSION              = "1.0.0"
-APPS_DIR_PATH        = "./apps"
 SCHEDULERS_DIR_PATH  = "./lib/schedulers"
 HISTORY_ROWS         = 10
 JOB_STATUS           = { "queued" => "QUEUED", "running" => "RUNNING", "completed" => "COMPLETED" }
@@ -56,7 +55,8 @@ def create_conf
   halt 500, "In conf.yml, \"login_node:\" must be defined." if conf["login_node"].nil?
   halt 500, "In conf.yml, \"scheduler:\" must be defined."  if conf["scheduler"].nil?
 
-  conf["dataroot"]          ||= ENV["HOME"] + "/composer"
+  conf["apps_dir"]          ||= "./apps"
+  conf["history_dir"]       ||= ENV["HOME"] + "/composer"
   conf["bin_path"]          ||= nil
   conf["ssh_wrapper"]       ||= nil
   conf["footer"]            ||= "&nbsp;"
@@ -68,7 +68,7 @@ def create_conf
   conf["description_color"] ||= conf["category_color"]
   conf["form_color"]        ||= "#BFCFE7"
 
-  conf["history_db"] = File.join(conf["dataroot"], conf["scheduler"] + ".db")
+  conf["history_db"] = File.join(conf["history_dir"], conf["scheduler"] + ".db")
   return conf
 end
 
@@ -84,11 +84,11 @@ def create_manifest(directory_path)
 end
 
 # Create an array of manifest objects for all applications.
-def create_all_manifests
-  Dir.children(APPS_DIR_PATH).each_with_object([]) do |dir, manifests|
+def create_all_manifests(apps_dir)
+  Dir.children(apps_dir).each_with_object([]) do |dir, manifests|
     next if dir.start_with?(".") # Skip hidden files and directories
 
-    directory_path = File.join(APPS_DIR_PATH, dir)
+    directory_path = File.join(apps_dir, dir)
     if ["form.yml", "form.yml.erb"].any? { |file| File.exist?(File.join(directory_path, file)) }
       manifests << create_manifest(directory_path)
     end
@@ -129,15 +129,16 @@ end
 
 # Create a website of Top, Application, and History.
 def show_website(job_id = nil, error_msg = nil, scheduler = nil)
-  halt 404, "#{APPS_DIR_PATH} is not found." unless Dir.exist?(APPS_DIR_PATH)
+  @conf = create_conf
+  apps_dir = @conf["apps_dir"]
+  halt 404, "#{apps_dir} is not found." unless Dir.exist?(apps_dir)
 
   @version      = VERSION
   @my_ood_url   = request.base_url
   @script_name  = request.script_name
   @path_info    = request.path_info
   @current_path = File.join(@script_name, @path_info)
-  @conf         = create_conf
-  @manifests    = create_all_manifests.sort_by { |m| [(m.category || "").downcase, m.name.downcase] }
+  @manifests    = create_all_manifests(apps_dir).sort_by { |m| [(m.category || "").downcase, m.name.downcase] }
   @manifests_w_category, @manifests_wo_category = @manifests.partition(&:category)
 
   case @path_info
@@ -171,7 +172,7 @@ def show_website(job_id = nil, error_msg = nil, scheduler = nil)
     if !@manifest.nil?
       @name = @manifest["name"]
       @head = read_yaml("./lib/head.yml")
-      @body = read_yaml(File.join(APPS_DIR_PATH, @path_info, "form.yml"))
+      @body = read_yaml(File.join(apps_dir, @path_info, "form.yml"))
 
       # Since the widget name is used as a variable in Ruby, it should consist of only
       # alphanumeric characters and underscores, and numbers should not be used at the
@@ -216,7 +217,7 @@ end
 
 # Send an application icon.
 get "/apps/:folder/:icon" do
-  icon_path = File.join(APPS_DIR_PATH, params[:folder], params[:icon])
+  icon_path = File.join(create_conf["apps_dir"], params[:folder], params[:icon])
   send_file(icon_path) if File.exist?(icon_path)
 end
 
@@ -248,7 +249,7 @@ post "/*" do
   conf        = create_conf
   bin_path    = conf["bin_path"]
   ssh_wrapper = conf["ssh_wrapper"]
-  dataroot    = conf["dataroot"]
+  history_dir = conf["history_dir"]
   history_db  = conf["history_db"]
   scheduler   = create_scheduler(conf["scheduler"])
 
@@ -289,7 +290,8 @@ post "/*" do
           end
       instance_variable_set("@#{k}", value)
     end
-    app_path = File.join(APPS_DIR_PATH, request.path_info)
+
+    app_path = File.join(conf["apps_dir"], request.path_info)
     check    = read_yaml(File.join(app_path, "form.yml"))["check"]
     eval(check) unless check.nil?
 
@@ -306,7 +308,7 @@ post "/*" do
     end
 
     # Save a job history
-    FileUtils.mkdir_p(dataroot)
+    FileUtils.mkdir_p(history_dir)
     db = PStore.new(history_db)
     db.transaction do
       Array(job_id).each do |id|
