@@ -94,6 +94,11 @@ document.addEventListener('keydown', function(event) {
 ocForm.isFirst = true;
 ocForm.multiSelectDisabledIndexes = {};
 ocForm.updateValues = function(fromId) {
+  // Even if the values in header changes, the contents of JOB_SCRIPT_CONTENTS will not be updated.
+  if (fromId === "<%= HEAD_SCRIPT_LOCATION %>" || fromId === "<%= HEAD_SCRIPT_NAME %>" || fromId === "<%= HEAD_JOB_NAME %>") {
+    return;
+  }
+  
   let selectedValues = [];
   ocForm.initDynamicWidget(fromId);
   ocForm.execDynamicWidget(fromId);
