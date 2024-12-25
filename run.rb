@@ -128,7 +128,7 @@ def create_scheduler(scheduler_name)
 end
 
 # Create a website of Top, Application, and History.
-def show_website(job_id = nil, error_msg = nil, scheduler = nil)
+def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = nil)
   @conf = create_conf
   apps_dir = @conf["apps_dir"]
   halt 404, "#{apps_dir} is not found." unless Dir.exist?(apps_dir)
@@ -202,6 +202,10 @@ def show_website(job_id = nil, error_msg = nil, scheduler = nil)
         replace_with_cache(@head["form"], cache)
         replace_with_cache(@body["form"], cache)
         @script_contents = cache[JOB_SCRIPT_CONTENTS]
+      elsif !error_msg.nil?
+        replace_with_cache(@head["form"], error_params)
+        replace_with_cache(@body["form"], error_params)
+        @script_contents = error_params[JOB_SCRIPT_CONTENTS]
       end
 
       @table_index = 1
@@ -271,7 +275,7 @@ post "/*" do
       end
     end
 
-    show_website(nil, error_msg, scheduler)
+    show_website(nil, scheduler, error_msg)
   else
     script_location = params[HEAD_SCRIPT_LOCATION]
     script_name     = params[HEAD_SCRIPT_NAME]
@@ -317,6 +321,6 @@ post "/*" do
       end
     end
     
-    show_website(job_id, error_msg, scheduler)
+    show_website(job_id, scheduler, error_msg, params)
   end
 end
