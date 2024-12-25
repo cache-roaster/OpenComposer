@@ -30,7 +30,7 @@ helpers do
     style = label.empty? ? "display: none;" : ""
     
     # The values of data-label= and data-required= are used when changing the label with set-required of the dynamic form widget.
-    return "<label id=\"label_#{id}\" style=\"#{style}\" class=\"form-label mb-1\" data-label=\"#{label}\" data-required=\"#{required}\" for=\"#{id}\">#{label}</label>\n"
+    return "<label id=\"label_#{id}\" style=\"#{style}\" class=\"fw-semibold form-label mb-1\" data-label=\"#{label}\" data-required=\"#{required}\" for=\"#{id}\">#{label}</label>\n"
   end
   
   # Output a label with HTML span tags and an optional asterisk of label.
@@ -50,7 +50,7 @@ helpers do
     style = label.empty? ? "display: none;" : ""
     
     # The values of data-label= and data-required= are used when changing the label with set-required of the dynamic form widget.
-    return "<div id=\"label_#{key}\" style=\"#{style}\" class=\"mb-1\" data-label=\"#{label}\" data-required=\"#{required}\">#{label}</div>\n"
+    return "<div id=\"label_#{key}\" style=\"#{style}\" class=\"fw-semibold mb-1\" data-label=\"#{label}\" data-required=\"#{required}\">#{label}</div>\n"
   end
 
   # Output attributes.
