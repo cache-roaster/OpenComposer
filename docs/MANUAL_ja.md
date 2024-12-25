@@ -82,13 +82,13 @@ form:
 
 ```
 form:
-  job_name:
+  comment:
     widget: text
     value: test
-    label: Job Name
+    label: Comment
 
 script: |
-  #SBATCH --job-name=#{job_name}
+  #SBATCH --comment=#{comment}
 ```
 
 複数のテキストの入力欄を1行で表示することも可能です。
@@ -97,7 +97,7 @@ script: |
 form:
   option:
     widget: text
-    value: [ --job-name=, test ]
+    value: [ --comment=, test ]
     label: [ option, argument ]
     size: 2
 
@@ -414,38 +414,38 @@ script: |
 ```
 
 ### ウィジットの非表示化
-`options`の各配列の第3要素以降に`[hide|show]-(KEY)`を指定します。次の例では、`hide_advanced_options`をチェックすると`job_name`が非表示になります。無効化とは異なり、そのキーのウィジットが表示されないだけであり、そのキーを利用している`script`の行には影響しません。
+`options`の各配列の第3要素以降に`[hide|show]-(KEY)`を指定します。次の例では、`hide_advanced_options`をチェックすると`comment`が非表示になります。無効化とは異なり、そのキーのウィジットが表示されないだけであり、そのキーを利用している`script`の行には影響しません。
 
 ```
 form:
   hide_advanced_option:
     widget: checkbox
     options:
-      - [ 'Hide advanced option', '', hide-job_name ]
+      - [ 'Hide advanced option', '', hide-comment ]
 
-  job_name:
+  comment:
     widget: text
-    label: Job Name
+    label: Comment
 
 script: |
-  #SBATCH --jobname=#{job_name}
+  #SBATCH --comment=#{comment}
 ```
 
-次の例では、`show_advanced_options`をチェックすると`job_name`が表示されます。
+次の例では、`show_advanced_options`をチェックすると`comment`が表示されます。
 
 ```
 form:
   show_advanced_options:
     widget: checkbox
     options:
-      - [ 'Show advanced option', '', show-job_name ]
+      - [ 'Show advanced option', '', show-comment ]
 
-  job_name:
+  comment:
     widget: text
-    label: Job Name
+    label: Comment
 
 script: |
-  #SBATCH --jobname=#{job_name}
+  #SBATCH --comment=#{comment}
 ```
 
 ### ウィジットと利用可能なオプションとの組み合わせ
