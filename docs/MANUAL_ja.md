@@ -1,5 +1,5 @@
 ## はじめに
-Open ComposerはWebブラウザからジョブスケジューラにジョブを投入することができるWebアプリケーションです。Open Composerは[Open OnDemand](https://openondemand.org/)の上で動作します。
+Open ComposerはWebブラウザからジョブスケジューラにバッチジョブを投入することができるWebアプリケーションです。Open Composerは[Open OnDemand](https://openondemand.org/)の上で動作します。
 
 ## Webページの説明
 ### トップページ
@@ -135,7 +135,7 @@ script: |
   #SBATCH --partition=#{partition}
 ```
 
-`options`の2つ目の要素は配列で記述することも可能です。下記の例では、`script`の`#{package_1}`と`#{package_2}`は、配列の第1要素と第2要素に置き換えられます。後述の`multi_select`、`radio`、`checkbox`でも可能です。
+`options`の2つ目の要素は配列で記述することも可能です。下記の例では、`script`の`#{package_1}`と`#{package_2}`は、配列の第1要素と第2要素に置き換えられます。後述の`widget: multi_select`、`widget: radio`、`widget: checkbox`でも可能です。
 
 ```
 form:
@@ -239,7 +239,7 @@ script: |
 ```
 
 ### widget: checkbox
-チェックボックスを表示します。
+チェックボックスを表示します。次のように`required`を配列形式で設定した場合、チェックボックスの各項目が必須かどうかを設定します。
 
 ```
 form:
@@ -260,7 +260,7 @@ script: |
   #SBATCH --mail-type=#{mail_option}
 ```
 
-上記のように`required`を配列形式で設定した場合、チェックボックスの各項目が必須かどうかを設定します。下記のように`required`が配列形式でない場合かつ値が`true`の場合、1つ以上の項目がチェックがされていないとジョブの投入を行うことができない、という設定になります。
+次のように`required`が配列形式でない場合かつ値が`true`の場合、そのチェックボックスで1つ以上の項目がチェックがされていないとジョブの投入を行うことができない、という設定になります。
 
 ```
 form:
@@ -301,7 +301,7 @@ script: |
   cd #{working_dir}
 ```
 
-また、script中で利用できる関数として`dirname(FILE_PATH)`と`basename(FILE_PATH)`を提供しています。
+script中で利用できる関数として`dirname(FILE_PATH)`と`basename(FILE_PATH)`を提供しています。
 ディレクトリ名とファイル名を含むパス名から、`dirname()`はディレクトリ部分を、`basename()`はファイル部分だけを返します。
 
 ```
@@ -448,7 +448,7 @@ script: |
   #SBATCH --comment=#{comment}
 ```
 
-### ウィジットと利用可能なオプションとの組み合わせ
+### ウィジットと利用可能なオプションとの組合せ
 
 | Widget | label<br>value<br>required<br>help |  options<br>(Dynamic Form Widget) | size  | separator | direction | min<br>max<br>step| show_files<br>favorites |
 | ---- | ---- | ----  | ---- | ---- | ---- |  ----  |  ---- |
@@ -460,7 +460,7 @@ script: |
 | checkbox | ○ |  ○ (○) | | ○| ○|  | | 
 | path | ○ |  | | || | ○ | 
 
-各ウィジットにおいて`options`のみは必須項目ですが、他の項目は省略可能です。
+`options`のみは必須項目ですが、他の項目は省略可能です。
 
 ## manifest.ymlの設定
 アプリケーションの説明を記述します。サンプルは下記の通りです。
@@ -494,8 +494,8 @@ script: |
 - `options`で2つ目の要素がない場合、1つ目の要素が代わりに用いられます。
 - `script`において、ある行で利用されている変数が値を持たない場合、その行は表示されません。ただし、その変数の先頭にコロンを付加する（例：`#{:nodes}`や`#{basename(:input_file)}`）と、その変数が値を持たなくても行は出力されます。
 - Open Composerがジョブスクリプトをジョブスケジューラに投入するまでに行われる処理の順番は下記の通りです。
-1. 「Submit」ボタンがクリックされる
-2. `check`に記述されたスクリプトを実行（`check`がある場合）
+1. アプリケーションページで「Submit」ボタンがクリックされる
+2. `form.yml`の`check`に記述されたスクリプトを実行（`check`がある場合）
 3. `submit.yml`に記述された前処理を実行（`submit.yml`がある場合）
 4. ジョブスケジューラにジョブスクリプトを投入する
 

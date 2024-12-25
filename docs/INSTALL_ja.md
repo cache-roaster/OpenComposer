@@ -16,15 +16,15 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 | history_dir | 投入したジョブの情報のディレクトリ |
 | scheduler | 利用するスケジューラ|
 | bin_path | ジョブスケジューラのPATH |
-| ssh_wrapper | SSHを用いて他のノードのジョブスケジューラを用いる場合のログイン先 |
+| ssh_wrapper | SSHを用いて他のノードのジョブスケジューラを用いる場合のコマンド |
 | footer | フッタに記載する文字 |
 | thumbnail_width | トップページの各アプリケーションのサムネイルの横幅 |
 | navbar_color | ナビゲーションバーの色 |
 | dropdown_color | ドロップダウンメニューの色 |
 | footer_color | フッタの色 |
 | category_color | トップページのカテゴリの背景色 |
-| description_color | フォームページのアプリケーション説明の背景色 |
-| form_color | フォームページのテキストエリアの背景色 |
+| description_color | アプリケーションページのアプリケーション説明の背景色 |
+| form_color | アプリケーションページのテキストエリアの背景色 |
 
 ## Open OnDemandへの登録（管理者）
 Open Composerを`/var/www/ood/apps/sys/`に保存すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます。Open Composerのアイコンが表示されない場合は、Open OnDemand用の設定ファイル`./OpenComposer/manifest.yml`を確認してください。
@@ -35,19 +35,12 @@ Open Composer上のアプリケーションをOpen OnDemandのトップページ
 # cat /var/www/ood/apps/sys/Slurm/manifest.yml
 ---
 name: Slurm
-category: Jobs
 url: https://example.net/pun/sys/OpenComposer/Slurm
-new_window: true
-tile:
-  sub_caption: |
 ```
 
 ## Open OnDemandへの登録（一般ユーザ）
 一般ユーザ権限でOpen Composerをインストールすることもできます。ただし、事前に管理者権限でOpen OnDemandの[App Development](https://osc.github.io/ood-documentation/latest/how-tos/app-development/enabling-development-mode.html)の機能を有効化する必要があります。
 
-Open OnDemand上からOpen Composerをインストールする方法と、コマンドラインでインストール方法の2通りがあります。インストール後は、上記と同じ手順で`./OpenComposer/manifest.yml`を編集すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます（このアイコンはインストールしたユーザでしか表示されません）。
-
-### Open OnDemand上からインストールする場合
 ナビゲーションバーの「</> Develop」の「My Sandbox Apps (Development)」を選択します（Webブラウザのウィンドウサイズが小さい場合は、「</> Develop」ではなく「</>」と表示されますので注意ください）。
 
 ![Navbar](img/navbar.png)
@@ -68,12 +61,4 @@ Open OnDemand上からOpen Composerをインストールする方法と、コマ
 
 ![Bundle Install](img/bundle.png)
 
-### コマンドラインでインストールする場合
-
-```
-$ cd ${HOME}/ondemand/dev
-$ git clone https://github.com/RIKEN-RCCS/OpenComposer.git
-```
-
-ナビゲーションバーの「</> Develop」の「My Sandbox Apps (Development)」内にOpen Composerが表示されていますので、「Launch Open Composer」をクリックください。
-
+Open OnDemand用の設定ファイルである`./OpenComposer/manifest.yml`を編集すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます（このアイコンはインストールしたユーザでしか表示されません）。
