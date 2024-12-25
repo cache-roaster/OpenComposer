@@ -275,6 +275,7 @@ post "/*" do
   else
     script_location = params[HEAD_SCRIPT_LOCATION]
     script_name     = params[HEAD_SCRIPT_NAME]
+    job_name        = params[HEAD_JOB_NAME]
     script_path     = File.join(script_location, script_name)
     script_contents = params[JOB_SCRIPT_CONTENTS].gsub("\r\n", "\n")
     job_id    = nil
@@ -304,7 +305,7 @@ post "/*" do
       # Run preprocessing commands in submit.yml
       prep = read_yaml(File.join(app_path, "submit.yml"))
       system(prep["script"]) if prep&.dig("script")
-      job_id, error_msg = scheduler.submit(script_path, bin_path, ssh_wrapper)
+      job_id, error_msg = scheduler.submit(script_path, job_name, bin_path, ssh_wrapper)
     end
 
     # Save a job history

@@ -2,16 +2,17 @@
 # interface to interact with different scheduling systems.
 class Scheduler
   # Submit a job to the scheduler.
-  # @param script_path [String] the path to the job script.
-  # @param bin_path [String] the path to the directory where a binary is located (optional).
-  # @param ssh_wrapper [String] the SSH wrapper. This is used when the local server does not have a job scheduler (optional).
+  # @param script_path [String] path to the job script.
+  # @param job_name [String] job name.
+  # @param bin_path [String] path to the directory where a binary is located (optional).
+  # @param ssh_wrapper [String] SSH wrapper. This is used when the local server does not have a job scheduler (optional).
   # @return [Array<String, String>] job id and error message. If successful, the error message is nil; otherwise, the job id is nil.
-  def submit(script_path, bin_path = nil, ssh_wrapper = nil)
+  def submit(script_path, job_name = nil, bin_path = nil, ssh_wrapper = nil)
     raise NotImplementedError, "This method should be overridden by a subclass"
   end
 
   # Cancel one or more jobs.
-  # @param job_ids [Array] an array of job IDs to be canceled.
+  # @param job_ids [Array] array of job IDs to be canceled.
   # @param bin_path [String] Same as submit().
   # @param ssh_wrapper [String] Same as submit().
   # @return [String] error message. If successful, the error message is nil.
@@ -20,7 +21,7 @@ class Scheduler
   end
 
   # Query the status of one or more jobs.
-  # @param job_ids [Array] an array of job IDs to be queried.
+  # @param job_ids [Array] array of job IDs to be queried.
   # @param bin_path [String] Same as submit().
   # @param ssh_wrapper [String] Same as submit().
   # @return [Array<Hash>] a hash array containing job status and error message.
