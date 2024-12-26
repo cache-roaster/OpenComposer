@@ -5,9 +5,11 @@ class Fujitsu_tcs < Scheduler
   # Submit a job to the Fujitsu TCS scheduler using the 'pjsub' command.
   # If the submission is successful, it checks for job details using the 'pjstat' command.
   def submit(script_path, job_name = nil, bin_path = nil, ssh_wrapper = nil)
+    init_bash_path = "/usr/share/Modules/init/bash"
+    init_bash = "source #{init_bash_path};" if File.exist?(init_bash_path) && ssh_wrapper.nil?
     pjsub = find_command_path("pjsub", bin_path)
     option = "-N #{job_name}" unless job_name.empty?
-    command = [ssh_wrapper, pjsub, option, script_path].compact.join(" ")
+    command = [init_bash, ssh_wrapper, pjsub, option, script_path].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return nil, stderr unless status.success?
     return nil, "Job ID not found in output." unless stdout.match?(/Job (\d+) submitted/)
