@@ -12,9 +12,9 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 | 項目名 | 設定内容 |
 | ---- | ---- |
 | login_node | 履歴ページからOpen OnDemandのWebターミナルを起動した際のログイン先 |
-| apps_dir | アプリケーションのディレクトリ |
-| history_dir | 投入したジョブの情報のディレクトリ |
 | scheduler | 利用するスケジューラ|
+| apps_dir | アプリケーションのディレクトリ |
+| data_dir | 投入したジョブの情報のディレクトリ |
 | bin_path | ジョブスケジューラのPATH |
 | ssh_wrapper | SSHを用いて他のノードのジョブスケジューラを用いる場合のコマンド |
 | footer | フッタに記載する文字 |

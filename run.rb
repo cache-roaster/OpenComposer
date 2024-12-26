@@ -56,7 +56,7 @@ def create_conf
   halt 500, "In conf.yml, \"scheduler:\" must be defined."  if conf["scheduler"].nil?
 
   conf["apps_dir"]          ||= "./apps"
-  conf["history_dir"]       ||= ENV["HOME"] + "/composer"
+  conf["data_dir"]          ||= ENV["HOME"] + "/composer"
   conf["bin_path"]          ||= nil
   conf["ssh_wrapper"]       ||= nil
   conf["footer"]            ||= "&nbsp;"
@@ -68,7 +68,7 @@ def create_conf
   conf["description_color"] ||= conf["category_color"]
   conf["form_color"]        ||= "#BFCFE7"
 
-  conf["history_db"] = File.join(conf["history_dir"], conf["scheduler"] + ".db")
+  conf["history_db"] = File.join(conf["data_dir"], conf["scheduler"] + ".db")
   return conf
 end
 
@@ -253,7 +253,7 @@ post "/*" do
   conf        = create_conf
   bin_path    = conf["bin_path"]
   ssh_wrapper = conf["ssh_wrapper"]
-  history_dir = conf["history_dir"]
+  data_dir    = conf["data_dir"]
   history_db  = conf["history_db"]
   scheduler   = create_scheduler(conf["scheduler"])
 
@@ -313,7 +313,7 @@ post "/*" do
     end
 
     # Save a job history
-    FileUtils.mkdir_p(history_dir)
+    FileUtils.mkdir_p(data_dir)
     db = PStore.new(history_db)
     db.transaction do
       Array(job_id).each do |id|

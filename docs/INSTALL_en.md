@@ -14,9 +14,9 @@ All fields except `login_node` and `scheduler` can be omitted.
 | Item name | Setting |
 | ---- | ---- |
 | login_node | Login node when you launch the Open OnDemand web terminal from the history page |
-| apps_dir | Application directory |
-| history_dir | Directory where submitted job information is stored |
 | scheduler | Job scheduler |
+| apps_dir | Application directory |
+| data_dir | Directory where submitted job information is stored |
 | bin_path | PATH of job scheduler commands |
 | ssh_wrapper | Commands for using the job scheduler of another node using SSH |
 | footer | Text in the footer |
