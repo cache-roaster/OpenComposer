@@ -16,7 +16,7 @@ helpers do
   # If the icon is not provided. a placeholder image is used.
   def output_thumbnail(dirname, name, icon)
     is_bootstrap_icon = false
-    icon_path = "no_image_square.jpg"
+    icon_path = url + "no_image_square.jpg"
 
     if !icon.nil?
       if valid_url?(icon)
