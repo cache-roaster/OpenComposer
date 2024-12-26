@@ -88,7 +88,9 @@ class Fujitsu_tcs < Scheduler
     # Note that Job 34716159 is not displayed because the job has been completed.
 
     # Retrieve completed jobs using the same command with '-H' flag
-    stdout2, stderr2, status2 = Open3.capture3(command + " -H")
+    # Outputs a list of jobs that were completed within the past 365 days, which is the maximum value.
+    # If a job was completed before 366 days, it will be displayed as "Queued."
+    stdout2, stderr2, status2 = Open3.capture3(command + " -H day=365")
     return nil, stderr2 unless status2.success?
     # -H: Display only information about jobs that have completed
     # ---
