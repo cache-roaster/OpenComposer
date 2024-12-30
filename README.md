@@ -10,7 +10,7 @@ Open Composer is a web application to generate batch job scripts and submit batc
 - Fujitsu_TCS
 
 ## Demo
-https://github.com/user-attachments/assets/6fc8cec2-6d10-4184-96bc-a634958c2f8f
+https://github.com/user-attachments/assets/0eee0b62-9364-465a-ae1e-7d412c1c9de9
 
 ## Reference
 - The 197th HPC Research Symposium (Japanese) [[PDF](https://mnakao.net/data/2024/HPC197.pdf)] [[Slide](https://mnakao.net/data/2024/HPC197-slide.pdf)]
