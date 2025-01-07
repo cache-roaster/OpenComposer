@@ -22,7 +22,7 @@ You can check the execution status of jobs and stop currently running jobs.
 
 ![History page](img/history_page.png)
 
-- Enter text in "Filter" on the right of the header and press the Enter key to display only jobs whose "Script Name" matches the text.
+- Enter text in "Filter" on the right of the header and press the Enter key to display only jobs whose "Script Name" or "Job Name" matches the text.
 - Click the "All", "Running", "Queued", or "Completed" radio button on the right of the header to display only jobs that correspond to that status.
 - To cancel a running job or a queued job, check the leftmost check box of the job and click "Cancel Job" above the table.
 - To delete a completed job from the table, check the leftmost check box of the job and click "Delete Job" above the table.
