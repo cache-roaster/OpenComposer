@@ -508,7 +508,7 @@ description: |
 
 - name: Application name (If this key is omitted, the directory name will be used instead)
 - category: Category name
-- icon: Path to image file for icon (URL or [Bootstrap icon](https://icons.getbootstrap.com/) is also possible. For Bootstrap icons, write `icon: bi-airplane-fill`)
+- icon: Path to image file for icon. URL, [Bootstrap icon](https://icons.getbootstrap.com/), or [Font Awesome icon](https://fontawesome.com) is also possible. For Bootstrap icons, write `icon: bi-airplane-fill`. For Font Awesome icons, write `icon: fa-solid fa-gear`.
 - description: Description of the application
 
 ## Settings of submit.yml

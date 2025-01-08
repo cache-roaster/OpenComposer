@@ -462,7 +462,7 @@ description: |
 
 - name: アプリケーション名（このキーを省略した場合はディレクトリ名が代わりに用いられます）
 - category：カテゴリ名
-- icon: アイコンのための画像ファイルへのパス（URLや[Bootstrapアイコン](https://icons.getbootstrap.com/)も可能。Bootstrapアイコンの場合は`icon: bi-airplane-fill`のように記述する）
+- icon: アイコンのための画像ファイルへのパス。URL、[Bootstrapアイコン](https://icons.getbootstrap.com/)、[Font Awesomeアイコン](https://fontawesome.com)も利用可能です。Bootstrapアイコンの場合は`icon: bi-airplane-fill`のように記述します。Font Awesomeアイコンの場合は`icon: fa-solid fa-gear`のように記述します
 - description: アプリケーションの説明
 
 ## submit.ymlの設定
