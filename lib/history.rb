@@ -95,12 +95,12 @@ helpers do
     HTML
 
     job_details.each do |label, value|
-      html += "<tr><td>#{label}</td><td>#{value}</td></tr>\n"
+      html += "<tr><td>#{ERB::Util.html_escape(label)}</td><td>#{ERB::Util.html_escape(value)}</td></tr>\n"
     end
 
     filtered_keys = job[JOB_KEYS] - [JOB_NAME, JOB_PARTITION, JOB_SUBMISSION_TIME, JOB_STATUS_ID]
     filtered_keys.each do |key|
-      html += "<tr><td>#{key}</td><td>#{job[key]}</td></tr>\n"
+      html += "<tr><td>#{ERB::Util.html_escape(key)}</td><td>#{ERB::Util.html_escape(job[key])}</td></tr>\n"
     end
 
     html += <<~HTML
@@ -116,7 +116,7 @@ helpers do
   def output_job_script_modal(job)
     modal_id = "_historyJobScript#{job[JOB_ID]}"
     job_script = job[JOB_SCRIPT_CONTENTS].gsub(/\r\n|\n/, '<br>')
-    job_link = "#{@script_name}#{job[JOB_APP_PATH]}?jobId=#{job[JOB_ID]}"
+    job_link = "#{@script_name}#{job[JOB_APP_PATH]}?jobId=#{URI.encode_www_form_component(job[JOB_ID])}"
 
     <<~HTML
     <div class="modal" aria-hidden="true" id="#{modal_id}" tabindex="-1">

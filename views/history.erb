@@ -90,7 +90,7 @@
 	        <%= r %>
               <% end %>
             </td>
-            <td><%= job[JOB_PARTITION] %></td>
+            <td><%= ERB::Util.html_escape(job[JOB_PARTITION]) %></td>
             <td>
               <a target="_blank" href="<%= @my_ood_url %>/pun/sys/dashboard/files/fs<%= job[HEAD_SCRIPT_LOCATION] %>"><%= job[HEAD_SCRIPT_LOCATION] %></a>
               <a style="color: black; text-decoration: none;" target="_blank" href="<%= @my_ood_url %>/pun/sys/shell/ssh/<%= @login_node %>/<%= job[HEAD_SCRIPT_LOCATION] %>">
