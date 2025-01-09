@@ -402,7 +402,7 @@ script: |
 ```
 
 ### ウィジットの非表示化
-`options`の各配列の第3要素以降に`[hide|show]-(KEY)`を指定します。次の例では、`hide_advanced_options`をチェックすると`comment`が非表示になります。無効化とは異なり、そのキーのウィジットが表示されないだけであり、そのキーを利用している`script`の行には影響しません。
+`options`の各配列の第3要素以降に`[hide|show]-(KEY)`を指定します。次の例では、`hide_advanced_options`をチェックすると`comment`が非表示になります。無効化とは異なり、そのキーのウィジットが表示されないだけであり、そのキーを利用している`script`の行には影響しません。`indent`はWebフォームの左側にインデントを作成します。数値は1〜5が入力でき、数値が大きくなるほどインデント幅は大きくなります。
 
 ```
 form:
@@ -414,6 +414,7 @@ form:
   comment:
     widget: text
     label: Comment
+    indent: 3
 
 script: |
   #SBATCH --comment=#{comment}
@@ -431,6 +432,7 @@ form:
   comment:
     widget: text
     label: Comment
+    indent: 3
 
 script: |
   #SBATCH --comment=#{comment}
@@ -438,7 +440,7 @@ script: |
 
 ### ウィジットと利用可能なオプションとの組合せ
 
-| Widget | label<br>value<br>required<br>help |  options<br>(Dynamic Form Widget) | size  | separator | direction | min<br>max<br>step| show_files<br>favorites |
+| Widget | label<br>value<br>required<br>help<br>indent |  options<br>(Dynamic Form Widget) | size  | separator | direction | min<br>max<br>step| show_files<br>favorites |
 | ---- | ---- | ----  | ---- | ---- | ---- |  ----  |  ---- |
 | number | ○ | | ○ | | | ○| | 
 | text<br>email | ○ |  | ○ | | |  | | 

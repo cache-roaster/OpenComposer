@@ -449,7 +449,8 @@ Specifies `[hide|show]-(KEY)` for the third element and onward of each `options`
 In the following example,
 checking `hide_advanced_options` will hide `comment`.
 Unlike disabling, it only hides the widget of that key, and does not affect the `script` line.
-
+The `indent` creates an indent on the left side of a web form.
+You can enter a number from 1 to 5, and the higher the number, the larger the indent width.
 ```
 form:
   hide_advanced_option:
@@ -460,6 +461,7 @@ form:
   comment:
     widget: text
     label: Comment
+    indent: 3
 
 script: |
   #SBATCH --comment=#{comment}
@@ -477,6 +479,7 @@ form:
   comment:
     widget: text
     label: Comment
+    indent: 3
 
 script: |
   #SBATCH --comment=#{comment}
@@ -484,7 +487,7 @@ script: |
 
 ### Combining widgets with available options
 
-| Widget | label<br>value<br>required<br>help |  options<br>(Dynamic Form Widget) | size  | separator | direction | min<br>max<br>step| show_files<br>favorites |
+| Widget | label<br>value<br>required<br>help<br>indent |  options<br>(Dynamic Form Widget) | size  | separator | direction | min<br>max<br>step| show_files<br>favorites |
 | ---- | ---- | ----  | ---- | ---- | ---- |  ----  |  ---- |
 | number | ○ | | ○ | | | ○| | 
 | text<br>email | ○ |  | ○ | | |  | | 
