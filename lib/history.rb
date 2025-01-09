@@ -1,4 +1,31 @@
 helpers do
+  # Generate HTML for icons linking to related applications.
+  def output_related_app_icon(job_apps_path, apps)
+    apps.map do |app|
+      if app.is_a?(Hash)
+        # Extract key and value from the hash
+        key, value = app.first
+        href = "#{@my_ood_url}/pun/sys/dashboard/batch_connect/sys/#{key}"
+        is_bi_or_fa_icon, icon_path = get_icon_path(job_apps_path, value)
+        
+        # Generate icon HTML based on whether it's a Bootstrap/Font Awesome icon or an image
+        icon_html = if is_bi_or_fa_icon
+                      "<i class=\"#{value}\"></i>"
+                    else
+                      "<img width=14 alt=\"#{key}\" src=\"#{icon_path}\">"
+                    end
+      else
+        # Handle cases where app is not a hash (direct app name)
+        key = app
+        href = "#{@my_ood_url}/pun/sys/dashboard/batch_connect/sys/#{key}"
+        icon_html = "<img width=14 alt=\"#{key}\" src=\"#{@my_ood_url}/pun/sys/dashboard/apps/icon/#{key}/sys/sys\">"
+      end
+      
+      # Return the full HTML string for the link
+      "<a style=\"color: black; text-decoration: none;\" target=\"_blank\" href=\"#{href}\">\n  #{icon_html}\n</a>\n"
+    end
+  end
+
   # Output a modal for a specific action (e.g., cancel or delete).
   def output_action_modal(action)
     id = "_history#{action.capitalize}"

@@ -9,7 +9,7 @@ Save Open Composer in your Open OnDemand application directory: `/var/www/ood/ap
 
 ## Open Composer configuration
 Edit `./OpenComposer/conf.yml.erb`.
-All fields except `login_node` and `scheduler` can be omitted.
+All fields except `login_node`, `scheduler` and `apps_dir` can be omitted.
 
 | Item name | Setting |
 | ---- | ---- |

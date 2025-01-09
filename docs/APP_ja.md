@@ -1,6 +1,7 @@
 ## 概要
-1. `./apps/`以下にアプリケーション用のディレクトリを作成します。例えば、`./apps/test`とします
-2. 下記の設定ファイルを作成します
+1. すべてのアプリケーションの保存するためのディレクトリ名を`conf.yml.erb`の`apps_dir`に記入します。ここでは、`apps_dir: ./apps`とします。
+2. `./apps/`以下にアプリケーション用のディレクトリを作成します。アプリケーション名を`test`とした場合、`./apps/test`を作成します。
+3. 下記の設定ファイルを作成します
 - `./apps/test/form.yml`：Webフォームの設定
 - `./apps/test/manifest.yml`：アプリケーションの説明
 - `./apps/test/submit.yml`：ジョブ投入前の処理
@@ -458,12 +459,17 @@ category: Quantum Chemistry
 icon: icon.png
 description: |
   [Gaussian](https://gaussian.com) is a general purpose computational chemistry software package.
+related_app:
+  - OVITO: ovito.png
+  - GrADS: bi-airplane-fill
+  - ImageJ
 ```
 
 - name: アプリケーション名（このキーを省略した場合はディレクトリ名が代わりに用いられます）
 - category：カテゴリ名
 - icon: アイコンのための画像ファイルへのパス。URL、[Bootstrapアイコン](https://icons.getbootstrap.com/)、[Font Awesomeアイコン](https://fontawesome.com)も利用可能です。Bootstrapアイコンの場合は`icon: bi-airplane-fill`のように記述します。Font Awesomeアイコンの場合は`icon: fa-solid fa-gear`のように記述します
 - description: アプリケーションの説明
+- related_app: 後処理などを行う場合、Open OnDemandに登録されているアプリケーションを指定します。指定されたアプリケーションは履歴ページで表示されます。`icon:`と同様にアイコン画像などの指定が可能です。画像の指定がない場合は、Open OnDemandに登録されている画像が用いられます。
 
 ## submit.ymlの設定
 ジョブスクリプトをジョブスケジューラに投入する前の処理を記述します。`script`のキーのみを持ちます。サンプルは下記の通りです。アプリケーションページのヘッダで定義されている「Script Location」、「Script Name」、「Job Name」は、それぞれ「@_SCRIPT_LOCATION」、「@_SCRIPT_NAME」、「@_JOB_NAME」で参照できます。この処理の実行後に、ジョブスクリプトを投入するためのコマンド（例えば、sbatch <%= @_SCRIPT_NAME %>）が実行されます。
@@ -485,4 +491,3 @@ script: |
 2. `form.yml`の`check`に記述されたスクリプトを実行（`check`がある場合）
 3. `submit.yml`に記述された前処理を実行（`submit.yml`がある場合）
 4. ジョブスケジューラにジョブスクリプトを投入する
-

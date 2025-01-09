@@ -31,7 +31,7 @@ JOB_PARTITION        = "Partition"
 JOB_KEYS             = "job_keys"
 
 # Structure of manifest
-Manifest = Struct.new(:dirname, :name, :category, :description, :icon)
+Manifest = Struct.new(:dirname, :name, :category, :description, :icon, :related_app)
 
 # Create a YAML or ERB file object. Give priority to ERB.
 # If the file does not exist or is not valid, return nil.
@@ -52,10 +52,10 @@ def create_conf
   conf = read_yaml("./conf.yml")
 
   # Check required values
-  halt 500, "In conf.yml, \"login_node:\" must be defined." if conf["login_node"].nil?
-  halt 500, "In conf.yml, \"scheduler:\" must be defined."  if conf["scheduler"].nil?
-
-  conf["apps_dir"]          ||= "./apps"
+  ["login_node", "scheduler", "apps_dir"].each do |key|
+    halt 500, "In conf.yml, \"#{key}:\" must be defined." if conf[key].nil?
+  end
+  
   conf["data_dir"]          ||= ENV["HOME"] + "/composer"
   conf["bin_path"]          ||= nil
   conf["ssh_wrapper"]       ||= nil
@@ -77,10 +77,12 @@ end
 def create_manifest(directory_path)
   manifest = read_yaml(File.join(directory_path, "manifest.yml"))
   dirname  = File.basename(directory_path)
-  return Manifest.new(dirname, dirname, nil, nil, nil) if manifest.nil?
+  return Manifest.new(dirname, dirname, nil, nil, nil, nil) if manifest.nil?
 
   manifest["name"] ||= dirname
-  return Manifest.new(dirname, manifest["name"], manifest["category"], manifest["description"], manifest["icon"])
+  related_app = Array(manifest["related_app"]) # If manifest["related_app"] is nil, it will be an empty array.
+  
+  return Manifest.new(dirname, manifest["name"], manifest["category"], manifest["description"], manifest["icon"], related_app)
 end
 
 # Create an array of manifest objects for all applications.
@@ -129,16 +131,14 @@ end
 
 # Create a website of Top, Application, and History.
 def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = nil)
-  @conf = create_conf
-  apps_dir = @conf["apps_dir"]
-  halt 404, "#{apps_dir} is not found." unless Dir.exist?(apps_dir)
-
+  @conf         = create_conf
+  @apps_dir     = @conf["apps_dir"]
   @version      = VERSION
   @my_ood_url   = request.base_url
   @script_name  = request.script_name
   @path_info    = request.path_info
   @current_path = File.join(@script_name, @path_info)
-  @manifests    = create_all_manifests(apps_dir).sort_by { |m| [(m.category || "").downcase, m.name.downcase] }
+  @manifests    = create_all_manifests(@apps_dir).sort_by { |m| [(m.category || "").downcase, m.name.downcase] }
   @manifests_w_category, @manifests_wo_category = @manifests.partition(&:category)
 
   case @path_info
@@ -172,7 +172,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
     if !@manifest.nil?
       @name = @manifest["name"]
       @head = read_yaml("./lib/head.yml")
-      @body = read_yaml(File.join(apps_dir, @path_info, "form.yml"))
+      @body = read_yaml(File.join(@apps_dir, @path_info, "form.yml"))
 
       # Since the widget name is used as a variable in Ruby, it should consist of only
       # alphanumeric characters and underscores, and numbers should not be used at the
@@ -220,7 +220,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
 end
 
 # Send an application icon.
-get "/apps/:folder/:icon" do
+get "/:apps_dir/:folder/:icon" do
   icon_path = File.join(create_conf["apps_dir"], params[:folder], params[:icon])
   send_file(icon_path) if File.exist?(icon_path)
 end

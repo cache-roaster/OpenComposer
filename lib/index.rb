@@ -10,26 +10,36 @@ rescue URI::InvalidURIError => e
   halt 500, e.message
 end
 
+# Resolves the appropriate icon path based on the provided icon and directory name.
+def get_icon_path(dirname, icon)
+  is_bi_or_fa_icon = false # Bootstrap icon or Font Awesome icon
+  icon_path = if icon.nil?
+                URI.join(url, "no_image_square.jpg")
+              elsif valid_url?(icon)
+                icon
+              else
+                tmp_icon_path = "/#{@apps_dir}/#{dirname}/#{icon}"
+                icon_local_path = File.join(Dir.pwd, tmp_icon_path)
+
+                if File.exist?(icon_local_path)
+                  File.join(@script_name, tmp_icon_path)
+                elsif icon.start_with?("bi-", "fa-")
+                  is_bi_or_fa_icon = true
+                  nil
+                else
+                  URI.join(url, "no_image_square.jpg")
+                end
+              end
+  
+  [is_bi_or_fa_icon, icon_path]
+end
+
 helpers do
   # Create an HTML snippet for displaying a thumbnail image.
   # The image source can either be a URL, a bootstrap icon, a fontawesome icon or a local path.
   # If the icon is not provided. a placeholder image is used.
   def output_thumbnail(dirname, name, icon)
-    is_bi_or_fa_icon = false # Bootstrap icon or Font Awesome icon
-    icon_path = url + "no_image_square.jpg"
-
-    if !icon.nil?
-      if valid_url?(icon)
-        icon_path = icon
-      else
-        icon_path = "#{@script_name}/apps/#{dirname}/#{icon}"
-        icon_local_path = File.join(Dir.pwd, icon_path)
-        file_exist = File.exist?(icon_local_path)
-        if (icon.start_with?("bi-") || icon.start_with?("fa-")) && !file_exist
-          is_bi_or_fa_icon = true
-        end
-      end
-    end
+    is_bi_or_fa_icon, icon_path = get_icon_path(dirname, icon)
 
     # Use the text-reset class to prevent color changes when using font awesome icons
     html = <<~HTML

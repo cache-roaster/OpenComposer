@@ -7,7 +7,7 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 ```
 
 ## Open Composerの設定
-`./OpenComposer/conf.yml.erb`を編集してください。`login_node`と`scheduler`以外は省略可能です。
+`./OpenComposer/conf.yml.erb`を編集してください。`login_node`と`scheduler`と`apps_dir`以外は省略可能です。
 
 | 項目名 | 設定内容 |
 | ---- | ---- |

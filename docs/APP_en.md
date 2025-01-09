@@ -1,6 +1,7 @@
 ## Overview
-1. Create a directory for the application under `./apps/`. For example, use `./apps/test`.
-2. Create the following configuration files in the directory:
+1. Enter the directory name to store all applications in `apps_dir` in `conf.yml.erb`. Here, set it to `apps_dir: ./apps`.
+2. Create a directory for applications under `./apps/`. If the application name is `test`, create `./apps/test`.
+3. Create the following configuration files in the directory:
 - `./apps/test/form.yml`: Settings for the web form
 - `./apps/test/manifest.yml`: Description of the application
 - `./apps/test/submit.yml`: Pre-processing steps before job submission
@@ -504,12 +505,17 @@ category: Quantum Chemistry
 icon: icon.png
 description: |
   [Gaussian](https://gaussian.com) is a general purpose computational chemistry software package.
+related_app:
+  - OVITO: ovito.png
+  - GrADS: bi-airplane-fill
+  - ImageJ
 ```
 
 - name: Application name (If this key is omitted, the directory name will be used instead)
 - category: Category name
 - icon: Path to image file for icon. URL, [Bootstrap icon](https://icons.getbootstrap.com/), or [Font Awesome icon](https://fontawesome.com) is also possible. For Bootstrap icons, write `icon: bi-airplane-fill`. For Font Awesome icons, write `icon: fa-solid fa-gear`.
 - description: Description of the application
+- related_app: When performing post-processing, specify an application registered in Open OnDemand. The specified application will be displayed on the history page. As with `icon:`, you can specify icon images, etc. If no image is specified, the image registered in Open OnDemand will be used.
 
 ## Settings of submit.yml
 Describes the process before submitting a job script to the job scheduler.
@@ -536,5 +542,3 @@ script: |
 2. Execute the script written in `check` in `form.yml` (if `check` exists)
 3. Execute the pre-processing written in `submit.yml` (if `submit.yml` exists)
 4. Submit the job script to the job scheduler
-
-
