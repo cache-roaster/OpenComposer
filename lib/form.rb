@@ -82,7 +82,7 @@ helpers do
 
   # Output style to add an indent.
   def add_indent_style(value)
-    value.key?('indent') && (1..5).include?(value['indent'].to_i) ? "padding-left: #{value['indent']}em;" : ""
+    value.key?('indent') && (1..5).include?(value['indent'].to_i) ? "padding-left: #{value['indent'].to_i * 1.2}em;" : ""
   end
   
   # Output a number, text, or email widget.
