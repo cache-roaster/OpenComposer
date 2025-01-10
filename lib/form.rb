@@ -372,12 +372,12 @@ helpers do
                        <tr class='table-secondary'>
                         <th class='text-center' style="white-space: nowrap; width: 1%;">Type
                           <div class="d-inline">
-                            <button tabindex="-1" style="font-size:8px;" class="btn btn-sm btn-outline-primary p-1" id="oc-modal-button-#{key}-0" onclick="ocForm.toggleSort('#{key}', 0); return false;" data-direction="asc">&#9660;</button>
+                            <button tabindex="-1" style="font-size:8px;" class="btn btn-sm btn-outline-primary p-1" id="oc-modal-button-#{key}-0" onclick="ocForm.toggleSort('#{key}', 0); return false;" data-direction="desc">&#9660;</button>
                           </div>
                         </th>
                         <th class='text-center'>Name
                           <div class="d-inline">
-                            <button tabindex="-1" style="font-size:8px;" class="btn btn-sm btn-outline-primary p-1" id="oc-modal-button-#{key}-1" onclick="ocForm.toggleSort('#{key}', 1); return false;" data-direction="asc">&#9660;</button>
+                            <button tabindex="-1" style="font-size:8px;" class="btn btn-sm btn-outline-primary p-1" id="oc-modal-button-#{key}-1" onclick="ocForm.toggleSort('#{key}', 1); return false;" data-direction="desc">&#9660;</button>
                           </div>
                         </th>
                       </tr>

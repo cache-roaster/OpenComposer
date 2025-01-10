@@ -236,7 +236,7 @@ get "/_files" do
     entries = Dir.children(path).map do |entry|
       full_path = File.join(path, entry)
       { name: entry, path: full_path, type: File.directory?(full_path) ? "directory" : "file" }
-    end
+    end.sort_by { |entry| entry[:name].downcase }
   else
     # When a non-existent directory is specified using the set-value statement of the dynamic form widget.
     entries = ""
