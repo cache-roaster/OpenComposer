@@ -115,7 +115,7 @@ def replace_with_cache(form, cache)
                      when "checkbox"
                        value["options"].size.times.map { |i| cache["#{key}_#{i+1}"] }
                      when "path"
-                       cache["#{key}_input"]
+                       cache["#{key}"]
                      end
   end
 end
