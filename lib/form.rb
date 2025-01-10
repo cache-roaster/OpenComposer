@@ -80,9 +80,9 @@ helpers do
     return "<p id=\"help_#{id}\" style=\"#{style}\" class=\"form-text mb-0\">#{help.to_s.chomp}</p>\n"
   end
 
-  # Output a parameter for padding start
-  def output_padding_start(value)
-    value.key?('indent') && (1..5).include?(value['indent'].to_i) ? "ps-" + value['indent'].to_s : ""
+  # Output style to add an indent.
+  def add_indent_style(value)
+    value.key?('indent') && (1..5).include?(value['indent'].to_i) ? "padding-left: #{value['indent'].to_s}em;" : ""
   end
   
   # Output a number, text, or email widget.
@@ -704,8 +704,8 @@ helpers do
     form = body["form"]
     html = ""
     form.each_with_index do |(key, value), index|
-      ps    = output_padding_start(value)
-      html += (index != form.size - 1) ? "<div class=\"mb-3 position-relative #{ps}\">\n" : "<div class=\"mb-0 position-relative #{ps}\">\n"
+      indent = add_indent_style(value)
+      html  += (index != form.size - 1) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
       
       case value['widget']
       when 'number', 'text', 'email'
@@ -750,8 +750,8 @@ helpers do
     form = yml["form"]
     html = ""
     form.each_with_index do |(key, value), index|
-      ps    = output_padding_start(value)
-      html += (index != form.size - 1) ? "<div class=\"mb-3 position-relative #{ps}\">\n" : "<div class=\"mb-0 position-relative #{ps}\">\n"
+      indent = add_indent_style(value)
+      html  += (index != form.size - 1) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
 
       case value['widget']
       when 'number', 'text', 'email'

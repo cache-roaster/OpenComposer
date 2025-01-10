@@ -414,7 +414,7 @@ form:
   comment:
     widget: text
     label: Comment
-    indent: 3
+    indent: 1
 
 script: |
   #SBATCH --comment=#{comment}
@@ -432,7 +432,7 @@ form:
   comment:
     widget: text
     label: Comment
-    indent: 3
+    indent: 1
 
 script: |
   #SBATCH --comment=#{comment}
