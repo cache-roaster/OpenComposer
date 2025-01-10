@@ -923,10 +923,11 @@ ocForm.setValue = function(key, num, widget, attr, value, fromId) {
       break;
     case 'radio':
     case 'checkbox':
-      const parentDiv = document.getElementById(key + '_1').closest('div');
+      if (typeof fromId === 'undefined') break;
+      
       const _fromId = fromId.replace(/_\d+$/, ""); // hoge_2 -> hoge
-
       if (key !== _fromId) {
+	const parentDiv = document.getElementById(key + '_1').closest('div');
 	const divs = parentDiv.parentElement.querySelectorAll('div');
 	divs.forEach(div => {
           const input = div.querySelector(`input[type="${widget}"]`);
