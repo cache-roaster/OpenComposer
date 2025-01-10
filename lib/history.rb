@@ -1,6 +1,8 @@
 helpers do
   # Generate HTML for icons linking to related applications.
   def output_related_app_icon(job_apps_path, apps)
+    return [] if apps.nil?
+    
     apps.map do |app|
       if app.is_a?(Hash)
         # Extract key and value from the hash
