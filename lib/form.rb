@@ -311,6 +311,7 @@ helpers do
   # Output a path widget.
   def output_path_html(key, value)
     favorites = value['favorites'] ? value['favorites'].select { |path| File.exist?(path) } : []
+    current_value = value['value'] || ""
     current_path = value['value'] || Dir.home
     current_path = Dir.home unless File.exist?(current_path.to_s)
     current_path = (File.directory?(current_path) && !current_path.end_with?('/')) ? "#{current_path}/" : current_path
@@ -320,7 +321,7 @@ helpers do
     html  = output_label_with_span_tag(key, value)
     html += <<~HTML
     <div class="d-flex align-items-center">
-      <input type="text" tabindex="#{@table_index}" value="#{current_path}" id="#{key}" name="#{key}" #{required} class="form-control mt-0" oninput="ocForm.updateValues('#{key}')">
+      <input type="text" tabindex="#{@table_index}" value="#{current_value}" id="#{key}" name="#{key}" #{required} class="form-control mt-0" oninput="ocForm.updateValues('#{key}')">
       <button class="btn btn-dark mt-0 text-nowrap" data-bs-toggle="modal" data-bs-target="#modal-#{key}" tabindex="-1" onclick="ocForm.loadFiles('#{@script_name}', '#{current_path}', '#{current_type}', '#{key}', #{show_files}, '#{Dir.home}', true); return false;">Select Path</button>
     </div>
     <div class="modal" id="modal-#{key}">
