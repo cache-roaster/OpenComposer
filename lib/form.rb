@@ -520,33 +520,39 @@ helpers do
   # Output a JavaScript code to enable/disable and/or show/hide widgets.
   def output_exec_dw_disable_js(key, options, form)
     js = ""
-    options.each_with_index do |option, i|
-      disable_elements, enable_elements = get_oc_disable_attrs(option[2..-1], form)
-
-      disable_elements.each_with_index do |e, j|
-        js   += "  if(ocForm.isElementChecked('#{key}_#{i+1}')){\n" if j == 0
-        num   = e.key?('num') ? e['num'] : "null"
-        value = e.key?('value') ? e['value'] : "null"
-        size  = get_target_size(e['key'], form)
-        js   += "    ocForm.disableWidget('#{e['key']}', #{num}, \"#{form[e['key']]['widget']}\", \"#{value}\", #{size});\n"
-        js   += "    ocForm.hideWidget('#{e['key']}', '#{form[e['key']]['widget']}', #{size});\n" unless e.key?('num')
-        js   += "  }\n" if j == disable_elements.size - 1
-      end
+    ["disable", "enable"].each do |type|
+       conditions_by_key = Hash.new { |hash, key| hash[key] = Set.new }
+       actions_by_key    = Hash.new { |hash, key| hash[key] = Set.new }
+       
+       options.each_with_index do |option, i|
+         elements = type ==  "disable" ? get_oc_disable_attrs(option[2..-1], form).first : get_oc_disable_attrs(option[2..-1], form).last
+         
+         elements.each do |e|
+           check = type == "disable" ? 'ocForm.isElementChecked' : '!ocForm.isElementChecked'
+           conditions_by_key[e['key']] << "#{check}(\"#{key}_#{i+1}\")" 
+           actions_by_key[e['key']] << {
+             num:    e.key?('num') ? e['num'] : "null",
+             widget: form[e['key']]['widget'],
+             value:  e.key?('value') ? e['value'] : "null",
+             size:   get_target_size(e['key'], form)
+           }
+         end
+       end
       
-      enable_elements.each_with_index do |e, j|
-        js   += "  if(!ocForm.isElementChecked('#{key}_#{i+1}')){\n" if j == 0
-        num   = e.key?('num') ? e['num'] : "null"
-        value = e.key?('value') ? e['value'] : "null"
-        size  = get_target_size(e['key'], form)
-        js   += "    ocForm.disableWidget('#{e['key']}', #{num}, '#{form[e['key']]['widget']}', \"#{value}\", #{size});\n"
-        js   += "    ocForm.hideWidget('#{e['key']}', '#{form[e['key']]['widget']}', #{size});\n" unless e.key?('num')
-        js   += "  }\n" if j == enable_elements.size - 1
-      end
+       join_operator = type == "disable" ? ' || ' : ' && '
+       conditions_by_key.each do |k, conditions|
+         js += "  if(#{conditions.to_a.join(join_operator)}){\n"
+         actions_by_key[k].each do |action|
+           js += "    ocForm.disableWidget('#{k}', #{action[:num]}, '#{action[:widget]}', \"#{action[:value]}\", #{action[:size]});\n"
+           js += "    ocForm.hideWidget('#{k}', '#{action[:widget]}', #{action[:size]});\n" unless action[:num] != "null"
+         end
+         js += "  }\n"
+       end
     end
     
     return js
   end
-
+  
   # Parse options to identify elements that should be hide or show.
   def get_oc_hide_attrs(options, form)
     hide_elements = []
@@ -589,27 +595,36 @@ helpers do
   # Output a JavaScript code to hide or show widgets.
   def output_exec_dw_hide_js(key, options, form)
     js = ""
-    options.each_with_index do |option, i|
-      hide_elements, show_elements = get_oc_hide_attrs(option[2..-1], form)
-
-      hide_elements.each_with_index do |e, j|
-        js += "  if(ocForm.isElementChecked('#{key}_#{i+1}')){\n" if j == 0
-        size = get_target_size(e['key'], form)
-        js += "    ocForm.hideWidget('#{e['key']}', '#{form[e['key']]['widget']}', \"#{size}\");\n"
-        js += "  }\n" if j == hide_elements.size - 1
-      end
+    ["hide", "show"].each do |type|
+      conditions_by_key = Hash.new { |hash, key| hash[key] = Set.new }
+      actions_by_key    = Hash.new { |hash, key| hash[key] = Set.new }
+    
+      options.each_with_index do |option, i|
+        elements = type == "hide" ? get_oc_hide_attrs(option[2..-1], form).first : get_oc_hide_attrs(option[2..-1], form).last
       
-      show_elements.each_with_index do |e, j|
-        js += "  if(!ocForm.isElementChecked('#{key}_#{i+1}')){\n" if j == 0
-        size = get_target_size(e['key'], form)
-        js += "    ocForm.hideWidget('#{e['key']}', '#{form[e['key']]['widget']}', \"#{size}\");\n"
-        js += "  }\n" if j == show_elements.size - 1
+        elements.each do |e|
+          check = type == "hide" ? 'ocForm.isElementChecked' : '!ocForm.isElementChecked'
+          conditions_by_key[e['key']] << "#{check}(\"#{key}_#{i+1}\")"
+          actions_by_key[e['key']] << {
+            widget: form[e['key']]['widget'],
+            size: get_target_size(e['key'], form)
+          }
+        end
+      end
+    
+      join_operator = type == "hide" ? ' || ' : ' && '
+      conditions_by_key.each do |k, conditions|
+        js += "  if(#{conditions.to_a.join(join_operator)}){\n"
+        actions_by_key[k].each do |action|
+          js += "    ocForm.hideWidget('#{k}', '#{action[:widget]}', \"#{action[:size]}\");\n"
+        end
+        js += "  }\n"
       end
     end
     
     return js
   end
-
+  
   # Output a JavaScript code to initialize widgets with specific attributes like label, value, etc.
   def output_init_dw_set_js(options, form)
     js = ""
