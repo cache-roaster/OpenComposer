@@ -521,33 +521,39 @@ helpers do
   def output_exec_dw_disable_js(key, options, form)
     js = ""
     ["disable", "enable"].each do |type|
-       conditions_by_key = Hash.new { |hash, key| hash[key] = Set.new }
-       actions_by_key    = Hash.new { |hash, key| hash[key] = Set.new }
+      is_disable = type == "disable"
+      conditions_by_key = Hash.new { |hash, key| hash[key] = Set.new }
+      actions_by_key    = Hash.new { |hash, key| hash[key] = Set.new }
        
-       options.each_with_index do |option, i|
-         elements = type ==  "disable" ? get_oc_disable_attrs(option[2..-1], form).first : get_oc_disable_attrs(option[2..-1], form).last
-         
-         elements.each do |e|
-           check = type == "disable" ? 'ocForm.isElementChecked' : '!ocForm.isElementChecked'
-           conditions_by_key[e['key']] << "#{check}(\"#{key}_#{i+1}\")" 
-           actions_by_key[e['key']] << {
-             num:    e.key?('num') ? e['num'] : "null",
-             widget: form[e['key']]['widget'],
-             value:  e.key?('value') ? e['value'] : "null",
-             size:   get_target_size(e['key'], form)
-           }
-         end
-       end
+      options.each_with_index do |option, i|
+        elements = is_disable ? get_oc_disable_attrs(option[2..-1], form).first : get_oc_disable_attrs(option[2..-1], form).last
+        
+        elements.each do |e|
+          check = is_disable ? 'ocForm.isElementChecked' : '!ocForm.isElementChecked'
+          _key = e.key?('num') ? e['key'] + e['num'].to_s : e['key']
+          conditions_by_key[_key] << "#{check}(\"#{key}_#{i+1}\")" 
+          actions_by_key[_key] << {
+            num:    e.key?('num') ? e['num'] : "null",
+            widget: form[e['key']]['widget'],
+            value:  e.key?('value') ? e['value'] : "null",
+            size:   get_target_size(e['key'], form)
+          }
+        end
+      end
       
-       join_operator = type == "disable" ? ' || ' : ' && '
-       conditions_by_key.each do |k, conditions|
-         js += "  if(#{conditions.to_a.join(join_operator)}){\n"
-         actions_by_key[k].each do |action|
-           js += "    ocForm.disableWidget('#{k}', #{action[:num]}, '#{action[:widget]}', \"#{action[:value]}\", #{action[:size]});\n"
-           js += "    ocForm.hideWidget('#{k}', '#{action[:widget]}', #{action[:size]});\n" unless action[:num] != "null"
-         end
-         js += "  }\n"
-       end
+      join_operator = is_disable ? ' || ' : ' && '
+      conditions_by_key.each do |k, conditions|
+        js += "  if(#{conditions.to_a.join(join_operator)}){\n"
+        actions_by_key[k].each do |action|
+          if action[:num] == "null"
+            js += "    ocForm.disableWidget('#{k}', #{action[:num]}, '#{action[:widget]}', \"#{action[:value]}\", #{action[:size]});\n"
+            js += "    ocForm.hideWidget('#{k}', '#{action[:widget]}', #{action[:size]});\n"
+          else
+            js += "    ocForm.disableWidget('#{k.chomp(action[:num].to_s)}', #{action[:num]}, '#{action[:widget]}', \"#{action[:value]}\", #{action[:size]});\n"
+          end
+        end
+        js += "  }\n"
+      end
     end
     
     return js
@@ -596,14 +602,15 @@ helpers do
   def output_exec_dw_hide_js(key, options, form)
     js = ""
     ["hide", "show"].each do |type|
+      is_hide = type == "hide"
       conditions_by_key = Hash.new { |hash, key| hash[key] = Set.new }
       actions_by_key    = Hash.new { |hash, key| hash[key] = Set.new }
     
       options.each_with_index do |option, i|
-        elements = type == "hide" ? get_oc_hide_attrs(option[2..-1], form).first : get_oc_hide_attrs(option[2..-1], form).last
+        elements = is_hide ? get_oc_hide_attrs(option[2..-1], form).first : get_oc_hide_attrs(option[2..-1], form).last
       
         elements.each do |e|
-          check = type == "hide" ? 'ocForm.isElementChecked' : '!ocForm.isElementChecked'
+          check = is_hide ? 'ocForm.isElementChecked' : '!ocForm.isElementChecked'
           conditions_by_key[e['key']] << "#{check}(\"#{key}_#{i+1}\")"
           actions_by_key[e['key']] << {
             widget: form[e['key']]['widget'],
@@ -612,7 +619,7 @@ helpers do
         end
       end
     
-      join_operator = type == "hide" ? ' || ' : ' && '
+      join_operator = is_hide ? ' || ' : ' && '
       conditions_by_key.each do |k, conditions|
         js += "  if(#{conditions.to_a.join(join_operator)}){\n"
         actions_by_key[k].each do |action|
