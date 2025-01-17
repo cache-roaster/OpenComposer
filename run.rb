@@ -311,6 +311,7 @@ post "/*" do
       prep = read_yaml(File.join(app_path, "submit.yml"))
       system(prep["script"]) if prep&.dig("script")
       job_id, error_msg = scheduler.submit(script_path, job_name, bin_overrides, ssh_wrapper)
+      params[JOB_SUBMISSION_TIME] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
 
     # Save a job history

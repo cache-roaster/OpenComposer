@@ -59,14 +59,13 @@ class Fujitsu_tcs < Scheduler
   # It retrieves job details and combines information for both active and completed jobs.
   def query(jobs, bin_overrides = nil, ssh_wrapper = nil)
     pjstat = get_command_path("pjstat", bin_overrides)
-    command = [ssh_wrapper, pjstat, "-s -E --data --choose=jid,jnam,adt,rscg,st,jmdl,ec,pc,sdt,elp,edt", jobs.join(" ")].compact.join(" ")
+    command = [ssh_wrapper, pjstat, "-s -E --data --choose=jid,jnam,rscg,st,jmdl,ec,pc,sdt,elp,edt", jobs.join(" ")].compact.join(" ")
     # -s: Display additional items (e.g. edt)
     # -E: Display subjob
     # --data: Display in CSV format
     # --choose: Display only the specified items
     #   jid: Job ID/ sub-Job ID
     #   jnam: Job name
-    #   adt: Submission Time
     #   rscg: Resource Group
     #   st: Status
     #   jmdl: Job Model
@@ -121,35 +120,34 @@ class Fujitsu_tcs < Scheduler
       
       job_id = line[1]
       info[job_id] = {
-        JOB_NAME            => line[2],
-        JOB_SUBMISSION_TIME => line[3],
-        JOB_PARTITION       => line[4],
-        JOB_STATUS_ID       => case line[5]
-                               when "RJT", "EXT", "CCL", "ERR"
-                                 JOB_STATUS["completed"]
-                               when "ACC", "QUE", "RNA", "SPP", "SPD", "RSM", "HLD"
-                                 JOB_STATUS["queued"]
-                               when "RNP", "RUN", "RNE", "RNO"
-                                 JOB_STATUS["running"]
-                               else
-                                 nil
-                               end,
-        "Status Detail"     => line[5],
-        "Job Model"         => case line[6]
-                               when "NM"
-                                 "Normal Job"
-                               when "ST"
-                                 "Step Job"
-                               when "BU"
-                                 "Bulk Job"
-                               when "MW"
-                                 "Master-Worker Job"
-                               end,
-        "Exit Code"     => line[7],
-        "PJM Code"      => line[8],
-        "Start Time"    => line[9],
-        "Elapse Time"   => line[10],
-        "End Time"      => line[11]
+        JOB_NAME      => line[2],
+        JOB_PARTITION => line[3],
+        JOB_STATUS_ID => case line[4]
+                         when "RJT", "EXT", "CCL", "ERR"
+                           JOB_STATUS["completed"]
+                         when "ACC", "QUE", "RNA", "SPP", "SPD", "RSM", "HLD"
+                           JOB_STATUS["queued"]
+                         when "RNP", "RUN", "RNE", "RNO"
+                           JOB_STATUS["running"]
+                         else
+                           nil
+                         end,
+        "Status Detail" => line[4],
+        "Job Model"     => case line[5]
+                           when "NM"
+                             "Normal Job"
+                           when "ST"
+                             "Step Job"
+                           when "BU"
+                             "Bulk Job"
+                           when "MW"
+                             "Master-Worker Job"
+                           end,
+        "Exit Code"   => line[6],
+        "PJM Code"    => line[7],
+        "Start Time"  => line[8],
+        "Elapse Time" => line[9],
+        "End Time"    => line[10]
       }
     end
       

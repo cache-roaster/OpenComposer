@@ -71,7 +71,7 @@ class Slurm < Scheduler
     #  - https://github.com/OSC/ood_core/blob/master/lib/ood_core/job/adapters/slurm.rb
 
     sacct = get_command_path("sacct", bin_overrides)
-    command = [ssh_wrapper, sacct, "--format=JobID,JobName,Submit,Partition,State%20,Start,End -n -j", jobs.join(",")].compact.join(" ")
+    command = [ssh_wrapper, sacct, "--format=JobID,JobName,Partition,State%20,Start,End -n -j", jobs.join(",")].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return nil, stderr unless status.success?
 
@@ -83,9 +83,9 @@ class Slurm < Scheduler
 
       # Some information may not be obtained when `sacct` command runs immediately after submitting a job.
       # Moreover, if a job is canceled, line.split.size is more than the number of formats.
-      #   e.g. 18257 2024-10-08T15:00:22 None 2024-10-08T15:23:34 r340 CANCELLED by 1015
-      if fields.size >= 7
-        status_id = case fields[4]
+      #   e.g. 18257 None 2024-10-08T15:23:34 r340 CANCELLED by 1015
+      if fields.size >= 6
+        status_id = case fields[3]
                     when "BOOT_FAIL", "CANCELLED", "COMPLETED", "DEADLINE", "FAILED", "NODE_FAIL", "OUT_OF_MEMORY", "REVOKED", "SPECIAL_EXIT", "TIMEOUT"
                       JOB_STATUS["completed"]
                     when "CONFIGURING", "REQUEUED", "RESIZING", "PENDING", "PREEMPTED", "SUSPENDED"
@@ -97,21 +97,19 @@ class Slurm < Scheduler
                     end
 
         info[id] = {
-          JOB_NAME            => fields[1],
-          JOB_SUBMISSION_TIME => fields[2].gsub('T', ' '),
-          JOB_PARTITION       => fields[3],
-          JOB_STATUS_ID       => status_id,
-          "Start Time"        => fields[5].gsub('T', ' '),
-          "End Time"          => fields[6].gsub('T', ' ')
+          JOB_NAME      => fields[1],
+          JOB_PARTITION => fields[2],
+          JOB_STATUS_ID => status_id,
+          "Start Time"  => fields[4].gsub('T', ' '),
+          "End Time"    => fields[5].gsub('T', ' ')
         }
       else
         info[id] = {
-          JOB_NAME    	      => nil,
-          JOB_SUBMISSION_TIME => fields[2].gsub('T', ' '),
-          JOB_PARTITION       => nil,
-          JOB_STATUS_ID       => nil,
-          "Start Time"        => fields[5] ? fields[5].gsub('T', ' ') : nil,
-          "End Time"          => fields[6] ? fields[6].gsub('T', ' ') : nil
+          JOB_NAME      => nil,
+          JOB_PARTITION => nil,
+          JOB_STATUS_ID => nil,
+          "Start Time"  => fields[4] ? fields[4].gsub('T', ' ') : nil,
+          "End Time"    => fields[5] ? fields[5].gsub('T', ' ') : nil
         }
       end
     end
