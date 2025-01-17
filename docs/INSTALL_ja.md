@@ -7,13 +7,13 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 ```
 
 ## Open Composerの設定
-`./OpenComposer/conf.yml.erb`を編集してください。`login_node`と`scheduler`と`apps_dir`以外は省略可能です。
+`./OpenComposer/conf.yml.erb`を編集してください。`scheduler`と`apps_dir`以外は省略可能です。
 
 | 項目名 | 設定内容 |
 | ---- | ---- |
-| login_node | 履歴ページからOpen OnDemandのWebターミナルを起動した際のログイン先 |
-| scheduler | 利用するスケジューラ|
+| scheduler | 利用するスケジューラ（`slurm` or `fujitsu_tcs`） |
 | apps_dir | アプリケーションのディレクトリ |
+| login_node | Open OnDemandのWebターミナルを起動した際のログイン先 |
 | data_dir | 投入したジョブの情報のディレクトリ |
 | bin_path | ジョブスケジューラのPATH |
 | ssh_wrapper | SSHを用いて他のノードのジョブスケジューラを用いる場合のコマンド |

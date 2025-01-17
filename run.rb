@@ -52,10 +52,11 @@ def create_conf
   conf = read_yaml("./conf.yml")
 
   # Check required values
-  ["login_node", "scheduler", "apps_dir"].each do |key|
+  ["scheduler", "apps_dir"].each do |key|
     halt 500, "In conf.yml, \"#{key}:\" must be defined." if conf[key].nil?
   end
-  
+
+  conf["login_node"]        ||= nil
   conf["data_dir"]          ||= ENV["HOME"] + "/composer"
   conf["bin_path"]          ||= nil
   conf["ssh_wrapper"]       ||= nil

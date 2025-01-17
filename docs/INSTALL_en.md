@@ -9,13 +9,13 @@ Save Open Composer in your Open OnDemand application directory: `/var/www/ood/ap
 
 ## Open Composer configuration
 Edit `./OpenComposer/conf.yml.erb`.
-All fields except `login_node`, `scheduler` and `apps_dir` can be omitted.
+All fields except `scheduler` and `apps_dir` can be omitted.
 
 | Item name | Setting |
 | ---- | ---- |
-| login_node | Login node when you launch the Open OnDemand web terminal from the history page |
-| scheduler | Job scheduler |
+| scheduler | Job scheduler (`slurm` or `fujitsu_tcs`) |
 | apps_dir | Application directory |
+| login_node | Login node when you launch the Open OnDemand web terminal |
 | data_dir | Directory where submitted job information is stored |
 | bin_path | PATH of job scheduler commands |
 | ssh_wrapper | Commands for using the job scheduler of another node using SSH |

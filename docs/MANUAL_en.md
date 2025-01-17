@@ -27,8 +27,8 @@ You can check the execution status of jobs and stop currently running jobs.
 - To cancel a running job or a queued job, check the leftmost check box of the job and click "Cancel Job" above the table.
 - To delete a completed job from the table, check the leftmost check box of the job and click "Delete Job" above the table.
 - Click the "Job ID" link to view job details.
-- Click the "Application" link to go to the application page.
-- Click the "Script Location" link to start the Open OnDemand Home Directory application. Also, click the terminal icon to start the Open OnDemand Terminal application.
+- Click the "Application" link to go to the application page. If there is an icon next to it, clicking that icon will open the corresponding Open OnDemand application page.
+- Click the "Script Location" link will launch the Open OnDemand Home Directory application. If there is a terminal icon, clicking that icon will launch the Open OnDemand Terminal application.
 - Click the "Script Name" link to go to the application page with the parameters used in the script loaded.
 
 

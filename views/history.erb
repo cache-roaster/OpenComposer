@@ -93,9 +93,11 @@
             <td><%= ERB::Util.html_escape(job[JOB_PARTITION]) %></td>
             <td>
               <a target="_blank" href="<%= @my_ood_url %>/pun/sys/dashboard/files/fs<%= job[HEAD_SCRIPT_LOCATION] %>"><%= job[HEAD_SCRIPT_LOCATION] %></a>
+	      <% unless @login_node.nil? %>
               <a style="color: black; text-decoration: none;" target="_blank" href="<%= @my_ood_url %>/pun/sys/shell/ssh/<%= @login_node %>/<%= job[HEAD_SCRIPT_LOCATION] %>">
                 <i class="bi bi-terminal-fill"></i>
               </a>
+	      <% end %>
             </td>
             <td>
               <a href="#" data-bs-toggle="modal" data-bs-target="#_historyJobScript<%= job[JOB_ID] %>"><%= job[HEAD_SCRIPT_NAME] %></a>
