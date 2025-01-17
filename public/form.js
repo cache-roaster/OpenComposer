@@ -668,7 +668,16 @@ ocForm.disableWidget = function(key, num, widget, value, size) {
       document.getElementById(key + "_" + num).disabled = true;
       
       if (widget === 'select' && document.getElementById(key).selectedIndex === num - 1) {
-        document.getElementById(key).selectedIndex = -1;
+	const selectBox = document.getElementById(key);
+
+	// Find the next valid option
+        const nextValidOption = Array.from(selectBox.options).find(option => !option.disabled)
+	if (nextValidOption) {
+	  selectBox.value = nextValidOption.value;
+	}
+	else {
+	  selectBox.selectedIndex = -1;
+	}
       }
       else if (widget === 'radio' && document.getElementsByName(key)[num - 1].checked) {
         document.getElementsByName(key)[num - 1].checked = false;
