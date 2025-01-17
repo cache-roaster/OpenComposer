@@ -7,7 +7,17 @@ apps_dir: "./sample_apps"
 ## General
 #login_node: "example.com"
 #data_dir:  <%= ENV['HOME'] %>/composer
-#bin_path: "/usr/local/slurm/bin"
+#bin_overrides:
+#  sbatch:   "/usr/local/bin/sbatch"
+#  scontrol: "/usr/local/bin/scontrol"
+#  scancel:  "/usr/local/bin/scancel"
+#  sacct:    "/usr/local/bin/sacct"
+#  pjsub:    "/usr/local/bin/pjsub"
+#  pjstat:   "/usr/local/bin/pjstat"
+#  pjdel:    "/usr/local/bin/pjdel"
+#  qsub:     "/opt/pbs/bin/qsub"
+#  qstat:    "/usr/local/bin/qstat"
+#  qdel:     "/usr/local/bin/qdel"
 #ssh_wrapper: "ssh hoge@example.com"
 
 ## Layout

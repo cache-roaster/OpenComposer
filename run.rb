@@ -58,7 +58,7 @@ def create_conf
 
   conf["login_node"]        ||= nil
   conf["data_dir"]          ||= ENV["HOME"] + "/composer"
-  conf["bin_path"]          ||= nil
+  conf["bin_overrides"]     ||= nil
   conf["ssh_wrapper"]       ||= nil
   conf["footer"]            ||= "&nbsp;"
   conf["thumbnail_width"]   ||= "100"
@@ -150,7 +150,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
     @name             = "History"
     @login_node       = @conf["login_node"]
     @scheduler        = scheduler || create_scheduler(@conf["scheduler"])
-    @bin_path         = @conf["bin_path"]
+    @bin_overrides    = @conf["bin_overrides"]
     @ssh_wrapper      = @conf["ssh_wrapper"]
     @status           = params["status"] || "all"
     @filter           = params["filter"]
@@ -251,12 +251,12 @@ get "/*" do
 end
 
 post "/*" do
-  conf        = create_conf
-  bin_path    = conf["bin_path"]
-  ssh_wrapper = conf["ssh_wrapper"]
-  data_dir    = conf["data_dir"]
-  history_db  = conf["history_db"]
-  scheduler   = create_scheduler(conf["scheduler"])
+  conf          = create_conf
+  bin_overrides = conf["bin_overrides"]
+  ssh_wrapper   = conf["ssh_wrapper"]
+  data_dir      = conf["data_dir"]
+  history_db    = conf["history_db"]
+  scheduler     = create_scheduler(conf["scheduler"])
 
   if request.path_info == "/history"
     job_ids   = params["JobIds"].split(",")
@@ -264,7 +264,7 @@ post "/*" do
 
     case params["action"]
     when "cancel"
-      error_msg = scheduler.cancel(job_ids, bin_path, ssh_wrapper)
+      error_msg = scheduler.cancel(job_ids, bin_overrides, ssh_wrapper)
     when "delete"
       if File.exist?(history_db)
         db = PStore.new(history_db)
@@ -310,7 +310,7 @@ post "/*" do
       # Run preprocessing commands in submit.yml
       prep = read_yaml(File.join(app_path, "submit.yml"))
       system(prep["script"]) if prep&.dig("script")
-      job_id, error_msg = scheduler.submit(script_path, job_name, bin_path, ssh_wrapper)
+      job_id, error_msg = scheduler.submit(script_path, job_name, bin_overrides, ssh_wrapper)
     end
 
     # Save a job history

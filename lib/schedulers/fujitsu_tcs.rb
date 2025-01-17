@@ -4,10 +4,10 @@ require 'csv'
 class Fujitsu_tcs < Scheduler
   # Submit a job to the Fujitsu TCS scheduler using the 'pjsub' command.
   # If the submission is successful, it checks for job details using the 'pjstat' command.
-  def submit(script_path, job_name = nil, bin_path = nil, ssh_wrapper = nil)
+  def submit(script_path, job_name = nil, bin_overrides = nil, ssh_wrapper = nil)
     init_bash_path = "/usr/share/Modules/init/bash"
     init_bash = "source #{init_bash_path};" if File.exist?(init_bash_path) && ssh_wrapper.nil?
-    pjsub = find_command_path("pjsub", bin_path)
+    pjsub = get_command_path("pjsub", bin_overrides)
     option = "-N #{job_name}" unless job_name.empty?
     command = [init_bash, ssh_wrapper, pjsub, option, script_path].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
@@ -15,7 +15,7 @@ class Fujitsu_tcs < Scheduler
     return nil, "Job ID not found in output." unless stdout.match?(/Job (\d+) submitted/)
     
     job_id = stdout.match(/Job (\d+) submitted/)[1]
-    pjstat = find_command_path("pjstat", bin_path)
+    pjstat = get_command_path("pjstat", bin_overrides)
     command = [ssh_wrapper, pjstat, "-E --data --choose=jid,jmdl", job_id].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return nil, stderr unless status.success?
@@ -46,8 +46,8 @@ class Fujitsu_tcs < Scheduler
   end
   
   # Cancel one or more jobs in the Fujitsu TCS scheduler using the 'pjdel' command.
-  def cancel(jobs, bin_path = nil, ssh_wrapper = nil)
-    pjdel = find_command_path("pjdel", bin_path)
+  def cancel(jobs, bin_overrides = nil, ssh_wrapper = nil)
+    pjdel = get_command_path("pjdel", bin_overrides)
     command = [ssh_wrapper, pjdel, jobs.join(" ")].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return status.success? ? nil : stderr
@@ -57,8 +57,8 @@ class Fujitsu_tcs < Scheduler
 
   # Query the status of one or more jobs in the Fujitsu TCS system using 'pjstat'.
   # It retrieves job details and combines information for both active and completed jobs.
-  def query(jobs, bin_path = nil, ssh_wrapper = nil)
-    pjstat = find_command_path("pjstat", bin_path)
+  def query(jobs, bin_overrides = nil, ssh_wrapper = nil)
+    pjstat = get_command_path("pjstat", bin_overrides)
     command = [ssh_wrapper, pjstat, "-s -E --data --choose=jid,jnam,adt,rscg,st,jmdl,ec,pc,sdt,elp,edt", jobs.join(" ")].compact.join(" ")
     # -s: Display additional items (e.g. edt)
     # -E: Display subjob

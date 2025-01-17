@@ -15,7 +15,7 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 | apps_dir | アプリケーションのディレクトリ |
 | login_node | Open OnDemandのWebターミナルを起動した際のログイン先 |
 | data_dir | 投入したジョブの情報のディレクトリ |
-| bin_path | ジョブスケジューラのPATH |
+| bin_overrides | ジョブスケジューラの各コマンドのパス |
 | ssh_wrapper | SSHを用いて他のノードのジョブスケジューラを用いる場合のコマンド |
 | footer | フッタに記載する文字 |
 | thumbnail_width | トップページの各アプリケーションのサムネイルの横幅 |
@@ -26,7 +26,27 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 | description_color | アプリケーションページのアプリケーション説明の背景色 |
 | form_color | アプリケーションページのテキストエリアの背景色 |
 
-## Open OnDemandへの登録（管理者）
+### bin_overridesの設定（オプション）
+ジョブスケジューラが`slurm`の場合は、下記のように`sbatch`、`scontrol`、`scancel`、`sacct`を設定する。
+
+```
+bin_overrides:
+  sbatch:   "/usr/local/bin/sbatch"
+  scontrol: "/usr/local/bin/scontrol"
+  scancel:  "/usr/local/bin/scancel"
+  sacct:    "/usr/local/bin/sacct"
+```
+
+ジョブスケジューラが`fujitsu_tcs`の場合は、下記のように`pjsub`、`pjstat`、`pjdel`を設定する。
+
+```
+bin_overrides:
+  pjsub:  "/usr/local/bin/pjsub"
+  pjstat: "/usr/local/bin/pjstat"
+  pjdel:  "/usr/local/bin/pjdel"
+```
+
+## 管理者によるOpen OnDemandへの登録
 Open Composerを`/var/www/ood/apps/sys/`に保存すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます。Open Composerのアイコンが表示されない場合は、Open OnDemand用の設定ファイル`./OpenComposer/manifest.yml`を確認してください。
 
 Open Composer上のアプリケーションをOpen OnDemandのトップページに表示することもできます。例えば、`./OpenComposer/apps/Slurm/`というアプリケーションを表示させたい場合は、同名のディレクトリをOpen OnDemandのアプリケーションディレクトリに作成します（`# mkdir /var/www/ood/apps/sys/Slurm`）。そして、そのディレクトリ内に下記のようなOpen OnDemand用の設定ファイル`manifest.yml`を作成します。
@@ -38,7 +58,7 @@ name: Slurm
 url: https://example.net/pun/sys/OpenComposer/Slurm
 ```
 
-## Open OnDemandへの登録（一般ユーザ）
+## 一般ユーザによるOpen OnDemandへの登録
 一般ユーザ権限でOpen Composerをインストールすることもできます。ただし、事前に管理者権限でOpen OnDemandの[App Development](https://osc.github.io/ood-documentation/latest/how-tos/app-development/enabling-development-mode.html)の機能を有効化する必要があります。
 
 ナビゲーションバーの「</> Develop」の「My Sandbox Apps (Development)」を選択します（Webブラウザのウィンドウサイズが小さい場合は、「</> Develop」ではなく「</>」と表示されますので注意ください）。

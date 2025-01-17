@@ -17,7 +17,7 @@ All fields except `scheduler` and `apps_dir` can be omitted.
 | apps_dir | Application directory |
 | login_node | Login node when you launch the Open OnDemand web terminal |
 | data_dir | Directory where submitted job information is stored |
-| bin_path | PATH of job scheduler commands |
+| bin_overrides | PATH of each command of job scheduler |
 | ssh_wrapper | Commands for using the job scheduler of another node using SSH |
 | footer | Text in the footer |
 | thumbnail_width | Width of thumbnails for each application on the top page |
@@ -28,7 +28,27 @@ All fields except `scheduler` and `apps_dir` can be omitted.
 | description_color | Background color of the application description in the application page |
 | form_color | Background color of the text area in the application page |
 
-## Registration for Open OnDemand (Administrator)
+### Setting bin_overrides (Optional)
+If the job scheduler is `slurm`, set `sbatch`, `scontrol`, `scancel`, and `sacct` as follows.
+
+```
+bin_overrides:
+  sbatch:   "/usr/local/bin/sbatch"
+  scontrol: "/usr/local/bin/scontrol"
+  scancel:  "/usr/local/bin/scancel"
+  sacct:    "/usr/local/bin/sacct"
+```
+
+If the job scheduler is `fujitsu_tcs`, set `pjsub`, `pjstat`, and `pjdel` as follows.
+
+```
+bin_overrides:
+  pjsub:  "/usr/local/bin/pjsub"
+  pjstat: "/usr/local/bin/pjstat"
+  pjdel:  "/usr/local/bin/pjdel"
+```
+
+## Registration for Open OnDemand by administrator
 When you save Open Composer to `/var/www/ood/apps/sys/`, the Open Composer icon will be displayed on the Open OnDemand top page.
 If it is not displayed, check `./OpenComposer/manifest.yml`.
 
@@ -44,7 +64,7 @@ name: Slurm
 url: https://example.net/pun/sys/OpenComposer/Slurm
 ```
 
-## Registration for Open OnDemand (General user)
+## Registration for Open OnDemand by general user
 You can also install Open Composer with general user privileges.
 However, the [App Development](https://osc.github.io/ood-documentation/latest/how-tos/app-development/enabling-development-mode.html) feature in Open OnDemand needs to be enabled in advance by an administrator.
 

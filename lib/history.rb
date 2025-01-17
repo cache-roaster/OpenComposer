@@ -215,7 +215,7 @@ helpers do
       end
 
       if queried_ids != []
-        status, error_msg = @scheduler.query(queried_ids, @bin_path, @ssh_wrapper)
+        status, error_msg = @scheduler.query(queried_ids, @bin_overrides, @ssh_wrapper)
         return nil, error_msg if error_msg
 
         db.transaction do
