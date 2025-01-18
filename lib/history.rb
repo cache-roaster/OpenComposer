@@ -223,13 +223,13 @@ helpers do
             data = db[id]
             if !data.nil?
               data[JOB_KEYS] = info.keys
-              data.merge!(info)
+              db[id] = data.merge(info)
             end
           end
         end
       end
     end
-
+    
     jobs = []
     db.transaction(true) do
       db.roots.each do |id|
