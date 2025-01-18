@@ -11,14 +11,14 @@ class Fujitsu_tcs < Scheduler
     option = "-N #{job_name}" unless job_name.empty?
     command = [init_bash, ssh_wrapper, pjsub, option, script_path].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
-    return nil, stderr unless status.success?
+    return nil, [stdout, stderr].join(" ") unless status.success?
     return nil, "Job ID not found in output." unless stdout.match?(/Job (\d+) submitted/)
     
     job_id = stdout.match(/Job (\d+) submitted/)[1]
     pjstat = get_command_path("pjstat", bin, bin_overrides)
     command = [ssh_wrapper, pjstat, "-E --data --choose=jid,jmdl", job_id].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
-    return nil, stderr unless status.success?
+    return nil, [stdout, stderr].join(" ") unless status.success?
     
     # Example 1 : stdout of single job
     # ---
@@ -76,7 +76,7 @@ class Fujitsu_tcs < Scheduler
     #   edt: End Time
 
     stdout1, stderr1, status1 = Open3.capture3(command)
-    return nil, stderr1 unless status1.success?
+    return nil, [stdout1, stderr1].join(" ") unless status1.success?
     # Example of stdout1 (pjstat -s -E --data --choose=jid,rscg,st 34716159 34716160 34716168 34716168[1] 34716168[2])
     # H,JOB_ID,ACCEPT,RSC_GRP,ST
     # ,34716160,10/11 10:21:35,small,QUE
@@ -90,7 +90,7 @@ class Fujitsu_tcs < Scheduler
     # Outputs a list of jobs that were completed within the past 365 days, which is the maximum value.
     # If a job was completed before 366 days, it will be displayed as "Queued."
     stdout2, stderr2, status2 = Open3.capture3(command + " -H day=365")
-    return nil, stderr2 unless status2.success?
+    return nil, [stdout2, stderr2].join(" ") unless status2.success?
     # -H: Display only information about jobs that have completed
     # ---
     # Example of stdout2

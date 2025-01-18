@@ -10,7 +10,7 @@ class Slurm < Scheduler
     option = "-J #{job_name}" unless job_name.empty?
     command = [init_bash, ssh_wrapper, sbatch, option, script_path].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
-    return nil, stderr unless status.success?
+    return nil, [stdout, stderr].join(" ") unless status.success?
     job_id_match = stdout.match(/Submitted batch job (\d+)/)
     return nil, "Job ID not found in output." unless job_id_match
 
@@ -20,7 +20,7 @@ class Slurm < Scheduler
     scontrol = get_command_path("scontrol", bin, bin_overrides)
     command = [ssh_wrapper, scontrol, "show job", job_id].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
-    return nil, stderr unless status.success?
+    return nil, [stdout, stderr].join(" ") unless status.success?
 
     unless stdout.include?("ArrayTaskId") # Single Job
       return job_id, nil
@@ -40,7 +40,7 @@ class Slurm < Scheduler
     scancel = get_command_path("scancel", bin, bin_overrides)
     command = [ssh_wrapper, scancel, jobs.join(',')].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
-    return status.success? ? nil : stderr
+    return status.success? ? nil : [stdout, stderr].join(" ")
   rescue => e
     return e.message
   end
@@ -71,7 +71,7 @@ class Slurm < Scheduler
     sacct = get_command_path("sacct", bin, bin_overrides)
     command = [ssh_wrapper, sacct, "--format=JobID,JobName,Partition,State%20,Start,End -n -j", jobs.join(",")].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
-    return nil, stderr unless status.success?
+    return nil, [stdout, stderr].join(" ") unless status.success?
 
     info = {}
     stdout.split("\n").each do |line|
