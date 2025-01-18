@@ -17,6 +17,7 @@ All fields except `scheduler` and `apps_dir` can be omitted.
 | apps_dir | Application directory |
 | login_node | Login node when you launch the Open OnDemand web terminal |
 | data_dir | Directory where submitted job information is stored |
+| bin | PATH of commands of job scheduler |
 | bin_overrides | PATH of each command of job scheduler |
 | ssh_wrapper | Commands for using the job scheduler of another node using SSH |
 | footer | Text in the footer |

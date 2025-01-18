@@ -3,12 +3,11 @@ require 'open3'
 class Slurm < Scheduler
   # Submit a job to the Slurm scheduler using the 'sbatch' command.
   # If the submission is successful, it checks for job details using the 'scontrol' command.
-  def submit(script_path, job_name = nil, bin_overrides = nil, ssh_wrapper = nil)
+  def submit(script_path, job_name = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
+    script_path = "job.sh"
     init_bash_path = "/usr/share/Modules/init/bash"
     init_bash = "source #{init_bash_path};" if File.exist?(init_bash_path) && ssh_wrapper.nil?
-    sbatch = get_command_path("sbatch", bin_overrides)
-    p bin_overrides
-    p sbatch
+    sbatch = get_command_path("sbatch", bin, bin_overrides)
     option = "-J #{job_name}" unless job_name.empty?
     command = [init_bash, ssh_wrapper, sbatch, option, script_path].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
@@ -19,7 +18,7 @@ class Slurm < Scheduler
     job_id = job_id_match[1]
 
     # Fetch job details
-    scontrol = get_command_path("scontrol", bin_overrides)
+    scontrol = get_command_path("scontrol", bin, bin_overrides)
     command = [ssh_wrapper, scontrol, "show job", job_id].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return nil, stderr unless status.success?
@@ -38,8 +37,8 @@ class Slurm < Scheduler
   end
 
   # Cancel one or more jobs in the Slurm scheduler using the 'scancel' command.
-  def cancel(jobs, bin_overrides = nil, ssh_wrapper = nil)
-    scancel = get_command_path("scancel", bin_overrides)
+  def cancel(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
+    scancel = get_command_path("scancel", bin, bin_overrides)
     command = [ssh_wrapper, scancel, jobs.join(',')].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return status.success? ? nil : stderr
@@ -49,7 +48,7 @@ class Slurm < Scheduler
 
   # Query the status of one or more jobs in the Slurm system using 'sacct'.
   # It retrieves job details such as submission time, partition, and status.
-  def query(jobs, bin_overrides = nil, ssh_wrapper = nil)
+  def query(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
     # https://slurm.schedmd.com/sacct.html
     # BOOT_FAIL     : Job terminated due to launch failure, typically due to a hardware failure.
     # CANCELLED     : Job was explicitly cancelled by the user or system administrator. The job may or may not have been initiated.
@@ -70,7 +69,7 @@ class Slurm < Scheduler
     # The categorization was determined based on the table above and the codes below.
     #  - https://github.com/OSC/ood_core/blob/master/lib/ood_core/job/adapters/slurm.rb
 
-    sacct = get_command_path("sacct", bin_overrides)
+    sacct = get_command_path("sacct", bin, bin_overrides)
     command = [ssh_wrapper, sacct, "--format=JobID,JobName,Partition,State%20,Start,End -n -j", jobs.join(",")].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return nil, stderr unless status.success?

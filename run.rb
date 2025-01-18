@@ -58,6 +58,7 @@ def create_conf
 
   conf["login_node"]        ||= nil
   conf["data_dir"]          ||= ENV["HOME"] + "/composer"
+  conf["bin"]               ||= nil
   conf["bin_overrides"]     ||= nil
   conf["ssh_wrapper"]       ||= nil
   conf["footer"]            ||= "&nbsp;"
@@ -150,6 +151,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
     @name             = "History"
     @login_node       = @conf["login_node"]
     @scheduler        = scheduler || create_scheduler(@conf["scheduler"])
+    @bin              = @conf["bin"]
     @bin_overrides    = @conf["bin_overrides"]
     @ssh_wrapper      = @conf["ssh_wrapper"]
     @status           = params["status"] || "all"
@@ -252,6 +254,7 @@ end
 
 post "/*" do
   conf          = create_conf
+  bin           = conf["bin"]
   bin_overrides = conf["bin_overrides"]
   ssh_wrapper   = conf["ssh_wrapper"]
   data_dir      = conf["data_dir"]
@@ -264,7 +267,7 @@ post "/*" do
 
     case params["action"]
     when "cancel"
-      error_msg = scheduler.cancel(job_ids, bin_overrides, ssh_wrapper)
+      error_msg = scheduler.cancel(job_ids, bin, bin_overrides, ssh_wrapper)
     when "delete"
       if File.exist?(history_db)
         db = PStore.new(history_db)
@@ -310,7 +313,7 @@ post "/*" do
       # Run preprocessing commands in submit.yml
       prep = read_yaml(File.join(app_path, "submit.yml"))
       system(prep["script"]) if prep&.dig("script")
-      job_id, error_msg = scheduler.submit(script_path, job_name, bin_overrides, ssh_wrapper)
+      job_id, error_msg = scheduler.submit(script_path, job_name, bin, bin_overrides, ssh_wrapper)
       params[JOB_SUBMISSION_TIME] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
 
