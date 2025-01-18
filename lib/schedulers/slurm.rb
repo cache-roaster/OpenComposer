@@ -4,7 +4,6 @@ class Slurm < Scheduler
   # Submit a job to the Slurm scheduler using the 'sbatch' command.
   # If the submission is successful, it checks for job details using the 'scontrol' command.
   def submit(script_path, job_name = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
-    script_path = "job.sh"
     init_bash_path = "/usr/share/Modules/init/bash"
     init_bash = "source #{init_bash_path};" if File.exist?(init_bash_path) && ssh_wrapper.nil?
     sbatch = get_command_path("sbatch", bin, bin_overrides)
