@@ -4,23 +4,16 @@ form:
     widget: select
     label: Partition
     options:
-      - [ fx700,    [fx700,    system/fx700 FJSVstclanga],       set-label-nodes: Number of nodes (1 - 40), set-max-nodes: 40 ]
-      - [ a100,     [a100,     system/a100 nvhpc],               set-label-nodes: Number of nodes (1 - 2),  set-max-nodes:  2 ]
-      - [ mi100,    [mi100,    system/mi100 rocm],               set-label-nodes: Number of nodes (1),      set-max-nodes:  1 ]
-      - [ r340,     [r340,     ""],                              set-label-nodes: Number of nodes (1 - 2),  set-max-nodes:  2 ]
-      - [ genoa,    [genoa,    system/genoa mpi/openmpi-x86_64], set-label-nodes: Number of nodes (1 - 16), set-max-nodes: 16 ]
-      - [ qc-a100,  [qc-a100,  system/qc-a100 nvhpc],            set-label-nodes: Number of nodes (1 - 2),  set-max-nodes:  2 ]
-      - [ qc-h100,  [qc-h100,  system/qc-h100 nvhpc],            set-label-nodes: Number of nodes (1),      set-max-nodes:  1 ]
-      - [ qc-gh200, [qc-gh200, system/qc-gh200 nvhpc],           set-label-nodes: Number of nodes (1 - 8),  set-max-nodes:  8 ]
-      - [ qc-mi250, [qc-mi250, system/qc-mi250 rocm],            set-label-nodes: Number of nodes (1 - 4),  set-max-nodes:  4 ]
-      - [ qc-pvc,   [qc-pvc,   system/qc-pvc],                   set-label-nodes: Number of nodes (1 - 2),  set-max-nodes:  2 ]
-      - [ ai-h100l, [ai-h100l, system/ai-h100l nvhpc],           set-label-nodes: Number of nodes (1 - 2),  set-max-nodes:  2 ]
-
-  nodes:
+      - [ gpu1, gpu1, set-label-cores: Number of cores (1 - 72),  set-max-cores: 72,  set-label-memory: Memory (up to 186GB),  set-max-memory: 186,  set-label-time_1: Maximum run time hours (0 - 3), set-max-time_1: 3 ]
+      - [ gpu2, gpu2, set-label-cores: Number of cores (1 - 36),  set-max-cores: 36,  set-label-memory: Memory (up to 93GB),   set-max-memory: 93   ]
+      - [ mem1, mem1, set-label-cores: Number of cores (1 - 224), set-max-cores: 224, set-label-memory: Memory (up to 5020GB), set-max-memory: 5020, set-label-time_1: Maximum run time hours (0 - 3), set-max-time_1: 3 ]
+      - [ mem2, mem2, set-label-cores: Number of cores (1 - 56),  set-max-cores: 56,  set-label-memory: Memory (up to 1500GB), set-max-memory: 1500 ]
+      - [ ondemand-reserved, ondemand-reserved, set-cores-label: Number of cores (1 - 8), set-max-cores: 8, set-label-memory: Memory, set-label-time_1: Maximum run time hours (0 - 720), set-max-time_1: 720 ]
+  
+  cores:
     widget: number
-    label: Number of nodes
     value:  1
-
+    
   time:
     widget:   number
     label:    [ Maximum run time hours (0 - 24), Maximum run minutes (0 - 59) ]
@@ -30,11 +23,30 @@ form:
     max:      [ 24, 59 ]
     step:     [  1,  1 ]
 
-  advanced_options:
+  show_advanced_option:
     widget: checkbox
+    label:
     options:
-      - [Advanced options, a, show-array, show-log ]
+      - ["Show advanced option", "", show-email, show-mail_option, show-array, show-log ]
+
+  mail_option:
+    label: Mail option
+    widget: checkbox
+    direction: horizontal
+    separator: ","
+    indent: 1
+    options:
+      - [ "Beginning of job execution", 'BEGIN',   enable-email ]
+      - [ "End of job execution",       'END',     enable-email ]
+      - [ "Fail of job",                'FAIL',    enable-email ]
+      - [ "When the job is requeued",   'REQUEUE', enable-email ]
+      - [ "All",                        'ALL',     enable-email ]
       
+  email:
+    widget: email
+    label:  Email
+    indent: 2
+    
   array:
     widget: number
     label: [ Array Job (start index), Array Job (last index) ]
@@ -42,24 +54,12 @@ form:
     min:  [0, 0]
     help: Each job executed from an array job is assigned a task ID, which can be referenced in the shell script via the environment variable SLURM_ARRAY_TASK_ID.
 
-  log:
-    widget: text
-    size: 2
-    label: [Standard log (e.g. stdout.%j), Error log (e.g. stderr.%j)]
-    help: The symbol %j will be replaced with the job ID.
-  
 script: |
   #!/usr/bin/env bash
-  #SBATCH -p #{partition_1}
-  #SBATCH -N #{nodes}
+  #SBATCH -p #{partition}
+  #SBATCH -n #{cores}
   #SBATCH -t #{time_1}:#{time_2}:00
+  #SBATCH --mail-user=#{email}
+  #SBATCH --mail-type=#{mail_option}
   #SBATCH --array=#{array_1}-#{array_2}
-  #SBATCH --output=#{log_1}
-  #SBATCH --error=#{log_2}
-  module load #{partition_2}
-
-check: |
-  if @time_1.to_i == 24 && @time_2.to_i > 0
-    halt 500, "The run time is within 24 hours."
-   end
-   
+  
