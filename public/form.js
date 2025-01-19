@@ -379,6 +379,7 @@ ocForm.filterRows = function(key) {
 // Check if an element is selected (e.g., a checkbox or radio button).
 ocForm.isElementChecked = function(id) {
   const element = document.getElementById(id);
+  if(element.disabled) return false;
 
   if (element.tagName === "OPTION") {
     return element.selected;
