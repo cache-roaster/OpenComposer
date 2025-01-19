@@ -1,0 +1,5 @@
+---
+name: PBS
+icon: "fa-regular fa-file-lines"
+description: |
+  This application generates an arbitrary job script in PBS.

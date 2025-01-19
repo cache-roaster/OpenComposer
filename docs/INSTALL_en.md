@@ -13,7 +13,7 @@ All fields except `scheduler` and `apps_dir` can be omitted.
 
 | Item name | Setting |
 | ---- | ---- |
-| scheduler | Job scheduler (`slurm` or `fujitsu_tcs`) |
+| scheduler | Job scheduler (`slurm`, `pbs` or `fujitsu_tcs`) |
 | apps_dir | Application directory |
 | login_node | Login node when you launch the Open OnDemand web terminal |
 | data_dir | Directory where submitted job information is stored |

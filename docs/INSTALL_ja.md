@@ -11,7 +11,7 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 
 | 項目名 | 設定内容 |
 | ---- | ---- |
-| scheduler | 利用するスケジューラ（`slurm` or `fujitsu_tcs`） |
+| scheduler | 利用するスケジューラ（`slurm`、`pbs`、`fujitsu_tcs`） |
 | apps_dir | アプリケーションのディレクトリ |
 | login_node | Open OnDemandのWebターミナルを起動した際のログイン先 |
 | data_dir | 投入したジョブの情報のディレクトリ |
