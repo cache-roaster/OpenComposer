@@ -15,4 +15,5 @@ Open Composer is a web application to generate batch job scripts and submit batc
 https://github.com/user-attachments/assets/0eee0b62-9364-465a-ae1e-7d412c1c9de9
 
 ## Reference
-- The 197th HPC Research Symposium (Japanese) [[PDF](https://mnakao.net/data/2024/HPC197.pdf)] [[Slide](https://mnakao.net/data/2024/HPC197-slide.pdf)]
+- The 7th R-CCS International Symposium [[Poster](https://mnakao.net/data/2025/RCCS.pdf)], Jan., 2025
+- The 197th HPC Research Symposium (Japanese) [[PDF](https://mnakao.net/data/2024/HPC197.pdf)] [[Slide](https://mnakao.net/data/2024/HPC197-slide.pdf)], Dec., 2024

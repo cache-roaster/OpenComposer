@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.2.0] - 2025-01-20
+
+### Added
+- Support PBS job scheduler.
+- Add bin_overrides in conf.yml.erb.
+- Add a utility misc/read_yml_erb.rb.
+
+### Changed
+- login_node in conf.yml.erb has been made optional.
+- Simplify `ident` parameter.
+- When a job scheduler error occurs, output stdout as well as stderr.
+- Get the job submission date and time from a Ruby function, not from the scheduler.
+
+### Fixed
+- Fixed a mistake in the application name link on the form.
+- Element with disabled is considered unchecked.
+- When the selected option in select widget becomes disabled by dynamic form widget, the non-disabled option is selected.
+- Fixed an issue where the disable- and hide- options for radio and checkbox widgets did not work properly when there was more than one option.
+
 ## [1.1.0] - 2025-01-09
 
 ### Added
