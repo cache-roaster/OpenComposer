@@ -12,6 +12,7 @@ Clicking on an icon navigates you to the respective application page.
 Generates a job script.
 When you enter values in the web form on the left side of the page,
 a job script is dynamically generated in the text area on the right side of the page.
+The text area can be freely edited.
 When you click the "Submit" button below the text area, the generated job script is submitted to the job scheduler.
 
 ![Application page](img/application_page.png)
