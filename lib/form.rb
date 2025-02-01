@@ -325,9 +325,9 @@ helpers do
       <button class="btn btn-dark mt-0 text-nowrap" data-bs-toggle="modal" data-bs-target="#modal-#{key}" tabindex="-1" onclick="ocForm.loadFiles('#{@script_name}', '#{current_path}', '#{current_type}', '#{key}', #{show_files}, '#{Dir.home}', true); return false;">Select Path</button>
     </div>
     <div class="modal" id="modal-#{key}">
-      <div class="modal-dialog modal-lg">
+      <div class="modal-dialog modal-lg style="overflow-y: initial !important;">
         <div class="modal-content">
-          <div class="modal-body">
+          <div class="modal-body" style="max-height: 80vh;overflow-y: auto;">
             <div class="container-fluid">
               <div class="row">
     HTML
