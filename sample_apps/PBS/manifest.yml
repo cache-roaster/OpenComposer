@@ -1,5 +1,5 @@
 ---
-name: PBS
-icon: "fa-regular fa-file-lines"
+name: Job Script
+icon: "./icon.png"
 description: |
   This application generates an arbitrary job script in PBS.
