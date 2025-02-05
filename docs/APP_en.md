@@ -91,6 +91,16 @@ form:
     step:   [  1,  1 ]
 ```
 
+If you want to change the label of the job script (default is "Script Content"), set `label` for `script`.
+In that case, write the job script in `content`.
+
+```
+script:
+  label: Job Script
+  content: |
+    #SBATCH --nodes=#{nodes}
+```
+
 ### widget: text
 Displays a text input field.
 

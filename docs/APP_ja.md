@@ -69,6 +69,15 @@ form:
     step:   [  1,  1 ]
 ```
 
+ジョブスクリプトのラベル（デフォルトは「Script Content」）を変更したい場合は`script`に対して`label`を設定します。その場合、ジョブスクリプトは`content`に記述します。
+
+```
+script:
+  label: Script Details
+  content: |
+    #SBATCH --nodes=#{nodes}
+```
+
 ### widget: text
 テキストの入力欄を表示します。
 

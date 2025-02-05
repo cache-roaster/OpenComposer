@@ -39,8 +39,8 @@
 
     <!-- Script Contents Section -->
     <div class="col py-3 bg-gradient d-flex flex-column" style="background: <%= @conf['form_color'] %>;">
-      <label for="<%= JOB_SCRIPT_CONTENTS %>">Script Contents</label>
-      <textarea id="<%= JOB_SCRIPT_CONTENTS %>" name="<%= JOB_SCRIPT_CONTENTS %>" class="form-control mt-1 mb-3 flex-grow-1" tabindex="<%= @table_index %>" accesskey="s" oninput="ocForm.updateHeight()" required>
+      <label class="fw-semibold "for="<%= SCRIPT_CONTENT %>"><%= @script_label %></label>
+      <textarea id="<%= SCRIPT_CONTENT %>" name="<%= SCRIPT_CONTENT %>" class="form-control mt-1 mb-3 flex-grow-1" tabindex="<%= @table_index %>" accesskey="s" oninput="ocForm.updateHeight()" required>
         (Something wrong)
       </textarea>
       <!-- Submit Button -->
@@ -50,7 +50,7 @@
 </form>
 <script>
 var ocForm = ocForm || {};
-ocForm.textArea = document.getElementById('<%= JOB_SCRIPT_CONTENTS %>');
+ocForm.textArea = document.getElementById('<%= SCRIPT_CONTENT %>');
 </script>
 <script src="form.js"></script>
 <script>
@@ -76,17 +76,17 @@ ocForm.updateContents = function(selectedValues) {
 
 // Check if a cache file exists.
 ocForm.isCacheFile = function() {
-  return <%= @script_contents != nil %>;
+  return <%= @script_content != nil %>;
 };
 
 // Load cache file contents.
 ocForm.loadCacheFile = function() {
-  return <%= @script_contents.to_json %>;
+  return <%= @script_content.to_json %>;
 };
 
 // Prevent default behavior for Enter key unless specific elements are focused.
 document.addEventListener('keydown', function(event) {
-  if (event.key === 'Enter' && (event.target.id !== '<%= JOB_SCRIPT_CONTENTS %>' && event.target.id !== '_submitButton')) {
+  if (event.key === 'Enter' && (event.target.id !== '<%= SCRIPT_CONTENT %>' && event.target.id !== '_submitButton')) {
     event.preventDefault();
   }
 });

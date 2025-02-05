@@ -23,7 +23,7 @@ JOB_STATUS_ID          = "status"
 HEADER_SCRIPT_LOCATION = "_script_location"
 HEADER_SCRIPT_NAME     = "_script_1"
 HEADER_JOB_NAME        = "_script_2"
-JOB_SCRIPT_CONTENTS    = "_script_contents"
+SCRIPT_CONTENT         = "_script_content"
 SUBMIT_BUTTON          = "_submitButton"
 JOB_NAME               = "Job Name"
 JOB_SUBMISSION_TIME    = "Submission Time"
@@ -191,7 +191,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
       end
       
       # Load cache
-      @script_contents = nil
+      @script_content = nil
       if params["jobId"] || job_id
         history_db = @conf["history_db"]
         halt 404, "#{history_db} is not found." unless File.exist?(history_db)
@@ -208,13 +208,16 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
         end        
         replace_with_cache(@header, cache)
         replace_with_cache(@body["form"], cache)
-        @script_contents = cache[JOB_SCRIPT_CONTENTS]
+        @script_content = cache[SCRIPT_CONTENT]
       elsif !error_msg.nil?
         replace_with_cache(@header, error_params)
         replace_with_cache(@body["form"], error_params)
-        @script_contents = error_params[JOB_SCRIPT_CONTENTS]
+        @script_content = error_params[SCRIPT_CONTENT]
       end
 
+      @script_label = @body["script"]["label"] || "Script Content"
+      @body["script"] = @body["script"]["content"] if @body["script"].is_a?(Hash) && @body["script"].key?("content")
+      
       @table_index = 1
       @job_id      = job_id.is_a?(Array) ? job_id.join(", ") : job_id
       @error_msg   = error_msg
@@ -294,8 +297,8 @@ post "/*" do
     halt 500, "#{HEADER_SCRIPT_NAME} is not defined in #{app_path}/form.yml[.erb]."     if script_name.nil?
     halt 500, "#{HEADER_JOB_NAME} is not defined in #{app_path}/form.yml[.erb]."        if job_name.nil?
     
-    script_path     = File.join(script_location, script_name)
-    script_contents = params[JOB_SCRIPT_CONTENTS].gsub("\r\n", "\n")
+    script_path    = File.join(script_location, script_name)
+    script_content = params[SCRIPT_CONTENT].gsub("\r\n", "\n")
     job_id    = nil
     error_msg = nil
 
@@ -315,7 +318,7 @@ post "/*" do
 
     # Save a job script
     FileUtils.mkdir_p(script_location)
-    File.open(script_path, "w") { |file| file.write(script_contents) }
+    File.open(script_path, "w") { |file| file.write(script_content) }
 
     # Submit a job script
     Dir.chdir(File.dirname(script_path)) do
