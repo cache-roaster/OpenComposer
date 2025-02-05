@@ -117,7 +117,7 @@ helpers do
   # Output a modal displaying a job script and a link to load parameters for a specific job.
   def output_job_script_modal(job)
     modal_id = "_historyJobScript#{job[JOB_ID]}"
-    job_script = job[SCRIPT_CONTENT].gsub(/\r\n|\n/, '<br>')
+    job_script = job[SCRIPT_CONTENT]&.gsub(/\r\n|\n/, '<br>')
     job_link = "#{@script_name}#{job[JOB_APP_PATH]}?jobId=#{URI.encode_www_form_component(job[JOB_ID])}"
 
     <<~HTML
