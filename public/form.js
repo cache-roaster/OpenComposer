@@ -250,7 +250,9 @@ ocForm.loadFiles = function(scriptName, currentPath, type, key, showFiles, homeD
   });
 
   selectedPath.dataset.path = currentPath;
-  selectedPath.innerHTML = `<a href='#' onclick="ocForm.loadFiles('${scriptName}', '${homeDir}', '${type}', '${key}', ${showFiles}, '${homeDir}', false)">&#x1f3e0;</a> `;
+  selectedPath.innerHTML  = `<a href='#' onclick="ocForm.loadFiles('${scriptName}', '${homeDir}', '${type}', '${key}', ${showFiles}, '${homeDir}', false)">&#x1f3e0;</a> `;
+  const parentPath = currentPath.replace(/\/+$/, '').split('/').slice(0, -1).join('/') || '/';
+  selectedPath.innerHTML += `<a href='#' onclick="ocForm.loadFiles('${scriptName}', '${parentPath}', '${type}', '${key}', ${showFiles}, '${homeDir}', false)" style="text-decoration:none;">&#x2B06;&#xFE0F;</a> `;
   selectedPath.innerHTML += linkedParts.join('/');
   
   if (type === 'directory' && !selectedPath.dataset.path.endsWith("/")) {
