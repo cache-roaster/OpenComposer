@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.3.0] -
+- It is possible to define headers for each application.
+
 ## [1.2.0] - 2025-01-20
 
 ### Added

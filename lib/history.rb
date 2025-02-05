@@ -78,8 +78,8 @@ helpers do
       [JOB_NAME,            job[JOB_NAME]],
       ["Application",       job[JOB_APP_NAME]],
       [JOB_PARTITION,       job[JOB_PARTITION]],
-      ["Script Location",   job[HEAD_SCRIPT_LOCATION]],
-      ["Script Name",       job[HEAD_SCRIPT_NAME]],
+      ["Script Location",   job[HEADER_SCRIPT_LOCATION]],
+      ["Script Name",       job[HEADER_SCRIPT_NAME]],
       [JOB_SUBMISSION_TIME, job[JOB_SUBMISSION_TIME]],
       [JOB_STATUS_ID,       job[JOB_STATUS_ID]]
     ]
@@ -238,7 +238,7 @@ helpers do
 
         info = { JOB_ID => id }
         info.merge!(data)
-        next if filter && !info[HEAD_SCRIPT_NAME]&.include?(filter) && !info[JOB_NAME]&.include?(filter)
+        next if filter && !info[HEADER_SCRIPT_NAME]&.include?(filter) && !info[JOB_NAME]&.include?(filter)
         
         jobs.unshift(info)
       end

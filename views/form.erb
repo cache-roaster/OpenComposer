@@ -27,14 +27,14 @@
 
     <!-- Form Header -->
     <div class="col pt-2 pb-3 bg-gradient" style="background: <%= @conf['description_color'] %>;">
-      <%= output_head(@head) %>
+      <%= output_header(@header) %>
     </div>
   </div>
 
   <div class="row row-cols-1 row-cols-md-2 px-3">
     <!-- Form Body -->
     <div class="col py-3 bg-gradient" style="background: <%= @conf['form_color'] %>;">
-      <%= output_body(@body, @head) %>
+      <%= output_body(@body, @header) %>
     </div>
 
     <!-- Script Contents Section -->
@@ -94,11 +94,6 @@ document.addEventListener('keydown', function(event) {
 ocForm.isFirst = true;
 ocForm.multiSelectDisabledIndexes = {};
 ocForm.updateValues = function(fromId) {
-  // Even if the values in header changes, the contents of JOB_SCRIPT_CONTENTS will not be updated.
-  if (fromId === "<%= HEAD_SCRIPT_LOCATION %>" || fromId === "<%= HEAD_SCRIPT_NAME %>" || fromId === "<%= HEAD_JOB_NAME %>") {
-    return;
-  }
-  
   let selectedValues = [];
   ocForm.initDynamicWidget(fromId);
   ocForm.execDynamicWidget(fromId);

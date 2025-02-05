@@ -12,23 +12,23 @@ set :environment, :production
 set :erb, trim: "-"
 
 # Internal Constants
-VERSION              = "1.2.0"
-SCHEDULERS_DIR_PATH  = "./lib/schedulers"
-HISTORY_ROWS         = 10
-JOB_STATUS           = { "queued" => "QUEUED", "running" => "RUNNING", "completed" => "COMPLETED" }
-JOB_ID               = "id"
-JOB_APP_NAME         = "appName"
-JOB_APP_PATH         = "appPath"
-JOB_STATUS_ID        = "status"
-HEAD_SCRIPT_LOCATION = "_script_location"
-HEAD_SCRIPT_NAME     = "_script_1"
-HEAD_JOB_NAME        = "_script_2"
-JOB_SCRIPT_CONTENTS  = "_script_contents"
-SUBMIT_BUTTON        = "_submitButton"
-JOB_NAME             = "Job Name"
-JOB_SUBMISSION_TIME  = "Submission Time"
-JOB_PARTITION        = "Partition"
-JOB_KEYS             = "job_keys"
+VERSION                = "1.2.0"
+SCHEDULERS_DIR_PATH    = "./lib/schedulers"
+HISTORY_ROWS           = 10
+JOB_STATUS             = { "queued" => "QUEUED", "running" => "RUNNING", "completed" => "COMPLETED" }
+JOB_ID                 = "id"
+JOB_APP_NAME           = "appName"
+JOB_APP_PATH           = "appPath"
+JOB_STATUS_ID          = "status"
+HEADER_SCRIPT_LOCATION = "_script_location"
+HEADER_SCRIPT_NAME     = "_script_1"
+HEADER_JOB_NAME        = "_script_2"
+JOB_SCRIPT_CONTENTS    = "_script_contents"
+SUBMIT_BUTTON          = "_submitButton"
+JOB_NAME               = "Job Name"
+JOB_SUBMISSION_TIME    = "Submission Time"
+JOB_PARTITION          = "Partition"
+JOB_KEYS               = "job_keys"
 
 # Structure of manifest
 Manifest = Struct.new(:dirname, :name, :category, :description, :icon, :related_app)
@@ -173,9 +173,13 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
   else
     @manifest = @manifests.find { |m| "/#{m.dirname}" == @path_info }
     if !@manifest.nil?
-      @name = @manifest["name"]
-      @head = read_yaml("./lib/head.yml")
-      @body = read_yaml(File.join(@apps_dir, @path_info, "form.yml"))
+      @name   = @manifest["name"]
+      @body   = read_yaml(File.join(@apps_dir, @path_info, "form.yml"))
+      @header = if @body.key?("header")
+                  @body["header"]
+                else
+                  read_yaml("./lib/header.yml")["header"]
+                end
 
       # Since the widget name is used as a variable in Ruby, it should consist of only
       # alphanumeric characters and underscores, and numbers should not be used at the
@@ -202,11 +206,11 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
           cache = db[id]
           halt 404, "Specified Job ID (#{id}) is not found." if cache.nil?
         end        
-        replace_with_cache(@head["form"], cache)
+        replace_with_cache(@header, cache)
         replace_with_cache(@body["form"], cache)
         @script_contents = cache[JOB_SCRIPT_CONTENTS]
       elsif !error_msg.nil?
-        replace_with_cache(@head["form"], error_params)
+        replace_with_cache(@header, error_params)
         replace_with_cache(@body["form"], error_params)
         @script_contents = error_params[JOB_SCRIPT_CONTENTS]
       end
@@ -281,9 +285,15 @@ post "/*" do
 
     show_website(nil, scheduler, error_msg)
   else
-    script_location = params[HEAD_SCRIPT_LOCATION]
-    script_name     = params[HEAD_SCRIPT_NAME]
-    job_name        = params[HEAD_JOB_NAME]
+    app_path = File.join(conf["apps_dir"], request.path_info)
+    
+    script_location = params[HEADER_SCRIPT_LOCATION]
+    script_name     = params[HEADER_SCRIPT_NAME]
+    job_name        = params[HEADER_JOB_NAME]
+    halt 500, "#{HEADER_SCRIPT_LOCATION} is not defined in #{app_path}/form.yml[.erb]." if script_location.nil?
+    halt 500, "#{HEADER_SCRIPT_NAME} is not defined in #{app_path}/form.yml[.erb]."     if script_name.nil?
+    halt 500, "#{HEADER_JOB_NAME} is not defined in #{app_path}/form.yml[.erb]."        if job_name.nil?
+    
     script_path     = File.join(script_location, script_name)
     script_contents = params[JOB_SCRIPT_CONTENTS].gsub("\r\n", "\n")
     job_id    = nil
@@ -292,15 +302,14 @@ post "/*" do
     # Run commands in check block
     params.each do |key, value|
       k = case key
-          when HEAD_SCRIPT_LOCATION then "_SCRIPT_LOCATION"
-          when HEAD_SCRIPT_NAME     then "_SCRIPT_NAME"
-          when HEAD_JOB_NAME        then "_JOB_NAME"
+          when HEADER_SCRIPT_LOCATION then "_SCRIPT_LOCATION"
+          when HEADER_SCRIPT_NAME     then "_SCRIPT_NAME"
+          when HEADER_JOB_NAME        then "_JOB_NAME"
           else key
           end
       instance_variable_set("@#{k}", value)
     end
 
-    app_path = File.join(conf["apps_dir"], request.path_info)
     check    = read_yaml(File.join(app_path, "form.yml"))["check"]
     eval(check) unless check.nil?
 

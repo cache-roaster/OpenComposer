@@ -9,12 +9,18 @@
 The `form.yml` is mandatory, but `manifest.yml` and `submit.yml` are optional.
 Additionally, if you want to write these files in Embedded Ruby format, rename the files to `form.yml.erb`, `manifest.yml.erb`, and `submit.yml.erb`, respectively.
 
-## Settings of form.yml
-The `form.yml` file is composed of three main keys: `form`, `script`, and `check`.
-Each key defines widgets, job scripts, and validation scripts, respectively.
-The widget types are specified under the `widget` key in the `form` section.
-The job script is generated using both `form` and `script`, while `check` performs validation of the widget inputs before job submission.
+The `form.yml` is composed of three main keys: `form`, `header`, `script`, and `check`.
+Each key defines main widgets, header widgets, job scripts, and validation scripts, respectively.
+The following figure shows the scope of each key.
+Note that the application name in the upper left is the scope of `manifest.yml`.
 
+![Sections](img/sections.png)
+
+The job script is generated from `form`, `header`, and `script`.
+However, `header` is optional, and if omitted, `lib/header.yml.erb` is used instead (in most cases, there is no need to define `header`).
+The `check` section performs validation of the widget inputs before job submission.
+
+## Settings of form.yml
 ### widget: number
 Displays a numeric input field.
 In the example below, `nodes` is the variable name for the widget.
@@ -499,6 +505,10 @@ script: |
 
 Only `options` is required, the others are optional.
 
+## Settings of header.yml.erb
+The same widgets can be used in `form.yml`.
+However, widgets with the same names as those defined in lib/headers.yml.erb must be defined.
+
 ## Settings of manifest.yml
 Describes your application. Here is a sample:
 
@@ -537,7 +547,10 @@ script: |
 ```
 
 ## Supplementary information
-- Widget names can only contain alphanumeric characters and underscores (`_`). Numbers and underscores cannot start the name. The same applies to directory names in which applications are saved. Note that widget names ending with an underscore and a number (e.g. `nodes_1`) may conflict when referencing the value of a widget with the `size` attribute.
+- Widget names can only contain alphanumeric characters and underscores (`_`). Numbers and underscores cannot start the name.
+  - The same rule applies to the directory name in which the application is saved.
+  - Note that widget names ending with an underscore and a number (e.g. `nodes_1`) may conflict when referencing the value of a widget with the `size` attribute.
+  - When defining `header` in `form.yml`, the widget names beginning with underscores (`_script_location` and `_script`) used in `lib/header.yml.erb` can be used.
 - If there is no second element in `options`, the first element is used instead.
 - In `script`, if a variable used in a line does not have a value, the line is not displayed. However, if you add a colon to the beginning of the variable (e.g. `#{:nodes}` or `#{basename(:input_file)}`), the line will be output even if the variable does not have a value.
 - The order of processing that Open Composer performs before submitting a job script to the job scheduler is as follows.
