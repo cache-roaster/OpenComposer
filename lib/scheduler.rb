@@ -4,11 +4,12 @@ class Scheduler
   # Submit a job to the scheduler.
   # @param script_path [String] path to the job script.
   # @param job_name [String] job name.
+  # @added_options [String] Added options.
   # @param bin [String] PATH of commands of job scheduler.
   # @param bin_overrides [Array] PATH of each command of job scheduler.
   # @param ssh_wrapper [String] SSH wrapper. This is used when the local server does not have a job scheduler (optional).
   # @return [Array<String, String>] job id and error message. If successful, the error message is nil; otherwise, the job id is nil.
-  def submit(script_path, job_name = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
+  def submit(script_path, job_name = nil, added_options = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
     raise NotImplementedError, "This method should be overridden by a subclass"
   end
 

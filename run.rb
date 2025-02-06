@@ -299,22 +299,66 @@ post "/*" do
     
     script_path    = File.join(script_location, script_name)
     script_content = params[SCRIPT_CONTENT].gsub("\r\n", "\n")
-    job_id    = nil
-    error_msg = nil
-
+    job_id         = nil
+    error_msg      = nil
+    form           = read_yaml(File.join(app_path, "form.yml"))
+    submit_options = nil
+    
     # Run commands in check block
-    params.each do |key, value|
-      k = case key
-          when HEADER_SCRIPT_LOCATION then "_SCRIPT_LOCATION"
-          when HEADER_SCRIPT_NAME     then "_SCRIPT_NAME"
-          when HEADER_JOB_NAME        then "_JOB_NAME"
-          else key
-          end
-      instance_variable_set("@#{k}", value)
-    end
+    check = form["check"]
+    unless check.nil?
+      params.each do |key, value|
+        next if ['splat', SCRIPT_CONTENT].include?(key)
+        
+        suffix = case key
+                 when JOB_APP_NAME           then "OC_APP_NAME"
+                 when JOB_APP_PATH           then "OC_APP_PATH"
+                 when HEADER_SCRIPT_LOCATION then "OC_SCRIPT_LOCATION"
+                 when HEADER_SCRIPT_NAME     then "OC_SCRIPT_NAME"
+                 when HEADER_JOB_NAME        then "OC_JOB_NAME"
+                 else key
+                 end
 
-    check    = read_yaml(File.join(app_path, "form.yml"))["check"]
-    eval(check) unless check.nil?
+        instance_variable_set("@#{suffix}", value)
+      end
+
+      eval(check)
+    end
+    
+    # Run commands in submit block
+    submit = form["submit"]
+    unless submit.nil?
+      replacements = params.each_with_object({}) do |(key, value), env|
+        next if ['splat', SCRIPT_CONTENT].include?(key)
+        
+        suffix = case key
+                 when JOB_APP_NAME           then "OC_APP_NAME"
+                 when JOB_APP_PATH           then "OC_APP_PATH"
+                 when HEADER_SCRIPT_LOCATION then "OC_SCRIPT_LOCATION"
+                 when HEADER_SCRIPT_NAME     then "OC_SCRIPT_NAME"
+                 when HEADER_JOB_NAME        then "OC_JOB_NAME"
+                 else key
+                 end
+        
+        env[suffix] = value
+      end
+
+      replacements.each do |key, value|
+        submit.gsub!(/\#\{#{key}\}/, value.to_s)
+      end
+
+      submit_with_echo = <<~BASH
+        #{submit}
+        if [ -n "$OC_SUBMIT_OPTIONS" ]; then
+          echo "$OC_SUBMIT_OPTIONS"
+        else
+          echo "__UNDEFINED__"
+        fi
+        BASH
+      
+      submit_options = `bash -c '#{submit_with_echo}' | tail -n 1`.strip
+      submit_options = nil if submit_options == "__UNDEFINED__"
+    end
 
     # Save a job script
     FileUtils.mkdir_p(script_location)
@@ -322,10 +366,7 @@ post "/*" do
 
     # Submit a job script
     Dir.chdir(File.dirname(script_path)) do
-      # Run preprocessing commands in submit.yml
-      prep = read_yaml(File.join(app_path, "submit.yml"))
-      system(prep["script"]) if prep&.dig("script")
-      job_id, error_msg = scheduler.submit(script_path, job_name, bin, bin_overrides, ssh_wrapper)
+      job_id, error_msg = scheduler.submit(script_path, job_name, submit_options, bin, bin_overrides, ssh_wrapper)
       params[JOB_SUBMISSION_TIME] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
 

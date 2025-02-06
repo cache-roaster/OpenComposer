@@ -2,12 +2,12 @@ require 'open3'
 
 class Pbs < Scheduler
   # Submit a job to PBS using the 'qsub' command.
-  def submit(script_path, job_name = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
+  def submit(script_path, job_name = nil, added_options = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
     init_bash_path = "/usr/share/Modules/init/bash"
     init_bash = "source #{init_bash_path};" if File.exist?(init_bash_path) && ssh_wrapper.nil?
     qsub = get_command_path("qsub", bin, bin_overrides)
     option = "-N #{job_name}" unless job_name.empty?
-    command = [init_bash, ssh_wrapper, qsub, option, script_path].compact.join(" ")
+    command = [init_bash, ssh_wrapper, qsub, option, added_options, script_path].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return nil, [stdout, stderr].join(" ") unless status.success?
 

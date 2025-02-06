@@ -1,20 +1,19 @@
 ## 概要
-1. すべてのアプリケーションの保存するためのディレクトリ名を`conf.yml.erb`の`apps_dir`に記入します。ここでは、`apps_dir: ./apps`とします。
+1. すべてのアプリケーションの保存するためのディレクトリ名を`./conf.yml.erb`の`apps_dir`に記入します。ここでは、`apps_dir: ./apps`とします。
 2. `./apps/`以下にアプリケーション用のディレクトリを作成します。アプリケーション名を`test`とした場合、`./apps/test`を作成します。
-3. 下記の設定ファイルを作成します
+3. 下記の設定ファイルを作成します。Embedded Ruby形式で作成する場合は、各ファイル名を`form.yml.erb`と`manifest.yml.erb`にしてください。
 - `./apps/test/form.yml`：Webフォームの設定
 - `./apps/test/manifest.yml`：アプリケーションの説明
-- `./apps/test/submit.yml`：ジョブ投入前の処理
 
-`form.yml`は必須ですが、`manifest.yml`と`submit.yml`は必須ではありません。また、上記ファイルをEmbedded Ruby形式で記述する場合は、それぞれのファイル名を`form.yml.erb`、`manifest.yml.erb`、`submit.yml.erb`にしてください。
+## form.ymlの設定
+`form.yml`は、`form`、`header`、`script`、`check`、`submit`というキーで構成されており、それぞれメインウィジット、ヘッダウィジット、ジョブスクリプト、チェックスクリプト、ジョブ投入時の前処理を定義します。`form`と`script`は必須項目ですが、`header`、`check`、`submit`は省略できます。
 
-`form.yml`は、`form`、`header`、`script`、`check`というキーで構成されており、それぞれメインウィジット、ヘッダウィジット、ジョブスクリプト、チェックスクリプトを定義します。次の図は各キーの担当範囲を示しています。なお、左上のアプリケーション名などは`manifest.yml`の担当範囲です。
+次の図は`form`、`header`、`script`の担当範囲を示しています。`form`と`header`と`script`からジョブスクリプトが生成されます。`header`を省略した場合は`./lib/header.yml.erb`が代わりに利用されます（ほとんどの場合、`header`を`form.yml`で定義する必要はないでしょう）。なお、左上のアプリケーションの説明などは`manifest.yml`の担当範囲です。
 
 ![Sections](img/sections.png)
 
-`form`と`header`と`script`からジョブスクリプトが生成されます。ただし、`header`は省略可能であり、省略した場合は`./lib/header.yml.erb`が代わりに利用されます（ほとんどの場合、`header`を定義する必要はないでしょう）。`check`はウィジットに設定された値のチェックをジョブの投入前に行います。
+`check`はウィジットに設定された値のチェックをジョブの投入前に行います。`submit`はジョブスケジューラにジョブを投入する際の前処理を定義します。
 
-## form.ymlの設定
 ### widget: number
 数値の入力欄を表示します。下の例の`nodes`はウィジットの変数名です。`label`はラベル、`value`は初期値、`min`は最小値、`max`は最大値、`step`はステップ幅です。`required`は必須であるかどうかを指定します。`help`は入力欄の下に表示されるヘルプメッセージです。ジョブスクリプトには`script`内の文字列が表示されます。`script`の中の`#{nodes}`は入力した値に置き換えられます。
 
@@ -34,7 +33,7 @@ script: |
   #SBATCH --nodes=#{nodes}
 ```
 
-複数の数値の入力欄を表示することもできます。その場合、`size`で入力欄の数を記述し、各項目を配列形式で記述します。`script`の`#{time_1}`と`#{time_2}`は、1つ目と2つ目に入力した値に置き換えられます。`check`に記述されたRubyスクリプトは、24時間以上の値が入力された状態で「Submit」ボタンをクリックすると、エラーメッセージが出力され、ジョブスクリプトの投入は行わないことを意味しています。`check`内で変数を参照する場合は、@マークの後に変数名を記述してください。また、すべての変数は文字列であることに注意ください。
+複数の数値の入力欄を表示することもできます。その場合、`size`で入力欄の数を記述し、各項目を配列形式で記述します。`script`の`#{time_1}`と`#{time_2}`は、1つ目と2つ目に入力した値に置き換えられます。
 
 ```
 form:
@@ -49,14 +48,10 @@ form:
     
 script: |
   #SBATCH --time=#{time_1}:#{time_2}:00
-
-check: |
-  if @time_1.to_i == 24 && @time_2.to_i > 0
-    halt 500, "Exceeded Time"
-  end
 ```
 
 `label`が配列形式ではない場合、一行の長いタイトルを記述することができます。`help`も同様です。
+
 ```
 form:
   time:
@@ -76,6 +71,47 @@ script:
   label: Script Details
   content: |
     #SBATCH --nodes=#{nodes}
+```
+
+`check`のサンプルは下記の通りです。Rubyスクリプトで記述します。下記のサンプルでは、24時間以上の値が入力された状態で「Submit」ボタンをクリックすると、エラーメッセージが出力され、ジョブスクリプトの投入は行わないことを意味しています。`form`の変数を参照する場合は、@マークの後に変数名を記述してください。なお、すべての変数は文字列であることに注意ください。
+
+`check`では、下記の特殊な変数も利用できます。
+- @OC_APP_NAME : `manifest.yml`の`name`で定義しているアプリケーション名
+- @OC_APP_PATH : `form.yml`が保存されているアプリケーションのパス（例：`/Slurm`）
+- @OC_SCRIPT_LOCATION : ヘッダで定義されている`Script Location`
+- @OC_SCRIPT_NAME : ヘッダで定義されている`Script Name`
+- @OC_JOB_NAME :ヘッダで定義されている`Job Name`
+
+```
+form:
+  time:
+    widget: number
+    label:  [ Maximum run time (0 - 24 h), Maximum run time (0 - 59 m) ]
+    size:   2
+    value:  [  1,  0 ]
+    min:    [  0,  0 ]
+    max:    [ 24, 59 ]
+    step:   [  1,  1 ]
+
+script: |
+  #SBATCH --time=#{time_1}:#{time_2}:00
+  
+check: |
+  if @time_1.to_i == 24 && @time_2.to_i > 0
+    halt 500, "Exceeded Time"
+  end
+```
+
+`submit`のサンプルは下記の通りです。シェルスクリプトで記述します。`form`の変数を参照する場合は、`form`と同様に`#{...}`を利用してください。環境変数`OC_SUBMIT_OPTIONS`は、ジョブスクリプト投入コマンドに追加のオプションを設定できます。この処理の実行後に、ジョブスクリプトを投入するためのコマンド（例えば、sbatch #{OC_SUBMIT_OPTIONS} -J #{OC_JOB_NAME} #{OC_SCRIPT_NAME}）が実行されます。
+
+```
+submit: |
+  #!/bin/bash
+
+  cd #{OC_SCRIPT_LOCATION}
+  mv #{OC_SCRIPT_NAME} param.conf
+  genjs_ct param.conf > #{OC_SCRIPT_NAME}
+  OC_SUBMIT_OPTIONS="-n 1"
 ```
 
 ### widget: text
@@ -489,17 +525,6 @@ related_app:
 - description: アプリケーションの説明
 - related_app: 後処理などを行う場合、Open OnDemandに登録されているアプリケーションを指定します。指定されたアプリケーションは履歴ページで表示されます。`icon:`と同様にアイコン画像などの指定が可能です。画像の指定がない場合は、Open OnDemandに登録されている画像が用いられます。
 
-## submit.ymlの設定
-ジョブスクリプトをジョブスケジューラに投入する前の処理を記述します。`script`のキーのみを持ちます。サンプルは下記の通りです。アプリケーションページのヘッダで定義されている「Script Location」、「Script Name」、「Job Name」は、それぞれ「@_SCRIPT_LOCATION」、「@_SCRIPT_NAME」、「@_JOB_NAME」で参照できます。この処理の実行後に、ジョブスクリプトを投入するためのコマンド（例えば、sbatch <%= @_SCRIPT_NAME %>）が実行されます。
-```
-script: |
-  #!/usr/bin/env bash
-
-  cd <%= @_SCRIPT_LOCATION %>
-  mv <%= @_SCRIPT_NAME %> parameters.conf
-  genjs_ct parameters.conf > <%= @_SCRIPT_NAME %>
-```
-
 ## 補足
 - ウィジット名に利用できるのは英数字とアンダースコア（`_`）のみです。また、数字とアンダースコアを先頭に用いることもできません。
   - アプリケーションを保存するディレクトリ名も同様です。
@@ -508,7 +533,7 @@ script: |
 - `options`で2つ目の要素がない場合、1つ目の要素が代わりに用いられます。
 - `script`において、ある行で利用されている変数が値を持たない場合、その行は表示されません。ただし、その変数の先頭にコロンを付加する（例：`#{:nodes}`や`#{basename(:input_file)}`）と、その変数が値を持たなくても行は出力されます。
 - Open Composerがジョブスクリプトをジョブスケジューラに投入するまでに行われる処理の順番は下記の通りです。
-1. アプリケーションページで「Submit」ボタンがクリックされる
-2. `form.yml`の`check`に記述されたスクリプトを実行（`check`がある場合）
-3. `submit.yml`に記述された前処理を実行（`submit.yml`がある場合）
-4. ジョブスケジューラにジョブスクリプトを投入する
+  1. アプリケーションページで「Submit」ボタンがクリックされる
+  2. `form.yml`の`check`に記述されたスクリプトを実行（`check`がある場合）
+  3. `form.yml`の`submit`に記述されたスクリプトを実行（`submit`がある場合）
+  4. ジョブスケジューラにジョブスクリプトが投入される
