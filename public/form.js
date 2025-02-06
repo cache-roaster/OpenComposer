@@ -231,7 +231,7 @@ ocForm.addSelectedItem = function(id, updateValuesFlag = true) {
 };
 
 // Load files and updates the file selector interface dynamically.
-ocForm.loadFiles = function(scriptName, currentPath, type, key, showFiles, homeDir, isFromButton) {
+ocForm.loadFiles = function(scriptName, currentPath, key, showFiles, homeDir, isFromButton) {
   const selectedPath = document.getElementById("oc-modal-data-" + key);
   if (isFromButton) {
     currentPath = selectedPath.dataset.path;
@@ -242,24 +242,29 @@ ocForm.loadFiles = function(scriptName, currentPath, type, key, showFiles, homeD
   const linkedParts = parts.map(part => {
     if (part) {
       subPath += "/" + part;
-      return ` <a href="#" onclick="ocForm.loadFiles('${scriptName}', '${subPath}', '${type}', '${key}', ${showFiles}, '${homeDir}', false)">${part}</a> `;
+      return ` <a href="#" onclick="ocForm.loadFiles('${scriptName}', '${subPath}', '${key}', ${showFiles}, '${homeDir}', false)">${part}</a> `;
     }
     else {
       return ''; // Avoid empty string for root directory
     }
   });
-
-  selectedPath.dataset.path = currentPath;
-  selectedPath.innerHTML  = `<a href='#' onclick="ocForm.loadFiles('${scriptName}', '${homeDir}', '${type}', '${key}', ${showFiles}, '${homeDir}', false)">&#x1f3e0;</a> `;
-  const parentPath = currentPath.replace(/\/+$/, '').split('/').slice(0, -1).join('/') || '/';
-  selectedPath.innerHTML += `<a href='#' onclick="ocForm.loadFiles('${scriptName}', '${parentPath}', '${type}', '${key}', ${showFiles}, '${homeDir}', false)" style="text-decoration:none;">&#x2B06;&#xFE0F;</a> `;
-  selectedPath.innerHTML += linkedParts.join('/');
   
-  if (type === 'directory' && !selectedPath.dataset.path.endsWith("/")) {
-    selectedPath.dataset.path += "/";
-    selectedPath.innerHTML += "/";
-  }
+  const files_or_directory = scriptName + "/_file_or_directory";
+  fetch(`${files_or_directory}?path=${encodeURIComponent(currentPath)}`)
+    .then(response => response.json())
+    .then(data => {
+      selectedPath.dataset.path = currentPath;
+      selectedPath.innerHTML = `<a href='#' onclick="ocForm.loadFiles('${scriptName}', '${homeDir}', '${key}', ${showFiles}, '${homeDir}', false)">&#x1f3e0;</a> `;
+      const parentPath = currentPath.replace(/\/+$/, '').split('/').slice(0, -1).join('/') || '/';
+      selectedPath.innerHTML += `<a href='#' onclick="ocForm.loadFiles('${scriptName}', '${parentPath}', '${key}', ${showFiles}, '${homeDir}', false)" style="text-decoration:none;">&#x2B06;&#xFE0F;</a> `;
+      selectedPath.innerHTML += linkedParts.join('/');
 
+      if (data.type === 'directory' && !selectedPath.dataset.path.endsWith("/")) {
+        selectedPath.dataset.path += "/";
+        selectedPath.innerHTML += "/";
+      }
+    });
+  
   const checkbox = document.getElementById("oc-modal-checkbox-" + key);
   const filespath = scriptName + "/_files";
   fetch(`${filespath}?path=${encodeURIComponent(currentPath)}`)
@@ -283,11 +288,10 @@ ocForm.loadFiles = function(scriptName, currentPath, type, key, showFiles, homeD
         link.href = '#';
         link.textContent = file.name;
         link.dataset.path = file.path;
-        link.dataset.type = file.type;
         
         link.onclick = function(e) {
           e.preventDefault();
-          ocForm.loadFiles(scriptName, file.path, file.type, key, showFiles, homeDir, false);
+          ocForm.loadFiles(scriptName, file.path, key, showFiles, homeDir, false);
         };
 
         pathCell.appendChild(link);
@@ -328,7 +332,7 @@ ocForm.handleRowClick = function(event, key, showFiles, scriptName, homeDir) {
 
   if (target && target.nodeName === "TR") {
     const t = target.querySelector('td:nth-child(2) a');
-    ocForm.loadFiles(scriptName, t.dataset.path, t.dataset.type, key, showFiles, homeDir, false);
+    ocForm.loadFiles(scriptName, t.dataset.path, key, showFiles, homeDir, false);
   }
 };
 
@@ -958,7 +962,6 @@ ocForm.updatePath = function(key) {
   document.getElementById(key).value = document.getElementById("oc-modal-data-" + key).dataset.path;
   ocForm.updateValues(key);
 };
-
 
 // If a checkbox widget has `required: true` attribute and none are checked,
 // disable the submit button. If any are checked, enable the submit button.

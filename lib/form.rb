@@ -323,14 +323,13 @@ helpers do
     current_path = value['value'] || Dir.home
     current_path = Dir.home unless File.exist?(current_path.to_s)
     current_path = (File.directory?(current_path) && !current_path.end_with?('/')) ? "#{current_path}/" : current_path
-    current_type = Dir.exist?(current_path) ? 'directory' : 'file'
     show_files   = value['show_files'].nil? ? true : value['show_files']
     required     = value['required'].to_s == "true" ? "required" : ""
     html  = output_label_with_span_tag(key, value)
     html += <<~HTML
     <div class="d-flex align-items-center">
       <input type="text" tabindex="#{@table_index}" value="#{current_value}" id="#{key}" name="#{key}" #{required} class="form-control mt-0" oninput="ocForm.updateValues('#{key}')">
-      <button class="btn btn-dark mt-0 text-nowrap" data-bs-toggle="modal" data-bs-target="#modal-#{key}" tabindex="-1" onclick="ocForm.loadFiles('#{@script_name}', '#{current_path}', '#{current_type}', '#{key}', #{show_files}, '#{Dir.home}', true); return false;">Select Path</button>
+      <button class="btn btn-dark mt-0 text-nowrap" data-bs-toggle="modal" data-bs-target="#modal-#{key}" tabindex="-1" onclick="ocForm.loadFiles('#{@script_name}', '#{current_path}', '#{key}', #{show_files}, '#{Dir.home}', true); return false;">Select Path</button>
     </div>
     <div class="modal" id="modal-#{key}">
       <div class="modal-dialog modal-lg style="overflow-y: initial !important;">
@@ -350,8 +349,7 @@ helpers do
     
       favorites.each do |path|
         logo = File.file?(path) ? "&#x1f4c4;" : "&#x1F4C1;"
-        type = Dir.exist?(path) ? 'directory' : 'file'
-        html += "<tr><td class='text-center'>#{logo}</td><td><a href='#' data-path='#{path}' onclick=\"ocForm.loadFiles('#{@script_name}', '#{path}', '#{type}', '#{key}', #{show_files}, false);\">#{path}</a></td></tr>\n"
+        html += "<tr><td class='text-center'>#{logo}</td><td><a href='#' data-path='#{path}' onclick=\"ocForm.loadFiles('#{@script_name}', '#{path}', '#{key}', #{show_files}, '#{Dir.home}', false);\">#{path}</a></td></tr>\n"
       end
 
       html += <<~HTML

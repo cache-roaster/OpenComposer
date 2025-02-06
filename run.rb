@@ -235,7 +235,6 @@ get "/:apps_dir/:folder/:icon" do
   send_file(icon_path) if File.exist?(icon_path)
 end
 
-# This is used for the path widget in web forms.
 # Return a list of files and/or directories in JSON format.
 get "/_files" do
   path = params[:path] || "."
@@ -255,6 +254,18 @@ get "/_files" do
   { files: entries }.to_json
 end
 
+# Return whether the specified PATH is a file or a directory.
+get "/_file_or_directory" do
+  path = params[:path] || "."
+  content_type :json
+
+  if File.file?(path)
+    { type: "file" }.to_json
+  else
+    { type: "directory" }.to_json
+  end
+end
+    
 get "/*" do
   show_website
 end
