@@ -215,7 +215,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
         @script_content = error_params[SCRIPT_CONTENT]
       end
 
-      @script_label = @body.dig("script", "label") || "Script Content"
+      @script_label = @body["script"].is_a?(Hash) ? @body["script"]["label"] : "Script Content"
       if @body["script"].is_a?(Hash) && @body["script"].key?("content")
         @body["script"] = @body["script"]["content"]
       end
