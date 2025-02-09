@@ -215,9 +215,11 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
         @script_content = error_params[SCRIPT_CONTENT]
       end
 
-      @script_label = @body["script"]["label"] || "Script Content"
-      @body["script"] = @body["script"]["content"] if @body["script"].is_a?(Hash) && @body["script"].key?("content")
-      
+      @script_label = @body.dig("script", "label") || "Script Content"
+      if @body["script"].is_a?(Hash) && @body["script"].key?("content")
+        @body["script"] = @body["script"]["content"]
+      end
+
       @table_index = 1
       @job_id      = job_id.is_a?(Array) ? job_id.join(", ") : job_id
       @error_msg   = error_msg
