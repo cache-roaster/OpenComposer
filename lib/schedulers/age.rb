@@ -55,23 +55,14 @@ class Age < Scheduler
   
   # Parses a block of job information extracted from the qacct output.
   def parse_block(block)
-    info = {}
-    block.lines.each do |line|
+    key_map = { "jobname" => JOB_NAME, "qname" => JOB_PARTITION }
+    block.lines.each_with_object({}) do |line, info|
       key, value = line.strip.split(' ', 2)
-      next if key.nil? || value.nil?
+      next unless key && value
       
-      key = case key
-            when "jobname"
-              JOB_NAME
-            when "qname"
-              JOB_PARTITION
-            else
-              key
-            end
-      
+      key = key_map[key] || key
       info[key] = value
     end
-    return info
   end
   
   # Query the status of one or more jobs in Altair Grid Engine using 'qstat'.
@@ -183,20 +174,17 @@ class Age < Scheduler
       job_blocks = tmpfile.read.split("==============================================================")
       
       remaining_jobs.each do |job_id|
-        # Job IDs that are not displayed in qstat are marked as completed even if they are not displayed in qacct.
-        info[job_id] = { JOB_STATUS_ID => JOB_STATUS["completed"] }
-        
         # Determine if the job is an array job or a single job
         base_id, task_id = job_id.include?(".") ? job_id.split('.') : [job_id, nil]
         job_blocks.each do |block|
           # Check if the block contains the jobnumber
           if task_id # array job
             if block.match?(/jobnumber\s+#{base_id}/) && block.match?(/taskid\s+#{task_id}/)
-              info[job_id].merge!(parse_block(block))
+              info[job_id] = { JOB_STATUS_ID => JOB_STATUS["completed"] }.merge(parse_block(block))
             end
           else # single job
             if block.match?(/jobnumber\s+#{base_id}/)
-              info[job_id].merge!(parse_block(block))
+              info[job_id] = { JOB_STATUS_ID => JOB_STATUS["completed"] }.merge(parse_block(block))
             end
           end
         end
