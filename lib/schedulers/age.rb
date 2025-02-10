@@ -181,15 +181,20 @@ class Age < Scheduler
           if task_id # array job
             if block.match?(/jobnumber\s+#{base_id}/) && block.match?(/taskid\s+#{task_id}/)
               info[job_id] = { JOB_STATUS_ID => JOB_STATUS["completed"] }.merge(parse_block(block))
+            else
+              info[job_id] = { JOB_STATUS_ID => nil }
             end
           else # single job
             if block.match?(/jobnumber\s+#{base_id}/)
               info[job_id] = { JOB_STATUS_ID => JOB_STATUS["completed"] }.merge(parse_block(block))
+            else
+              info[job_id] = { JOB_STATUS_ID => nil }
             end
           end
         end
       end
     end
+
     return info, nil
   rescue => e
     return nil, e.message
