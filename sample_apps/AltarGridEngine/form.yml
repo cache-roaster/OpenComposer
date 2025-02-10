@@ -23,7 +23,7 @@ form:
   time:
     widget:   number
     required: [ true, true ]
-    label:    [ Maximum run time hours (0 - 24), Maximum run minutes (0 - 59) ]
+    label:    [ Maximum run hours (0 - 24), Maximum run minutes (0 - 59) ]
     size:     2
     value:    [  0,  1 ]
     min:      [  0,  0 ]
