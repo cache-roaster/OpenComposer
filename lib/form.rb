@@ -118,12 +118,12 @@ helpers do
   # Output a JavaScript code based on a given yml, line in script, and matches data.
   def output_script_js(form, line)
     # Substitute constant valiables
-    line.gsub!(/\#\{_SCRIPT_LOCATION\}/,  "\#\{#{HEAD_SCRIPT_LOCATION}\}")
-    line.gsub!(/\#\{:_SCRIPT_LOCATION\}/, "\#\{:#{HEAD_SCRIPT_LOCATION}\}")
-    line.gsub!(/\#\{_SCRIPT_NAME\}/,      "\#\{#{HEAD_SCRIPT_NAME}\}")
-    line.gsub!(/\#\{:_SCRIPT_NAME\}/,     "\#\{:#{HEAD_SCRIPT_NAME}\}")
-    line.gsub!(/\#\{_JOB_NAME\}/,         "\#\{#{HEAD_JOB_NAME}\}")
-    line.gsub!(/\#\{:_JOB_NAME\}/,        "\#\{:#{HEAD_JOB_NAME}\}")
+    line.gsub!(/\#\{_SCRIPT_LOCATION\}/,  "\#\{#{HEADER_SCRIPT_LOCATION}\}")
+    line.gsub!(/\#\{:_SCRIPT_LOCATION\}/, "\#\{:#{HEADER_SCRIPT_LOCATION}\}")
+    line.gsub!(/\#\{_SCRIPT_NAME\}/,      "\#\{#{HEADER_SCRIPT_NAME}\}")
+    line.gsub!(/\#\{:_SCRIPT_NAME\}/,     "\#\{:#{HEADER_SCRIPT_NAME}\}")
+    line.gsub!(/\#\{_JOB_NAME\}/,         "\#\{#{HEADER_JOB_NAME}\}")
+    line.gsub!(/\#\{:_JOB_NAME\}/,        "\#\{:#{HEADER_JOB_NAME}\}")
     
     matches = line.scan(/\#\{.+?\}/)
     return "selectedValues.push(\'#{line}\');\n" if matches.empty?
@@ -187,6 +187,8 @@ helpers do
 
   # Output a select widget.
   def output_select_html(key, value)
+    return "" if value['options'].nil?
+    
     html = output_label_with_span_tag(key, value)
     html += "<select tabindex=\"#{@table_index}\" id=\"#{key}\" name=\"#{key}\" class=\"form-select\" onchange=\"ocForm.updateValues('#{key}')\">\n"
     @table_index += 1
@@ -204,6 +206,8 @@ helpers do
 
   # Output a multi-select widget.
   def output_multi_select_html(key, value)
+    return "" if value['options'].nil?
+    
     search_input_id      = key
     suggestions_list_id  = "suggestionsList_#{key}"
     add_button_id        = "addButton_#{key}"
@@ -250,6 +254,8 @@ helpers do
 
   # Output a radio widget.
   def output_radio_html(key, value)
+    return "" if value['options'].nil?
+    
     is_horizontal = value['direction'] == "horizontal"
     required = value['required'].to_s == "true" ? "required" : ""
     html = output_label_with_span_tag(key, value)
@@ -272,6 +278,8 @@ helpers do
 
   # Output a checkbox widget.
   def output_checkbox_html(key, value)
+    return "" if value['options'].nil?
+    
     is_horizontal = value['direction'] == "horizontal"
     html = output_label_with_span_tag(key, value)
     value['options'].each_with_index do |v, i|
@@ -315,19 +323,18 @@ helpers do
     current_path = value['value'] || Dir.home
     current_path = Dir.home unless File.exist?(current_path.to_s)
     current_path = (File.directory?(current_path) && !current_path.end_with?('/')) ? "#{current_path}/" : current_path
-    current_type = Dir.exist?(current_path) ? 'directory' : 'file'
     show_files   = value['show_files'].nil? ? true : value['show_files']
     required     = value['required'].to_s == "true" ? "required" : ""
     html  = output_label_with_span_tag(key, value)
     html += <<~HTML
     <div class="d-flex align-items-center">
       <input type="text" tabindex="#{@table_index}" value="#{current_value}" id="#{key}" name="#{key}" #{required} class="form-control mt-0" oninput="ocForm.updateValues('#{key}')">
-      <button class="btn btn-dark mt-0 text-nowrap" data-bs-toggle="modal" data-bs-target="#modal-#{key}" tabindex="-1" onclick="ocForm.loadFiles('#{@script_name}', '#{current_path}', '#{current_type}', '#{key}', #{show_files}, '#{Dir.home}', true); return false;">Select Path</button>
+      <button class="btn btn-dark mt-0 text-nowrap" data-bs-toggle="modal" data-bs-target="#modal-#{key}" tabindex="-1" onclick="ocForm.loadFiles('#{@script_name}', '#{current_path}', '#{key}', #{show_files}, '#{Dir.home}', true); return false;">Select Path</button>
     </div>
     <div class="modal" id="modal-#{key}">
-      <div class="modal-dialog modal-lg">
+      <div class="modal-dialog modal-lg style="overflow-y: initial !important;">
         <div class="modal-content">
-          <div class="modal-body">
+          <div class="modal-body" style="max-height: 80vh;overflow-y: auto;">
             <div class="container-fluid">
               <div class="row">
     HTML
@@ -342,8 +349,7 @@ helpers do
     
       favorites.each do |path|
         logo = File.file?(path) ? "&#x1f4c4;" : "&#x1F4C1;"
-        type = Dir.exist?(path) ? 'directory' : 'file'
-        html += "<tr><td class='text-center'>#{logo}</td><td><a href='#' data-path='#{path}' onclick=\"ocForm.loadFiles('#{@script_name}', '#{path}', '#{type}', '#{key}', #{show_files}, false);\">#{path}</a></td></tr>\n"
+        html += "<tr><td class='text-center'>#{logo}</td><td><a href='#' data-path='#{path}' onclick=\"ocForm.loadFiles('#{@script_name}', '#{path}', '#{key}', #{show_files}, '#{Dir.home}', false);\">#{path}</a></td></tr>\n"
       end
 
       html += <<~HTML
@@ -720,8 +726,8 @@ helpers do
   end
 
   # Output a body of webform.
-  def output_body(body, head)
-    return "" unless body&.dig("form")
+  def output_body(body, header)
+    return "" unless body&.key?("form")
 
     @js = {"init_dw" => "", "exec_dw" => "", "script" => "", "once" => ""}
     form = body["form"]
@@ -755,8 +761,8 @@ helpers do
       
       html += "</div>\n"
     end
-    
-    form = form.merge(head["form"])
+
+    form = form.merge(header)
     if !body["script"].nil?
       body["script"].split("\n").each do |line|
         @js["script"] += output_script_js(form, line)
@@ -766,15 +772,14 @@ helpers do
     return html
   end
 
-  # Output a head of webform. This function is a shorthand for output_body().
-  def output_head(yml)
-    return "" unless yml&.dig("form")
+  # Output a header of webform. This function is a shorthand for output_body().
+  def output_header(header)
+    return "" if header.nil? || header.empty?
 
-    form = yml["form"]
     html = ""
-    form.each_with_index do |(key, value), index|
+    header.each_with_index do |(key, value), index|
       indent = add_indent_style(value)
-      html  += (index != form.size - 1) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
+      html  += (index != header.size - 1) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
 
       case value['widget']
       when 'number', 'text', 'email'

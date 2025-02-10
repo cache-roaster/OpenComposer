@@ -23,5 +23,5 @@ end
 
 file_path = ARGV[0]
 lines = count_code_lines(file_path)
-puts "Number of lines excluding comments and empty lines: #{lines}"
+puts "Number of lines excluding comments and empty lines: #{file_path} : #{lines}"
 

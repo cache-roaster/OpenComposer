@@ -1,19 +1,24 @@
 ## Overview
-1. Enter the directory name to store all applications in `apps_dir` in `conf.yml.erb`. Here, set it to `apps_dir: ./apps`.
+1. Enter the directory name to store all applications in `apps_dir` in `./conf.yml.erb`. Here, set it to `apps_dir: ./apps`.
 2. Create a directory for applications under `./apps/`. If the application name is `test`, create `./apps/test`.
-3. Create the following configuration files in the directory:
+3. Create the following configuration files in the directory. To write the files in Embedded Ruby format, rename the files to `form.yml.erb` and `manifest.yml.erb`, respectively.
 - `./apps/test/form.yml`: Settings for the web form
 - `./apps/test/manifest.yml`: Description of the application
-- `./apps/test/submit.yml`: Pre-processing steps before job submission
-
-The `form.yml` is mandatory, but `manifest.yml` and `submit.yml` are optional.
-Additionally, if you want to write these files in Embedded Ruby format, rename the files to `form.yml.erb`, `manifest.yml.erb`, and `submit.yml.erb`, respectively.
 
 ## Settings of form.yml
-The `form.yml` file is composed of three main keys: `form`, `script`, and `check`.
-Each key defines widgets, job scripts, and validation scripts, respectively.
-The widget types are specified under the `widget` key in the `form` section.
-The job script is generated using both `form` and `script`, while `check` performs validation of the widget inputs before job submission.
+The `form.yml` is composed of three main keys: `form`, `header`, `script`, `check` and `submit`.
+Each key defines main widgets, header widgets, a job script, validation of a job script, and pre-processing when submitting a job script, respectively.
+`form` and `script` are required fields, but `header`, `check` and `submit` can be omitted.
+
+The following figure shows the scope of `form`, `header` and `script` sections.
+A job script is generated from `form`, `header`, and `script` sections.
+However, `header` is optional, and if omitted, `./lib/header.yml.erb` is used instead (in most cases, there is no need to define `header`).
+Note that the application name in the upper left is the scope of `manifest.yml`.
+
+![Sections](img/sections.png)
+
+The `check` section performs validation of the widget inputs before job submission.
+The `submit` section defines the pre-processing when submitting a job to the job scheduler.
 
 ### widget: number
 Displays a numeric input field.
@@ -44,11 +49,6 @@ script: |
 You can display multiple numeric input fields.
 For instance, specifying `size` will indicate the number of input fields, with each item defined as an array.
 In the `script` section, `#{time_1}` and `#{time_2}` will be replaced with the respective values entered in the fields.
-In the `check` section, a Ruby script ensures validation.
-For example, if a total time exceeding 24 hours is entered,
-an error message will be displayed when the "Submit" button is clicked,
-preventing the script from being submitted.
-Variables in `check` are prefixed with @, and all variables are treated as strings.
 
 ```
 form:
@@ -63,11 +63,6 @@ form:
     
 script: |
   #SBATCH --time=#{time_1}:#{time_2}:00
-
-check: |
-  if @time_1.to_i == 24 && @time_2.to_i > 0
-    halt 500, "Exceeded Time"
-  end
 ```
 
 If `label` is not an array, a single-line title can be provided.
@@ -83,6 +78,64 @@ form:
     min:    [  0,  0 ]
     max:    [ 24, 59 ]
     step:   [  1,  1 ]
+```
+
+If you want to change the label of the job script (default is "Script Content"), set `label` for `script`.
+In that case, write the job script in `content`.
+
+```
+script:
+  label: Job Script
+  content: |
+    #SBATCH --nodes=#{nodes}
+```
+
+In the `check` section, a Ruby script ensures validation.
+For example, if a total time exceeding 24 hours is entered,
+an error message will be displayed when the "Submit" button is clicked,
+preventing the script from being submitted.
+To refer to a `form` variable, write the variable name after the @ sign, and all variables are treated as strings.
+
+The `check` section also supports the following special variables:
+- @OC_APP_NAME : Application name defined in `name` of `manifest.yml`
+- @OC_APP_PATH : The path to the application where `form.yml` is stored (e.g. `/Slurm`)
+- @OC_SCRIPT_LOCATION : `Script Location` defined in `header`
+- @OC_SCRIPT_NAME : `Script Name` defined in `header`
+- @OC_JOB_NAME : `Job Name` defined in `header`
+
+```
+form:
+  time:
+    widget: number
+    label:  [ Maximum run time (0 - 24 h), Maximum run time (0 - 59 m) ]
+    size:   2
+    value:  [  1,  0 ]
+    min:    [  0,  0 ]
+    max:    [ 24, 59 ]
+    step:   [  1,  1 ]
+
+script: |
+  #SBATCH --time=#{time_1}:#{time_2}:00
+
+check: |
+  if @time_1.to_i == 24 && @time_2.to_i > 0
+    halt 500, "Exceeded Time"
+  end
+```
+
+In the `submit` section, a shell script is written to process before the job is submitted.
+When referencing `form` variables, use `#{...}` in the same way as `form`.
+The environment variable `OC_SUBMIT_OPTIONS` allows you to set additional options to the job submission command.
+After this process is executed, the command to submit the job script (for example, sbatch #{OC_SUBMIT_OPTIONS} -J #{OC_JOB_NAME} #{OC_SCRIPT_NAME}) is executed.
+
+```
+submit: |
+  #!/bin/bash
+
+  cd #{OC_SCRIPT_LOCATION}
+  mv #{OC_SCRIPT_NAME} param.conf
+  genjs_ct param.conf > #{OC_SCRIPT_NAME}
+  OC_SUBMIT_OPTIONS="-n 1"
 ```
 
 ### widget: text
@@ -499,6 +552,10 @@ script: |
 
 Only `options` is required, the others are optional.
 
+## Settings of header.yml.erb
+The same widgets can be used in `form.yml`.
+However, widgets with the same names as those defined in lib/headers.yml.erb must be defined.
+
 ## Settings of manifest.yml
 Describes your application. Here is a sample:
 
@@ -520,28 +577,15 @@ related_app:
 - description: Description of the application
 - related_app: When performing post-processing, specify an application registered in Open OnDemand. The specified application will be displayed on the history page. As with `icon:`, you can specify icon images, etc. If no image is specified, the image registered in Open OnDemand will be used.
 
-## Settings of submit.yml
-Describes the process before submitting a job script to the job scheduler.
-It has only the `script` key.
-A sample is shown below.
-The "Script Location", "Script Name", and "Job Name" defined in the header of the application page can be referenced by "@_SCRIPT_LOCATION", "@_SCRIPT_NAME", and "@_JOB_NAME", respectively.
-After this process is executed, the command to submit the job script (for example, sbatch <%= @_SCRIPT_NAME %>) is executed.
-
-```
-script: |
-  #!/usr/bin/env bash
-
-  cd <%= @_SCRIPT_LOCATION %>
-  mv <%= @_SCRIPT_NAME %> parameters.conf
-  genjs_ct parameters.conf > <%= @_SCRIPT_NAME %>
-```
-
 ## Supplementary information
-- Widget names can only contain alphanumeric characters and underscores (`_`). Numbers and underscores cannot start the name. The same applies to directory names in which applications are saved. Note that widget names ending with an underscore and a number (e.g. `nodes_1`) may conflict when referencing the value of a widget with the `size` attribute.
+- Widget names can only contain alphanumeric characters and underscores (`_`). Numbers and underscores cannot start the name.
+  - The same rule applies to the directory name in which the application is saved.
+  - Note that widget names ending with an underscore and a number (e.g. `nodes_1`) may conflict when referencing the value of a widget with the `size` attribute.
+  - When defining `header` in `form.yml`, the widget names beginning with underscores (`_script_location` and `_script`) used in `lib/header.yml.erb` can be used.
 - If there is no second element in `options`, the first element is used instead.
 - In `script`, if a variable used in a line does not have a value, the line is not displayed. However, if you add a colon to the beginning of the variable (e.g. `#{:nodes}` or `#{basename(:input_file)}`), the line will be output even if the variable does not have a value.
 - The order of processing that Open Composer performs before submitting a job script to the job scheduler is as follows.
-1. The "Submit" button is clicked in the application page
-2. Execute the script written in `check` in `form.yml` (if `check` exists)
-3. Execute the pre-processing written in `submit.yml` (if `submit.yml` exists)
-4. Submit the job script to the job scheduler
+  1. The "Submit" button is clicked in the application page
+  2. Execute the script written in `check` in `form.yml` (if `check` exists)
+  3. Execute the script written in `submit` in `form.yml` (if `submit` exists)
+  4. Submit the job script to the job scheduler

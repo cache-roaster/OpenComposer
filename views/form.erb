@@ -27,20 +27,20 @@
 
     <!-- Form Header -->
     <div class="col pt-2 pb-3 bg-gradient" style="background: <%= @conf['description_color'] %>;">
-      <%= output_head(@head) %>
+      <%= output_header(@header) %>
     </div>
   </div>
 
   <div class="row row-cols-1 row-cols-md-2 px-3">
     <!-- Form Body -->
     <div class="col py-3 bg-gradient" style="background: <%= @conf['form_color'] %>;">
-      <%= output_body(@body, @head) %>
+      <%= output_body(@body, @header) %>
     </div>
 
     <!-- Script Contents Section -->
     <div class="col py-3 bg-gradient d-flex flex-column" style="background: <%= @conf['form_color'] %>;">
-      <label for="<%= JOB_SCRIPT_CONTENTS %>">Script Contents</label>
-      <textarea id="<%= JOB_SCRIPT_CONTENTS %>" name="<%= JOB_SCRIPT_CONTENTS %>" class="form-control mt-1 mb-3 flex-grow-1" tabindex="<%= @table_index %>" accesskey="s" oninput="ocForm.updateHeight()" required>
+      <label class="fw-semibold "for="<%= SCRIPT_CONTENT %>"><%= @script_label %></label>
+      <textarea id="<%= SCRIPT_CONTENT %>" name="<%= SCRIPT_CONTENT %>" class="form-control mt-1 mb-3 flex-grow-1" tabindex="<%= @table_index %>" accesskey="s" oninput="ocForm.updateHeight()" required>
         (Something wrong)
       </textarea>
       <!-- Submit Button -->
@@ -50,7 +50,7 @@
 </form>
 <script>
 var ocForm = ocForm || {};
-ocForm.textArea = document.getElementById('<%= JOB_SCRIPT_CONTENTS %>');
+ocForm.textArea = document.getElementById('<%= SCRIPT_CONTENT %>');
 </script>
 <script src="form.js"></script>
 <script>
@@ -76,17 +76,17 @@ ocForm.updateContents = function(selectedValues) {
 
 // Check if a cache file exists.
 ocForm.isCacheFile = function() {
-  return <%= @script_contents != nil %>;
+  return <%= @script_content != nil %>;
 };
 
 // Load cache file contents.
 ocForm.loadCacheFile = function() {
-  return <%= @script_contents.to_json %>;
+  return <%= @script_content.to_json %>;
 };
 
 // Prevent default behavior for Enter key unless specific elements are focused.
 document.addEventListener('keydown', function(event) {
-  if (event.key === 'Enter' && (event.target.id !== '<%= JOB_SCRIPT_CONTENTS %>' && event.target.id !== '_submitButton')) {
+  if (event.key === 'Enter' && (event.target.id !== '<%= SCRIPT_CONTENT %>' && event.target.id !== '_submitButton')) {
     event.preventDefault();
   }
 });
@@ -94,11 +94,6 @@ document.addEventListener('keydown', function(event) {
 ocForm.isFirst = true;
 ocForm.multiSelectDisabledIndexes = {};
 ocForm.updateValues = function(fromId) {
-  // Even if the values in header changes, the contents of JOB_SCRIPT_CONTENTS will not be updated.
-  if (fromId === "<%= HEAD_SCRIPT_LOCATION %>" || fromId === "<%= HEAD_SCRIPT_NAME %>" || fromId === "<%= HEAD_JOB_NAME %>") {
-    return;
-  }
-  
   let selectedValues = [];
   ocForm.initDynamicWidget(fromId);
   ocForm.execDynamicWidget(fromId);

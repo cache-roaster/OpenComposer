@@ -1,23 +1,23 @@
 require 'open3'
 
-class Pbs < Scheduler
+class Pbspro < Scheduler
   # Submit a job to PBS using the 'qsub' command.
-  def submit(script_path, job_name = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
+  def submit(script_path, job_name = nil, added_options = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
     init_bash_path = "/usr/share/Modules/init/bash"
     init_bash = "source #{init_bash_path};" if File.exist?(init_bash_path) && ssh_wrapper.nil?
     qsub = get_command_path("qsub", bin, bin_overrides)
-    option = "-N #{job_name}" unless job_name.empty?
-    command = [init_bash, ssh_wrapper, qsub, option, script_path].compact.join(" ")
+    option = "-N #{job_name}" if job_name && !job_name.empty?
+    command = [init_bash, ssh_wrapper, qsub, option, added_options, script_path].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return nil, [stdout, stderr].join(" ") unless status.success?
 
     # For a normal job, the output will be "123.opbs".
-    job_id_match = stdout.match(/^(\d+)\.opbs$/)
-    return job_id_match[1], nil if job_id_match
+    if (job_id_match = stdout.match(/^(\d+)\.opbs$/))
+      return job_id_match[1], nil
+    end
 
     # For an array job, the output will be "123[].opbs".
-    job_id_match = stdout.match(/^(\d+)\[\]\.opbs$/)
-    if job_id_match
+    if (job_id_match = stdout.match(/^(\d+)\[\]\.opbs$/))
       qstat = get_command_path("qstat", bin, bin_overrides)
       command = [ssh_wrapper, qstat, "-t", "#{job_id_match[1]}[]"].compact.join(" ") # "-t" option also shows array jobs.
       stdout, stderr, status = Open3.capture3(command)
@@ -38,8 +38,8 @@ class Pbs < Scheduler
 
   # Cancel one or more jobs in PBS using the 'qdel' command.
   def cancel(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
-    scancel = get_command_path("qdel", bin, bin_overrides)
-    command = [ssh_wrapper, scancel, jobs.join(' ')].compact.join(" ")
+    qdel = get_command_path("qdel", bin, bin_overrides)
+    command = [ssh_wrapper, qdel, jobs.join(' ')].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return status.success? ? nil : [stdout, stderr].join(" ")
   rescue => e
@@ -63,8 +63,8 @@ class Pbs < Scheduler
     return nil, [stdout1, stderr1].join(" ") unless status1.success?
 
     # Retrieve completed jobs using the same command with '-H' flag
-    # Outputs a list of jobs that were completed within the past 31 days, which is the maximum value.
-    command = [ssh_wrapper, qstat, "-v -t -H --hday 31", jobs.join(" ")].compact.join(" ")
+    # Outputs a list of jobs that were completed within the past 7 days.
+    command = [ssh_wrapper, qstat, "-v -t -H --hday 7", jobs.join(" ")].compact.join(" ")
     stdout2, stderr2, status2 = Open3.capture3(command)
     return nil, [stdout2, stderr2].join(" ") unless status2.success?
     
@@ -86,15 +86,15 @@ class Pbs < Scheduler
                   end
 
       info[id] = {
-        JOB_NAME            => fields[1],
-        JOB_PARTITION       => fields[4],
-        JOB_STATUS_ID       => status_id,
-        "PROJECT"           => fields[3],
-        "START_DATE"        => "#{Time.now.year}-#{fields[5].tr("/", "-")} #{fields[6]}",
-        "ELAPSE"            => fields[7],
-        "TOKEN"             => fields[8],
-        "NODE"              => fields[9],
-        "MIG"               => fields[10]
+        JOB_NAME      => fields[1],
+        JOB_PARTITION => fields[4],
+        JOB_STATUS_ID => status_id,
+        "PROJECT"     => fields[3],
+        "START_DATE"  => "#{Time.now.year}-#{fields[5].tr("/", "-")} #{fields[6]}",
+        "ELAPSE"      => fields[7],
+        "TOKEN"       => fields[8],
+        "NODE"        => fields[9],
+        "MIG"         => fields[10]
       }
     end
     return info, nil

@@ -1,0 +1,50 @@
+---
+form:
+  queue:
+    widget: select
+    direction: horizontal
+    label: Resource Type
+    required: true
+    value: "cpu_4 (4 CPU cores, 9.2 GB, 24 GB for Local Scratch)"
+    options:
+      - [ "node_f (192 CPU cores, 768 GB, 4 GPUs, 1920 GB for Local Scratch)",  "node_f"  ]
+      - [ "node_h (96 CPU cores, 384 GB, 2 GPUs, 960 GB for Local Scratch)",    "node_h"  ]
+      - [ "node_q (48 CPU cores, 192 GB, 1 GPUs, 480 GB for Local Scratch)",    "node_q"  ]
+      - [ "node_o (24 CPU cores, 96 GB, 1/2 GPUs, 240 GB for Local Scratch)",   "node_o"  ]
+      - [ "gpu_1 (8 CPU cores, 96 GB, 1 GPUs, 240 GB for Local Scratch)",       "gpu_1"   ]
+      - [ "gpu_h (4 CPU cores, 48 GB, 1/2 GPUs, 120 GB for Local Scratch)",     "gpu_h"   ]
+      - [ "cpu_160 (160 CPU cores, 368GB, 960 GB for Local Scratch)",           "cpu_160" ]
+      - [ "cpu_80 (80 CPU cores, 184 GB, 480 GB for Local Scratch)",            "cpu_80"  ]
+      - [ "cpu_40 (40 CPU cores, 92 GB, 240 GB for Local Scratch)",             "cpu_40"  ]
+      - [ "cpu_16 (16 CPU cores, 36.8GB, 96 GB for Local Scratch)",             "cpu_16"  ]
+      - [ "cpu_8 (8 CPU cores, 18.4GB, 48 GB for Local Scratch)",               "cpu_8"   ]
+      - [ "cpu_4 (4 CPU cores, 9.2 GB, 24 GB for Local Scratch)",               "cpu_4"   ]
+
+  time:
+    widget:   number
+    required: [ true, true ]
+    label:    [ Maximum run time hours (0 - 24), Maximum run minutes (0 - 59) ]
+    size:     2
+    value:    [  0,  1 ]
+    min:      [  0,  0 ]
+    max:      [ 24, 59 ]
+    step:     [  1,  1 ]
+
+  array:
+    widget: number
+    label: Array Job (start index, last index, step)
+    size: 3
+    min:  [0, 0, 0]
+    
+script: |
+  #!/bin/sh
+  #$ -cwd
+  #$ -l #{queue}=1
+  #$ -l h_rt=#{time_1}:#{time_2}:00
+  #$ -t #{array_1}-#{array_2}:#{array_3}
+
+check: |
+  if @time_1.to_i == 0 && @time_2.to_i == 0
+    halt 500, "Time is too short."
+  end
+  
