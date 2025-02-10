@@ -1,0 +1,41 @@
+---
+form:
+  queue:
+    widget: radio
+    direction: horizontal
+    label: Resource Type
+    required: true
+    value: "cpu_4"
+    options:
+      - [ "node_f",  "node_f"  ]
+      - [ "node_h",  "node_h"  ]
+      - [ "node_q",  "node_q"  ]
+      -	[ "node_o",  "node_o"  ]
+      -	[ "gpu_1",   "gpu_1"   ]
+      -	[ "gpu_h",   "gpu_h"   ]
+      -	[ "cpu_160", "cpu_160" ]
+      -	[ "cpu_80",  "cpu_80"  ]
+      -	[ "cpu_40",  "cpu_40"  ]
+      -	[ "cpu_16",  "cpu_16"  ]
+      - [ "cpu_8",   "cpu_8"   ]
+      - [ "cpu_4",   "cpu_4"   ]
+    
+  time:
+    widget:   number
+    required: [ true, true ]
+    label:    [ Maximum run time hours (0 - 24), Maximum run minutes (0 - 59) ]
+    size:     2
+    value:    [  1, 30 ]
+    min:      [  0,  0 ]
+    max:      [ 24, 59 ]
+    step:     [  1,  1 ]
+
+script: |
+  #!/bin/sh
+  #$ -cwd
+  #$ -l #{queue}
+  #$ -l h_rt=#{time_1}:#{time_2}:00
+
+check: |
+  if @time_1.to_i == 0 && @time_2.to_i == 0
+    halt 500, "Time is too short."

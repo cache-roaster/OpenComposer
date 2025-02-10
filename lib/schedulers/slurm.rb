@@ -7,7 +7,7 @@ class Slurm < Scheduler
     init_bash_path = "/usr/share/Modules/init/bash"
     init_bash = "source #{init_bash_path};" if File.exist?(init_bash_path) && ssh_wrapper.nil?
     sbatch = get_command_path("sbatch", bin, bin_overrides)
-    option = "-J #{job_name}" unless job_name.empty?
+    option = "-J #{job_name}" if job_name && !job_name.empty?
     command = [init_bash, ssh_wrapper, sbatch, option, added_options, script_path].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return nil, [stdout, stderr].join(" ") unless status.success?

@@ -11,13 +11,14 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 
 | 項目名 | 設定内容 |
 | ---- | ---- |
-| scheduler | 利用するスケジューラ（`slurm`、`pbs`、`fujitsu_tcs`） |
+| scheduler | 利用するスケジューラ（`slurm`、`pbspro`、`age`、`fujitsu_tcs`） |
 | apps_dir | アプリケーションのディレクトリ |
 | login_node | Open OnDemandのWebターミナルを起動した際のログイン先 |
 | data_dir | 投入したジョブの情報のディレクトリ |
 | bin | ジョブスケジューラのコマンドのパス |
 | bin_overrides | ジョブスケジューラの各コマンドのパス |
 | ssh_wrapper | SSHを用いて他のノードのジョブスケジューラを用いる場合のコマンド |
+| sge_root | Grid Engineのルート用ディレクトリ（SGE_ROOT） |
 | footer | フッタに記載する文字 |
 | thumbnail_width | トップページの各アプリケーションのサムネイルの横幅 |
 | navbar_color | ナビゲーションバーの色 |

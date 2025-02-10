@@ -70,6 +70,9 @@ def create_conf
   conf["description_color"] ||= conf["category_color"]
   conf["form_color"]        ||= "#BFCFE7"
 
+  # Set special environment variables for (Sun) Grid Engine
+  ENV['SGE_ROOT'] ||= conf["sge_root"]
+
   conf["history_db"] = File.join(conf["data_dir"], conf["scheduler"] + ".db")
   return conf
 end

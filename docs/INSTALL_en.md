@@ -13,13 +13,14 @@ All fields except `scheduler` and `apps_dir` can be omitted.
 
 | Item name | Setting |
 | ---- | ---- |
-| scheduler | Job scheduler (`slurm`, `pbs` or `fujitsu_tcs`) |
+| scheduler | Job scheduler (`slurm`, `pbspro`, `age` or `fujitsu_tcs`) |
 | apps_dir | Application directory |
 | login_node | Login node when you launch the Open OnDemand web terminal |
 | data_dir | Directory where submitted job information is stored |
 | bin | PATH of commands of job scheduler |
 | bin_overrides | PATH of each command of job scheduler |
 | ssh_wrapper | Commands for using the job scheduler of another node using SSH |
+| sge_root | Directory for the Grid Engine root (SGE_ROOT) |
 | footer | Text in the footer |
 | thumbnail_width | Width of thumbnails for each application on the top page |
 | navbar_color | Color of navigation bar |

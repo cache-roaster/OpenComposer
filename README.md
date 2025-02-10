@@ -8,7 +8,8 @@ Open Composer is a web application to generate batch job scripts and submit batc
 
 ## Supported job scheduler
 - Slurm
-- PBS
+- PBS Pro
+- Altair Grid Engine (AGE)
 - Fujitsu_TCS
 
 ## Demo

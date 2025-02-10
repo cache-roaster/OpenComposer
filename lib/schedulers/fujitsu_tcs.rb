@@ -8,7 +8,7 @@ class Fujitsu_tcs < Scheduler
     init_bash_path = "/usr/share/Modules/init/bash"
     init_bash = "source #{init_bash_path};" if File.exist?(init_bash_path) && ssh_wrapper.nil?
     pjsub = get_command_path("pjsub", bin, bin_overrides)
-    option = "-N #{job_name}" unless job_name.empty?
+    option = "-N #{job_name}" if job_name && !job_name.empty?
     command = [init_bash, ssh_wrapper, pjsub, option, added_options, script_path].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return nil, [stdout, stderr].join(" ") unless status.success?
