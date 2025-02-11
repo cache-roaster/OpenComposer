@@ -223,7 +223,7 @@ helpers do
     if target_status != "completed"
       queried_ids = []
       db.transaction(true) do
-        db.roots[start_index...(end_index+1)].each do |id|
+        db.roots.reverse[start_index...(end_index+1)].each do |id|
           queried_ids << id if db[id][JOB_STATUS_ID] != JOB_STATUS["completed"]
         end
       end
@@ -246,7 +246,7 @@ helpers do
 
     jobs = []
     db.transaction(true) do
-      db.roots[start_index...(end_index+1)].each do |id|
+      db.roots.reverse[start_index...(end_index+1)].each do |id|
         data = db[id]
         next if (data[JOB_STATUS_ID]&.downcase != target_status && target_status != "all")
 
@@ -254,7 +254,7 @@ helpers do
         info.merge!(data)
         next if filter && !info[HEADER_SCRIPT_NAME]&.include?(filter) && !info[JOB_NAME]&.include?(filter)
         
-        jobs.unshift(info)
+        jobs.push(info)
       end
     end
 
