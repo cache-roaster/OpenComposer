@@ -583,7 +583,7 @@ ocForm.showLine = function(selectedValues, line, keys, widgets, canHide, separat
       switch (widgets[k]) {
       case "checkbox":
       case "multi_select":
-        if (separators[k]) {
+        if (separators[k] !== null){
           let tmp_value = "";
           for (let i = 0; i < value.length; i++) {
             tmp_value += value[i];
