@@ -172,8 +172,11 @@ class Age < Scheduler
       tmpfile.write(stdout2)
       tmpfile.rewind
       job_blocks = tmpfile.read.split("==============================================================")
-      
+
       remaining_jobs.each do |job_id|
+        # For now, set the status to "Unknown".
+        info[job_id] = { JOB_STATUS_ID => nil }
+        
         # Determine if the job is an array job or a single job
         base_id, task_id = job_id.include?(".") ? job_id.split('.') : [job_id, nil]
         job_blocks.each do |block|
@@ -181,14 +184,10 @@ class Age < Scheduler
           if task_id # array job
             if block.match?(/jobnumber\s+#{base_id}/) && block.match?(/taskid\s+#{task_id}/)
               info[job_id] = { JOB_STATUS_ID => JOB_STATUS["completed"] }.merge(parse_block(block))
-            else
-              info[job_id] = { JOB_STATUS_ID => nil }
             end
           else # single job
             if block.match?(/jobnumber\s+#{base_id}/)
               info[job_id] = { JOB_STATUS_ID => JOB_STATUS["completed"] }.merge(parse_block(block))
-            else
-              info[job_id] = { JOB_STATUS_ID => nil }
             end
           end
         end
