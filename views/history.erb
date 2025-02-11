@@ -45,12 +45,12 @@
   </div>
 </div>
 
-<% if @jobs.nil? || @start_index < 1 || @end_index > @jobs_size || @current_page > @page_size %>
+<% if @jobs.nil? || @jobs.empty? %>
   <div class="mt-3 ms-2">
     <p>(No Jobs)</p>
   </div>
 <% else %>
-  <% @jobs[(@start_index-1)..(@end_index-1)].each do |job| %>
+  <% @jobs.each do |job| %>
     <%= output_job_id_modal(job) %>
     <%= output_job_script_modal(job) %>
   <% end %>
@@ -72,7 +72,7 @@
       </thead>
       <tbody class="text-center" id="_historyTbody">
         <% cached_related_app = {} %>
-        <% @jobs[(@start_index-1)..(@end_index-1)].each do |job| %>
+        <% @jobs.each do |job| %>
           <tr data-status="<%= job[JOB_STATUS_ID] %>">
             <td class="table-primary">
               <input class="form-check-input" type="checkbox" id="ocJobId-<%= job[JOB_ID] %>" value="-1">
@@ -112,7 +112,7 @@
 
     <div class="row mt-2">
       <div class="col text-start">
-        <div>Showing <%= @start_index %> to <%= @end_index %> of <%= @jobs_size %> entries</div>
+        <div>Showing <%= @start_index + 1 %> to <%= @end_index + 1 %> of <%= @jobs_size %> entries</div>
         <div>Show 
           <input type="number" id="_historyRows" value=<%= @rows %> style="width: 80px;" onkeydown="if(event.key === 'Enter') ocHistory.redirectWithRows()" >
         entries

@@ -199,8 +199,22 @@ helpers do
     html += "</nav>\n"
   end
 
+  # Return the number of Job IDs stored in the database.
+  def get_job_size()
+    history_db = @conf["history_db"]
+    return 0 unless File.exist?(history_db)
+
+    size = 0
+    db = PStore.new(history_db)
+    db.transaction(true) do
+      size = db.roots.size
+    end
+
+    return size
+  end
+  
   # Query a job history based on the target status and filter.
-  def get_job_history(target_status, filter)
+  def get_job_history(target_status, start_index, end_index, filter)
     history_db = @conf["history_db"]
     return [] unless File.exist?(history_db)
     db = PStore.new(history_db)
@@ -209,7 +223,7 @@ helpers do
     if target_status != "completed"
       queried_ids = []
       db.transaction(true) do
-        db.roots.each do |id|
+        db.roots[start_index...(end_index+1)].each do |id|
           queried_ids << id if db[id][JOB_STATUS_ID] != JOB_STATUS["completed"]
         end
       end
@@ -229,10 +243,10 @@ helpers do
         end
       end
     end
-    
+
     jobs = []
     db.transaction(true) do
-      db.roots.each do |id|
+      db.roots[start_index...(end_index+1)].each do |id|
         data = db[id]
         next if (data[JOB_STATUS_ID]&.downcase != target_status && target_status != "all")
 
