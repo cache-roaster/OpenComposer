@@ -382,7 +382,7 @@ post "/*" do
 
     # Submit a job script
     Dir.chdir(File.dirname(script_path)) do
-      job_id, error_msg = scheduler.submit(script_path, job_name, submit_options, bin, bin_overrides, ssh_wrapper)
+      job_id, error_msg = scheduler.submit(script_path, job_name.strip, submit_options, bin, bin_overrides, ssh_wrapper)
       params[JOB_SUBMISSION_TIME] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
 
