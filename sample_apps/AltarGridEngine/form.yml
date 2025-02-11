@@ -223,5 +223,7 @@ script: |
 check: |
   if @time_1.to_i == 0 && @time_2.to_i == 0
     halt 500, "Time is too short."
+  elsif @time_1.to_i == 24 && @time_2.to_i > 0
+    halt 500, "Exceeded Time (#{@time_1}:#{@time_2}:00)."
   end
   
