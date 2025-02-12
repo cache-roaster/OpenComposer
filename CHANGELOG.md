@@ -1,7 +1,23 @@
 # Changelog
 
-## [1.3.0] -
+## [1.3.0] - 2025-02-12
+
+### Added
+- Support Altair Grid Engine job scheduler.
 - It is possible to define headers for each application.
+- For pre-processing, submit section in form.yml is added. And delete submit.yml.
+- Added the ability to change the script label.
+- The path widget can specify the directory one level above.
+- It is possible to define headers for each application.
+
+### Changed
+- Change path selector modal overflow behavior in [1](https://github.com/RIKEN-RCCS/OpenComposer/pull/1)
+- To speed up the history page, update the status only for the job IDs that are displayed.
+- The separator option enables output without spaces.
+- To prevent elements that are initially hidden from appearing for just a moment, make them visible after all loading is complete.
+
+### Fixed
+- Fixed behavior of the path widget with or without a slash at the end of a directory.
 
 ## [1.2.0] - 2025-01-20
 

@@ -12,7 +12,7 @@ set :environment, :production
 set :erb, trim: "-"
 
 # Internal Constants
-VERSION                = "1.2.0"
+VERSION                = "1.3.0"
 SCHEDULERS_DIR_PATH    = "./lib/schedulers"
 HISTORY_ROWS           = 10
 JOB_STATUS             = { "queued" => "QUEUED", "running" => "RUNNING", "completed" => "COMPLETED" }
@@ -173,7 +173,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
       @error_msg = error_msg
       erb :history
     end
-  else
+  else # application form
     @manifest = @manifests.find { |m| "/#{m.dirname}" == @path_info }
     if !@manifest.nil?
       @name   = @manifest["name"]
@@ -360,6 +360,20 @@ post "/*" do
       end
 
       replacements.each do |key, value|
+        if form.dig("form", key)
+          widget = form["form"][key]["widget"]
+          
+          if ["select", "radio", "checkbox"].include?(widget) # TODO: Add support for "multi_select"
+            options = form["form"][key]["options"]
+            
+            options.each do |option|
+              if option.is_a?(Array) && value.to_s == option[0]
+                value = option[1] if option.size > 1
+              end
+            end
+          end
+        end
+
         submit.gsub!(/\#\{#{key}\}/, value.to_s)
       end
 

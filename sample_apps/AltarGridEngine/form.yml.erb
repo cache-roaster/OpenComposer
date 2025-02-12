@@ -1,24 +1,77 @@
+<%
+EXCLUDED_GROUPS   = ['tgz-edu', 'tgz-noedu']
+MATCHING_PREFIXES = ["tga-", "tgb-", "tgc-", "tgd-", "tge-", "tgh-", "tgi-", "tgj-", "tgz-", "hp", "jh"]
+
+group_options = []
+try_queue = false
+(`groups`.strip.split - EXCLUDED_GROUPS).each do |group|
+  if group == 'tsubame-users'
+    try_queue = true
+  elsif MATCHING_PREFIXES.any? { |prefix| group.start_with?(prefix) }
+    group_options << '[ #{group}, #{group}, enable-queue_number ]'
+  end
+end
+
+if try_queue
+  group_options << '[ "Trial", "", disable-premium, enable-queue_number_trial, \
+                      set-value-time_1:  0, set-max-time_1:  0, set-label-time_1: "Maximum run hours (0)", \
+		      set-value-time_2: 10, set-max-time_2: 10, set-label-time_2: "Maximum run minute (0 - 10)" ]'
+end
+
+group_options << "[(Not found group)]" if group_options.empty?
+%>
 ---
+header:
+  _script_location:
+    widget:     path
+    value:      <%= Dir.home %>
+    label:      Script Location
+    show_files: false
+    required:   true
+
+  _script:
+    widget:   text
+    size :    2
+    label:    [Script Name, Job Name]
+    value:    [job.sh, ""]
+    required: [true, false]
+
+submit: |
+  #!/bin/bash
+  
+  TSUBAME_GROUP="#{group}"
+  if [ -n "${TSUBAME_GROUP}" ]; then
+    OC_SUBMIT_OPTIONS="-g ${TSUBAME_GROUP}"
+  fi
+
 form:
+  group:
+    widget: select
+    label: TSUBAME Group
+    required: true
+    options:
+    <% group_options.each do |option| %>
+      - <%= option %>
+    <% end %>
+
   queue:
     widget: select
     direction: horizontal
     label: Resource Type
     required: true
-    value: "cpu_4 (4 CPU cores, 9.2 GB, 24 GB for Local Scratch)"
     options:
-      - [ "node_f (192 CPU cores, 768 GB, 4 GPUs, 1920 GB for Local Scratch)",  "node_f"  ]
-      - [ "node_h (96 CPU cores, 384 GB, 2 GPUs, 960 GB for Local Scratch)",    "node_h"  ]
-      - [ "node_q (48 CPU cores, 192 GB, 1 GPUs, 480 GB for Local Scratch)",    "node_q"  ]
-      - [ "node_o (24 CPU cores, 96 GB, 1/2 GPUs, 240 GB for Local Scratch)",   "node_o"  ]
-      - [ "gpu_1 (8 CPU cores, 96 GB, 1 GPUs, 240 GB for Local Scratch)",       "gpu_1"   ]
-      - [ "gpu_h (4 CPU cores, 48 GB, 1/2 GPUs, 120 GB for Local Scratch)",     "gpu_h"   ]
-      - [ "cpu_160 (160 CPU cores, 368 GB, 960 GB for Local Scratch)",           "cpu_160" ]
-      - [ "cpu_80 (80 CPU cores, 184 GB, 480 GB for Local Scratch)",            "cpu_80"  ]
-      - [ "cpu_40 (40 CPU cores, 92 GB, 240 GB for Local Scratch)",             "cpu_40"  ]
-      - [ "cpu_16 (16 CPU cores, 36.8 GB, 96 GB for Local Scratch)",             "cpu_16"  ]
-      - [ "cpu_8 (8 CPU cores, 18.4 GB, 48 GB for Local Scratch)",               "cpu_8"   ]
-      - [ "cpu_4 (4 CPU cores, 9.2 GB, 24 GB for Local Scratch)",               "cpu_4"   ]
+      - [ "cpu_4 (4 CPU cores, 9.2 GB, 24 GB for Local Scratch)",              "cpu_4",   set-max-queue_number: 3072, set-label-queue_number: "Number of Resource Type (1 - 3072)" ]
+      - [ "cpu_8 (8 CPU cores, 18.4 GB, 48 GB for Local Scratch)",             "cpu_8",   set-max-queue_number: 1536, set-label-queue_number: "Number of Resource Type (1 - 1536)" ]
+      - [ "cpu_16 (16 CPU cores, 36.8 GB, 96 GB for Local Scratch)",           "cpu_16",  set-max-queue_number:  768, set-label-queue_number: "Number of Resource Type (1 - 768)"  ]
+      - [ "cpu_40 (40 CPU cores, 92 GB, 240 GB for Local Scratch)",            "cpu_40",  set-max-queue_number:  307, set-label-queue_number: "Number of Resource Type (1 - 307)"  ]
+      - [ "cpu_80 (80 CPU cores, 184 GB, 480 GB for Local Scratch)",           "cpu_80",  set-max-queue_number:  153, set-label-queue_number: "Number of Resource Type (1 - 153)"  ]
+      - [ "cpu_160 (160 CPU cores, 368 GB, 960 GB for Local Scratch)",         "cpu_160", set-max-queue_number:   76, set-label-queue_number: "Number of Resource Type (1 - 76)"   ]
+      - [ "gpu_h (4 CPU cores, 48 GB, 1/2 GPUs, 120 GB for Local Scratch)",    "gpu_h",   set-max-queue_number: 3072, set-label-queue_number: "Number of Resource Type (1 - 3072)" ]
+      - [ "gpu_1 (8 CPU cores, 96 GB, 1 GPUs, 240 GB for Local Scratch)",      "gpu_1",   set-max-queue_number: 1536, set-label-queue_number: "Number of Resource Type (1 - 1536)" ]
+      - [ "node_o (24 CPU cores, 96 GB, 1/2 GPUs, 240 GB for Local Scratch)",  "node_o",  set-max-queue_number:  512, set-label-queue_number: "Number of Resource Type (1 - 512)"  ]
+      - [ "node_q (48 CPU cores, 192 GB, 1 GPUs, 480 GB for Local Scratch)",   "node_q",  set-max-queue_number:  256, set-label-queue_number: "Number of Resource Type (1 - 256)"  ]
+      - [ "node_h (96 CPU cores, 384 GB, 2 GPUs, 960 GB for Local Scratch)",   "node_h",  set-max-queue_number:  128, set-label-queue_number: "Number of Resource Type (1 - 128)"  ]
+      - [ "node_f (192 CPU cores, 768 GB, 4 GPUs, 1920 GB for Local Scratch)", "node_f",  set-max-queue_number:   32, set-label-queue_number: "Number of Resource Type (1 - 32)"   ]
 
   queue_number:
     widget: number
@@ -26,6 +79,14 @@ form:
     required: true
     value: 1
     min: 1
+
+  queue_number_trial:
+    widget: number
+    label: Number of Resource Type (1 or 2)
+    required: true
+    value: 1
+    min: 1
+    max: 2
 
   time:
     widget:   number
@@ -194,9 +255,11 @@ form:
     direction: horizontal
     value: "Default"
     options:
-      - ["Default priority", "-5"]
-      - ["Middle priority", "-4"]
-      - ["Highest priority", "-3"]
+      - ["Standard priority (0)", "-5"]
+      - ["Middle priority (1)", "-4"]
+      - ["Highest priority (2)", "-3"]
+    help: |
+      Please refer to <a href="https://www.gsic.titech.ac.jp/kyodou/kakin#comp-resources">billing coefficients for each priority</a>.
 
   array:
     widget: number
@@ -209,6 +272,7 @@ script: |
   #!/bin/sh
   #$ -cwd
   #$ -l #{queue}=#{queue_number}
+  #$ -l #{queue}=#{queue_number_trial}
   #$ -l h_rt=#{time_1}:#{time_2}:00
   #$ #{log}
   #$ -o #{stdout}
