@@ -1,5 +1,0 @@
----
-name: Job Script (Altar Grid Engine)
-icon: "./logo.png"
-description: |
-  This application generates an arbitrary job script in Altar Grid Engine.
