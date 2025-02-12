@@ -8,14 +8,14 @@ try_queue = false
   if group == 'tsubame-users'
     try_queue = true
   elsif MATCHING_PREFIXES.any? { |prefix| group.start_with?(prefix) }
-    group_options << '[ #{group}, #{group}, enable-queue_number ]'
+    group_options << "[ #{group}, #{group}, enable-queue_number ]"
   end
 end
 
 if try_queue
-  group_options << '[ "Trial", "", disable-premium, enable-queue_number_trial, \
-                      set-value-time_1:  0, set-max-time_1:  0, set-label-time_1: "Maximum run hours (0)", \
-		      set-value-time_2: 10, set-max-time_2: 10, set-label-time_2: "Maximum run minute (0 - 10)" ]'
+  group_options << "[ \"Trial\", \"\", disable-premium, enable-queue_number_trial, \
+                      set-value-time_1:  0, set-max-time_1:  0, set-label-time_1: Maximum run hours (0), \
+		      set-value-time_2: 10, set-max-time_2: 10, set-label-time_2: Maximum run minute (0 - 10) ]"
 end
 
 group_options << "[(Not found group)]" if group_options.empty?
