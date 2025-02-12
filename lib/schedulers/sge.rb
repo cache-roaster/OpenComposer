@@ -2,8 +2,8 @@ require 'open3'
 
 # This program was based on the following specifications:
 # https://2022.help.altair.com/2022.1.0/AltairGridEngine/AdminsGuideGE.pdf
-class Age < Scheduler
-  # Submit a job to Altair Grid Engine using the 'qsub' command.
+class Sge < Scheduler
+  # Submit a job to Grid Engine using the 'qsub' command.
   def submit(script_path, job_name = nil, added_options = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
     init_bash_path = "/usr/share/Modules/init/bash"
     init_bash = "source #{init_bash_path};" if File.exist?(init_bash_path) && ssh_wrapper.nil?
@@ -31,7 +31,7 @@ class Age < Scheduler
     return nil, e.message
   end
 
-  # Cancel one or more jobs in Altair Grid Engine using the 'qdel' command.
+  # Cancel one or more jobs in Grid Engine using the 'qdel' command.
   def cancel(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
     qdel = get_command_path("qdel", bin, bin_overrides)
     transformed_jobs = jobs.map do |job_id|
@@ -65,7 +65,7 @@ class Age < Scheduler
     end
   end
   
-  # Query the status of one or more jobs in Altair Grid Engine using 'qstat'.
+  # Query the status of one or more jobs in Grid Engine using 'qstat'.
   # It retrieves job details such as submission time, partition, and status.
   def query(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
     # r  : Running
@@ -159,7 +159,7 @@ class Age < Scheduler
     remaining_jobs = jobs.reject { |id| info.key?(id) }
     return info, nil if remaining_jobs.empty?
 
-    # Retrieve completed jobs using to Altair Grid Engine using the 'qacct' command.
+    # Retrieve completed jobs using to Grid Engine using the 'qacct' command.
     # Updates the information of specified jobs that were completed within the past week from today.
     # If the job was completed more than a week ago, only the status is set to JOB_STATUS["completed"].
     qacct = get_command_path("qacct", bin, bin_overrides)

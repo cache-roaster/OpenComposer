@@ -7,11 +7,11 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 ```
 
 ## Open Composerの設定
-`./OpenComposer/conf.yml.erb`を編集してください。`scheduler`と`apps_dir`以外は省略可能です。ただし、`scheduler`で`age`を選択した場合は、`sge_root`の設定が必要です。
+`./OpenComposer/conf.yml.erb`を編集してください。`scheduler`と`apps_dir`以外は省略可能です。ただし、`scheduler`で`sge`を選択した場合は、`sge_root`の設定が必要です。
 
 | 項目名 | 設定内容 |
 | ---- | ---- |
-| scheduler | 利用するスケジューラ（`slurm`、`pbspro`、`age`、`fujitsu_tcs`） |
+| scheduler | 利用するスケジューラ（`slurm`、`pbspro`、`sge`、`fujitsu_tcs`） |
 | apps_dir | アプリケーションのディレクトリ |
 | login_node | Open OnDemandのWebターミナルを起動した際のログイン先 |
 | data_dir | 投入したジョブの情報のディレクトリ |
@@ -48,7 +48,7 @@ bin_overrides:
   qdel:  "/usr/local/bin/qdel"
 ```
 
-ジョブスケジューラが`age`の場合は、`qsub`、`qstat`、`qdel`、`qacct`を設定します。
+ジョブスケジューラが`sge`の場合は、`qsub`、`qstat`、`qdel`、`qacct`を設定します。
 
 ```
 bin_overrides:

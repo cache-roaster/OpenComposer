@@ -10,11 +10,11 @@ Save Open Composer in your Open OnDemand application directory: `/var/www/ood/ap
 ## Open Composer configuration
 Edit `./OpenComposer/conf.yml.erb`.
 All fields except `scheduler` and `apps_dir` can be omitted.
-However, if you select `age` for `scheduler`, you need to set `sge_root`.
+However, if you select `sge` for `scheduler`, you need to set `sge_root`.
 
 | Item name | Setting |
 | ---- | ---- |
-| scheduler | Job scheduler (`slurm`, `pbspro`, `age` or `fujitsu_tcs`) |
+| scheduler | Job scheduler (`slurm`, `pbspro`, `sge` or `fujitsu_tcs`) |
 | apps_dir | Application directory |
 | login_node | Login node when you launch the Open OnDemand web terminal |
 | data_dir | Directory where submitted job information is stored |
@@ -51,7 +51,7 @@ bin_overrides:
   qdel:  "/usr/local/bin/qdel"
 ```
 
-If the job scheduler is `age`, set `qsub`, `qstat`, `qdel`, and `qacct` as follows.
+If the job scheduler is `sge`, set `qsub`, `qstat`, `qdel`, and `qacct` as follows.
 
 ```
 bin_overrides:

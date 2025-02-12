@@ -3,7 +3,7 @@
 ## [1.3.0] - 2025-02-12
 
 ### Added
-- Support Altair Grid Engine job scheduler.
+- Support Grid Engine job scheduler.
 - It is possible to define headers for each application.
 - For pre-processing, submit section in form.yml is added. And delete submit.yml.
 - Added the ability to change the script label.
