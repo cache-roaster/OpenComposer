@@ -94,8 +94,8 @@
             <td>
               <a target="_blank" href="<%= @my_ood_url %>/pun/sys/dashboard/files/fs<%= job[HEADER_SCRIPT_LOCATION] %>"><%= job[HEADER_SCRIPT_LOCATION] %></a>
 	      <% unless @login_node.nil? %>
-              <a style="color: black; text-decoration: none;" target="_blank" href="<%= @my_ood_url %>/pun/sys/shell/ssh/<%= @login_node %>/<%= job[HEADER_SCRIPT_LOCATION] %>">
-                <i class="bi bi-terminal-fill"></i>
+	      <a style="color: black; text-decoration: none; vertical-align: middle;" target="_blank" href="<%= @my_ood_url %>/pun/sys/shell/ssh/<%= @login_node %>/<%= job[HEADER_SCRIPT_LOCATION] %>">
+                <i class="bi bi-terminal-fill fs-5"></i>
               </a>
 	      <% end %>
             </td>
