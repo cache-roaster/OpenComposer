@@ -564,6 +564,17 @@ ocForm.showLine = function(selectedValues, line, keys, widgets, canHide, separat
 
   for (const k in keys) {
     let value = ocForm.getValue(keys[k], widgets[k]);
+    if (!Array.isArray(value)) { // If nothing is checked in the checkbox, value = [].
+      const escapeSequences = {
+	"\\n": "\n",
+	"\\t": "\t",
+	"\\r": "\r",
+	"\\\\": "\\",
+	"\\\"": "\"",
+	"\\'": "'"
+      };
+      value = value.replace(/\\[ntr\\'"]/g, match => escapeSequences[match]);
+    }
 
     if (functions[k] === "dirname") {
       value = ocForm.dirname(value);
