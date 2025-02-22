@@ -418,17 +418,31 @@ ocForm.getParentDiv = function(key, widget, size) {
 
 // Show a widget.
 ocForm.showWidget = function(key, widget, size) {
-  const parent = ocForm.getParentDiv(key, widget, size);
-  if (parent) {
-    parent.style.display = 'block';
+  if (key === "_script_content") {
+    document.getElementById(key).style.display = 'block';
+    document.getElementById("label_" + key).style.display = 'block';
+    document.getElementById('_form_layout').classList.add('row-cols-md-2');
+  }
+  else {
+    const parent = ocForm.getParentDiv(key, widget, size);
+    if (parent) {
+      parent.style.display = 'block';
+    }
   }
 };
 
 // Hide a widget.
 ocForm.hideWidget = function(key, widget, size) {
-  const parent = ocForm.getParentDiv(key, widget, size);
-  if (parent) {
-    parent.style.display = 'none';
+  if (key === "_script_content") {
+    document.getElementById(key).style.display = 'none';
+    document.getElementById("label_" + key).style.display = 'none';
+    document.getElementById('_form_layout').classList.remove('row-cols-md-2');
+  }
+  else {
+    const parent = ocForm.getParentDiv(key, widget, size);
+    if (parent) {
+      parent.style.display = 'none';
+    }
   }
 };
 

@@ -752,7 +752,8 @@ helpers do
     return "" unless body&.key?("form")
 
     @js = {"init_dw" => "", "exec_dw" => "", "script" => "", "once" => ""}
-    form = body["form"]
+
+    form = body["form"].merge({SCRIPT_CONTENT => {"widget" => "textarea"}})
     html = ""
     form.each_with_index do |(key, value), index|
       indent = add_indent_style(value)

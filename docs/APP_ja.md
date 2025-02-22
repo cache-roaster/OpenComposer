@@ -518,6 +518,31 @@ script: |
 
 `options`のみは必須項目ですが、他の項目は省略可能です。
 
+## ジョブスクリプトを隠す
+
+画面右側のテキストエリアにあるジョブスクリプトの領域を隠すことができます。`form.yml.erb`で利用できる特殊な変数`SCRIPT_CONTENT`とDynamic Form Widgetの`hide-`とを下記のように組み合せて利用します。
+
+```
+form:
+  script_content:
+    widget: checkbox
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>]
+```
+
+![Hide script](img/hide-script.png)
+
+チェックボックスを表示させずに、ジョブスクリプトの領域を隠したい場合は、下記のようにそのチェックボックスに対して`hide-`を設定し、チェックボックスを最初からチェックするように`value`に`options`の最初の要素を設定します。
+
+```
+form:
+  script_content:
+    widget: checkbox
+    value: "Hide script content"
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>, hide-script_content]
+```
+
 ## header.yml.erbの設定
 `form.yml`と同じウィジットを用いることができます。ただし、`lib/headers.yml.erb`で定義されているウィジットは必ず同じ名前で定義してください。
 

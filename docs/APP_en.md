@@ -570,6 +570,32 @@ script: |
 
 Only `options` is required, the others are optional.
 
+## Hide job script
+
+Your job script in the text area on the right side can be hidden.
+Use the special variable `SCRIPT_CONTENT` available in `form.yml.erb` and the `hide-` of the Dynamic Form Widget in the following way.
+
+```
+form:
+  script_content:
+    widget: checkbox
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>]
+```
+
+![Hide script](img/hide-script.png)
+
+If you want to hide the job script without displaying the checkbox, set `hide-` to the checkbox itself and set `value` to the first element of `options` so that the checkbox is initially checked.
+
+```
+form:
+  script_content:
+    widget: checkbox
+    value: "Hide script content"
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>, hide-script_content]
+```
+
 ## Settings of header.yml.erb
 The same widgets can be used in `form.yml`.
 However, widgets with the same names as those defined in lib/headers.yml.erb must be defined.
