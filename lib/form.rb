@@ -6,7 +6,9 @@ helpers do
 
   # Output a label with HTML label tags and an optional asterisk of label.
   def output_label_with_label_tag(key, value, i)
-    label = if value['label']&.is_a?(Array)
+    label = if value['label'].dig(1).is_a?(Array)
+              value['label'][1].length > i ? value['label'][1][i] : ""
+            elsif value['label']&.is_a?(Array)
               value['label'].length > i ? value['label'][i] : ""
             else
               value['label']
@@ -35,7 +37,11 @@ helpers do
   
   # Output a label with HTML span tags and an optional asterisk of label.
   def output_label_with_span_tag(key, value)
-    label = value['label']
+    label = if !value['label'].is_a?(Array)
+              value['label']
+            else
+              value['label'][0]
+            end
     
     required = value['required'].to_s == "true"
 
@@ -88,8 +94,11 @@ helpers do
   # Output a number, text, or email widget.
   def output_number_text_email_html(key, value)
     size = value.key?('size') ? value['size'] : 1
-    html  = "<div class=\"row g-3\">\n"
-    html += output_label_with_span_tag(key, value) unless value['label'].is_a?(Array)
+    html  = "<div class=\"row g-1 gx-3\">\n"
+    if !value['label'].is_a?(Array) || value['label'].dig(1).is_a?(Array)
+      html += output_label_with_span_tag(key, value)
+    end
+    
     size.times do |i|
       id = value.key?('size') ? "#{key}_#{i+1}" : key
       if value['label'].is_a?(Array) || value['required'].is_a?(Array)
@@ -428,6 +437,12 @@ helpers do
              else next
              end
 
+      # Check value
+      if (["min", "max", "step"].include?(attr) && !value.is_a?(Numeric)) ||
+         (attr == "required" && ![true, false].include?(value))
+        halt 500, "#{option} is invalid."
+      end
+      
       form.each do |k, v|
         if key =~ /^set-#{attr}-#{k}$/
           elements.push({"attr" => attr, "key" => k, "value" => value})
@@ -443,7 +458,7 @@ helpers do
         end
       end
     end
-    
+
     return elements
   end
 
@@ -650,8 +665,12 @@ helpers do
         value  = form[e['key']][e['attr']]
         
         if value.is_a?(Array) && !e['num'].nil?
-          value = value[e['num'] - 1]
-          if e['attr'] == 'label' && form[e['key']].key?("required") && form[e['key']]["required"][e['num'] - 1].to_s == "true"
+          value = if e['attr'] == 'label' && value.dig(1).is_a?(Array)
+                    value[1][e['num']-1]
+                  else
+                    value[e['num']-1]
+                  end
+          if e['attr'] == 'label' && form[e['key']].key?("required") && form[e['key']]["required"][e['num']-1].to_s == "true"
             value = value.nil? ? "*" : value + "*"
           end
         else
@@ -661,8 +680,11 @@ helpers do
                        false
                      end
 
-          if e['attr'] == 'label' && form[e["key"]].key?("options")
-            value = form[e["key"]]["options"][e['num']-1][0] unless e['num'].nil?
+          if e['attr'] == 'label' && value.dig(1).is_a?(Array)
+            value = value[0]
+            value = value.nil? ? "*" : value + "*" if required
+          elsif e['attr'] == 'label' && form[e["key"]].key?("options")
+            value = form[e["key"]]["options"][e['num']-1][0]
             value = value.nil? ? "*" : value + "*" if required
           end
         end

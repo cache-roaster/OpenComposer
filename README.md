@@ -27,5 +27,5 @@ set :environment, :development
 ```
 
 ## Reference
-- The 7th R-CCS International Symposium [[Poster](https://mnakao.net/data/2025/RCCS.pdf)], Jan., 2025
-- The 197th HPC Research Symposium (Japanese) [[Paper](https://mnakao.net/data/2024/HPC197.pdf)] [[Slide](https://mnakao.net/data/2024/HPC197-slide.pdf)], Dec., 2024
+- [SupercomputingAsia 2025](https://sca25.sc-asia.org/), Singapore, Mar., 2025 [[Poster](https://mnakao.net/data/2025/sca.pdf)]
+- [The 197th HPC Research Symposium](https://www.ipsj.or.jp/kenkyukai/event/arc251hpc197.html), Fukuoka, Japan, Dec., 2024 [[Paper](https://mnakao.net/data/2024/HPC197.pdf)] [[Slide](https://mnakao.net/data/2024/HPC197-slide.pdf)] (Japanese)

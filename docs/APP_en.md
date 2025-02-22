@@ -64,8 +64,9 @@ form:
 script: |
   #SBATCH --time=#{time_1}:#{time_2}:00
 ```
+![Label](img/label1.png)
 
-If `label` is not an array, a single-line title can be provided.
+If `label` is not an array, a single-line label can be provided.
 The same applies to `help`.
 
 ```
@@ -79,6 +80,23 @@ form:
     max:    [ 24, 59 ]
     step:   [  1,  1 ]
 ```
+![Label](img/label2.png)
+
+You can also write a label for each item and a long label on one line.
+Write the long label as the first element of the array format, and write the second element in array format.
+
+```
+form:
+  time:
+    widget: number
+    label:  [Maximum run time, [0 - 24 h, 0 - 59 m]]
+    size:   2
+    value:  [  1,  0 ]
+    min:    [  0,  0 ]
+    max:    [ 24, 59 ]
+    step:   [  1,  1 ]
+```
+![Label](img/label3.png)
 
 If you want to change the label of the job script (default is "Script Content"), set `label` for `script`.
 In that case, write the job script in `content`.
@@ -394,7 +412,7 @@ script: |
 You can dynamically change the settings of other widgets based on the selected option in `select`, `radio`, and `checkbox` widgets..
 
 ### Minimum, maximum, step, label, and value settings
-Specifies `set-(min|max|step|label|value|required|help)-(KEY)[-(num|1st element in options)]:(VALUE)` from the third element and onward of each `options` array.
+Specifies `set-(min|max|step|label|value|required|help)-(KEY)[_(num|1st element in options)]:(VALUE)` from the third element and onward of each `options` array.
 
 In the following example, if you select `Medium` for `node_type`, the label and maximum value for `cores` will be `Number of Cores (1-8)` and `8`.
 
