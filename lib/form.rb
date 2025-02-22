@@ -341,7 +341,7 @@ helpers do
       <button class="btn btn-dark mt-0 text-nowrap" data-bs-toggle="modal" data-bs-target="#modal-#{key}" tabindex="-1" onclick="ocForm.loadFiles('#{@script_name}', '#{current_path}', '#{key}', #{show_files}, '#{Dir.home}', true); return false;">Select Path</button>
     </div>
     <div class="modal" id="modal-#{key}">
-      <div class="modal-dialog modal-lg style="overflow-y: initial !important;">
+      <div class="modal-dialog modal-lg" style="overflow-y: initial !important;">
         <div class="modal-content">
           <div class="modal-body" style="max-height: 80vh;overflow-y: auto;">
             <div class="container-fluid">
@@ -591,7 +591,6 @@ helpers do
       
       form.each do |k, v|
         next unless form[k].is_a?(Hash)
-        
         case option
         when /^hide-#{k}$/
           hide_elements.push({"key" => k})
@@ -656,7 +655,7 @@ helpers do
   # Output a JavaScript code to initialize widgets with specific attributes like label, value, etc.
   def output_init_dw_set_js(options, form)
     js = ""
-    
+
     options.each do |option|
       elements = get_oc_set_attrs(option[2..-1], form)
 
@@ -751,13 +750,14 @@ helpers do
   def output_body(body, header)
     return "" unless body&.key?("form")
 
-    @js = {"init_dw" => "", "exec_dw" => "", "script" => "", "once" => ""}
-
+    @js ||= { "init_dw" => "", "exec_dw" => "", "script" => "", "once" => "" }
+    
     form = body["form"].merge({SCRIPT_CONTENT => {"widget" => "textarea"}})
     html = ""
     form.each_with_index do |(key, value), index|
+      next if key == SCRIPT_CONTENT
       indent = add_indent_style(value)
-      html  += (index != form.size - 1) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
+      html  += (index != form.size - 2) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
       
       case value['widget']
       when 'number', 'text', 'email'
@@ -799,21 +799,33 @@ helpers do
   def output_header(header)
     return "" if header.nil? || header.empty?
 
+    @js = {"init_dw" => "", "exec_dw" => "", "script" => "", "once" => ""}
+    
     html = ""
+    header = header.merge({SCRIPT_CONTENT => {"widget" => "textarea"}})
     header.each_with_index do |(key, value), index|
+      next if key == SCRIPT_CONTENT
       indent = add_indent_style(value)
-      html  += (index != header.size - 1) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
+      html  += (index != header.size - 2) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
 
       case value['widget']
       when 'number', 'text', 'email'
         html += output_number_text_email_html(key, value)
       when 'select'
+        @js["init_dw"] += output_init_dw_js(value["options"], header)
+	@js["exec_dw"] += output_exec_dw_js(key, value["options"], header)
         html += output_select_html(key, value)
       when 'multi_select'
+        @js["once"] += output_multi_select_js(key, value)
         html += output_multi_select_html(key, value)
       when 'radio'
+        @js["init_dw"] += output_init_dw_js(value["options"], header)
+        @js["exec_dw"] += output_exec_dw_js(key, value["options"], header)
         html += output_radio_html(key, value)
       when 'checkbox'
+        @js["init_dw"] += output_init_dw_js(value["options"], header)
+        @js["exec_dw"] += output_exec_dw_js(key, value["options"], header)
+        @js["exec_dw"] += output_checkbox_js(key, value)
         html += output_checkbox_html(key, value)
       when 'path'
         html += output_path_html(key, value)
