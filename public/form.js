@@ -422,6 +422,7 @@ ocForm.showWidget = function(key, widget, size) {
     document.getElementById(key).style.display = 'block';
     document.getElementById("label_" + key).style.display = 'block';
     document.getElementById('_form_layout').classList.add('row-cols-md-2');
+    document.getElementById("_form_container").style.removeProperty("max-width");
   }
   else {
     const parent = ocForm.getParentDiv(key, widget, size);
@@ -437,6 +438,7 @@ ocForm.hideWidget = function(key, widget, size) {
     document.getElementById(key).style.display = 'none';
     document.getElementById("label_" + key).style.display = 'none';
     document.getElementById('_form_layout').classList.remove('row-cols-md-2');
+    document.getElementById("_form_container").style.maxWidth = '800px';
   }
   else {
     const parent = ocForm.getParentDiv(key, widget, size);

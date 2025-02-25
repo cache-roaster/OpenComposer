@@ -570,22 +570,24 @@ script: |
 
 Only `options` is required, the others are optional.
 
-## Hide job script
+### Hide job script
 
-Your job script in the text area on the right side can be hidden.
-Use the special variable `SCRIPT_CONTENT` available in `form.yml.erb` and the `hide-` of the Dynamic Form Widget in the following way.
+You can hide your job script in the text area on the right side.
+Use the special variable `SCRIPT_CONTENT` and the `hide-` of the Dynamic Form Widget in the following way.
+Note that the filename is `form.yml.erb`, since it is an ERB.
 
 ```
 form:
   script_content:
     widget: checkbox
+    value: "Hide script content"
     options:
       - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>]
 ```
 
 ![Hide script](img/hide-script.png)
 
-If you want to hide the job script without displaying the checkbox, set `hide-` to the checkbox itself and set `value` to the first element of `options` so that the checkbox is initially checked.
+If you want to hide the job script without displaying the checkbox, set `hide-` to the checkbox itself.
 
 ```
 form:
@@ -596,9 +598,36 @@ form:
       - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>, hide-script_content]
 ```
 
-## Settings of header.yml.erb
+### Settings of header
 The same widgets can be used in `form.yml`.
 However, widgets with the same names as those defined in lib/headers.yml.erb must be defined.
+
+The following example adds a new widget `script_content`, which hides the job script, to the defined widgets (`_script_location` and `_script`).
+
+```
+header:
+  _script_location:
+    widget:     path
+    value:      <%= Dir.home %>
+    label:      Script Location
+    show_files: false
+    required:   true
+
+  _script:
+    widget:   text
+    size :    2
+    label:    [Script Name, Job Name]
+    value:    [job.sh, ""]
+    required: [true, false]
+
+  script_content:
+    widget: checkbox
+    value: "Hide script content"
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>]
+```
+
+![Hide script in header](img/hide-script-header.png)
 
 ## Settings of manifest.yml
 Describes your application. Here is a sample:

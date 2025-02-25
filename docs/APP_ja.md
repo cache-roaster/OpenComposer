@@ -518,21 +518,22 @@ script: |
 
 `options`のみは必須項目ですが、他の項目は省略可能です。
 
-## ジョブスクリプトを隠す
+### ジョブスクリプトを隠す
 
-画面右側のテキストエリアにあるジョブスクリプトの領域を隠すことができます。`form.yml.erb`で利用できる特殊な変数`SCRIPT_CONTENT`とDynamic Form Widgetの`hide-`とを下記のように組み合せて利用します。
+ジョブスクリプトを隠すことができます。特殊な変数`SCRIPT_CONTENT`とDynamic Form Widgetの`hide-`とを下記のように組み合せて利用します（ERBであるため、ファイル名は`form.yml.erb`であることに注意ください）。
 
 ```
 form:
   script_content:
     widget: checkbox
+    value: "Hide script content"
     options:
       - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>]
 ```
 
 ![Hide script](img/hide-script.png)
 
-チェックボックスを表示させずに、ジョブスクリプトの領域を隠したい場合は、下記のようにそのチェックボックスに対して`hide-`を設定し、チェックボックスを最初からチェックするように`value`に`options`の最初の要素を設定します。
+チェックボックスを表示させずに、ジョブスクリプトを隠したい場合は、そのチェックボックスに対して`hide-`を設定します。
 
 ```
 form:
@@ -543,8 +544,35 @@ form:
       - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>, hide-script_content]
 ```
 
-## header.yml.erbの設定
+### headerの設定
 `form.yml`と同じウィジットを用いることができます。ただし、`lib/headers.yml.erb`で定義されているウィジットは必ず同じ名前で定義してください。
+
+下記の例は、定義されているウィジット（`_script_location`と`_script`）に、ジョブスクリプトを隠す新しいウィジット`script_content`を追加しています。
+
+```
+header:
+  _script_location:
+    widget:     path
+    value:      <%= Dir.home %>
+    label:      Script Location
+    show_files: false
+    required:   true
+
+  _script:
+    widget:   text
+    size :    2
+    label:    [Script Name, Job Name]
+    value:    [job.sh, ""]
+    required: [true, false]
+
+  script_content:
+    widget: checkbox
+    value: "Hide script content"
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>]
+```
+
+![Hide script in header](img/hide-script-header.png)
 
 ## manifest.ymlの設定
 アプリケーションの説明を記述します。サンプルは下記の通りです。
