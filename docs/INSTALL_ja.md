@@ -7,11 +7,11 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 ```
 
 ## Open Composerの設定
-`./OpenComposer/conf.yml.erb`を編集してください。`scheduler`と`apps_dir`以外は省略可能です。
+`./OpenComposer/conf.yml.erb`を編集してください。`scheduler`と`apps_dir`以外は省略可能です。ただし、`scheduler`で`sge`を選択した場合は、`sge_root`の設定が必要です。
 
 | 項目名 | 設定内容 |
 | ---- | ---- |
-| scheduler | 利用するスケジューラ（`slurm`、`pbspro`、`age`、`fujitsu_tcs`） |
+| scheduler | 利用するスケジューラ（`slurm`、`pbspro`、`sge`、`fujitsu_tcs`） |
 | apps_dir | アプリケーションのディレクトリ |
 | login_node | Open OnDemandのWebターミナルを起動した際のログイン先 |
 | data_dir | 投入したジョブの情報のディレクトリ |
@@ -29,7 +29,7 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 | form_color | アプリケーションページのテキストエリアの背景色 |
 
 ### bin_overridesの設定（オプション）
-ジョブスケジューラが`slurm`の場合は、下記のように`sbatch`、`scontrol`、`scancel`、`sacct`を設定する。
+ジョブスケジューラが`slurm`の場合は、`sbatch`、`scontrol`、`scancel`、`sacct`を設定します。
 
 ```
 bin_overrides:
@@ -39,7 +39,26 @@ bin_overrides:
   sacct:    "/usr/local/bin/sacct"
 ```
 
-ジョブスケジューラが`fujitsu_tcs`の場合は、下記のように`pjsub`、`pjstat`、`pjdel`を設定する。
+ジョブスケジューラが`pbspro`の場合は、`qsub`、`qstat`、`qdel`を設定します。
+
+```
+bin_overrides:
+  qsub:   "/usr/local/bin/qsub"
+  qstat: "/usr/local/bin/qstat"
+  qdel:  "/usr/local/bin/qdel"
+```
+
+ジョブスケジューラが`sge`の場合は、`qsub`、`qstat`、`qdel`、`qacct`を設定します。
+
+```
+bin_overrides:
+  qsub:   "/usr/local/bin/qsub"
+  qstat: "/usr/local/bin/qstat"
+  qdel:  "/usr/local/bin/qdel"
+  qacct: "/usr/local/bin/qacct"
+```
+
+ジョブスケジューラが`fujitsu_tcs`の場合は、`pjsub`、`pjstat`、`pjdel`を設定します。
 
 ```
 bin_overrides:

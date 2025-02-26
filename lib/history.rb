@@ -12,15 +12,15 @@ helpers do
         
         # Generate icon HTML based on whether it's a Bootstrap/Font Awesome icon or an image
         icon_html = if is_bi_or_fa_icon
-                      "<i class=\"#{value}\"></i>"
+                      "<i class=\"#{value} fs-5\"></i>"
                     else
-                      "<img width=14 alt=\"#{key}\" src=\"#{icon_path}\">"
+                      "<img width=20 alt=\"#{key}\" src=\"#{icon_path}\">"
                     end
       else
         # Handle cases where app is not a hash (direct app name)
         key = app
         href = "#{@my_ood_url}/pun/sys/dashboard/batch_connect/sys/#{key}"
-        icon_html = "<img width=14 alt=\"#{key}\" src=\"#{@my_ood_url}/pun/sys/dashboard/apps/icon/#{key}/sys/sys\">"
+        icon_html = "<img width=20 alt=\"#{key}\" src=\"#{@my_ood_url}/pun/sys/dashboard/apps/icon/#{key}/sys/sys\">"
       end
       
       # Return the full HTML string for the link
@@ -199,8 +199,22 @@ helpers do
     html += "</nav>\n"
   end
 
+  # Return the number of Job IDs stored in the database.
+  def get_job_size()
+    history_db = @conf["history_db"]
+    return 0 unless File.exist?(history_db)
+
+    size = 0
+    db = PStore.new(history_db)
+    db.transaction(true) do
+      size = db.roots.size
+    end
+
+    return size
+  end
+  
   # Query a job history based on the target status and filter.
-  def get_job_history(target_status, filter)
+  def get_job_history(target_status, start_index, end_index, filter)
     history_db = @conf["history_db"]
     return [] unless File.exist?(history_db)
     db = PStore.new(history_db)
@@ -209,7 +223,7 @@ helpers do
     if target_status != "completed"
       queried_ids = []
       db.transaction(true) do
-        db.roots.each do |id|
+        db.roots.reverse[start_index...(end_index+1)].each do |id|
           queried_ids << id if db[id][JOB_STATUS_ID] != JOB_STATUS["completed"]
         end
       end
@@ -229,10 +243,10 @@ helpers do
         end
       end
     end
-    
+
     jobs = []
     db.transaction(true) do
-      db.roots.each do |id|
+      db.roots.reverse[start_index...(end_index+1)].each do |id|
         data = db[id]
         next if (data[JOB_STATUS_ID]&.downcase != target_status && target_status != "all")
 
@@ -240,7 +254,7 @@ helpers do
         info.merge!(data)
         next if filter && !info[HEADER_SCRIPT_NAME]&.include?(filter) && !info[JOB_NAME]&.include?(filter)
         
-        jobs.unshift(info)
+        jobs.push(info)
       end
     end
 

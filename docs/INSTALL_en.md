@@ -10,10 +10,11 @@ Save Open Composer in your Open OnDemand application directory: `/var/www/ood/ap
 ## Open Composer configuration
 Edit `./OpenComposer/conf.yml.erb`.
 All fields except `scheduler` and `apps_dir` can be omitted.
+However, if you select `sge` for `scheduler`, you need to set `sge_root`.
 
 | Item name | Setting |
 | ---- | ---- |
-| scheduler | Job scheduler (`slurm`, `pbspro`, `age` or `fujitsu_tcs`) |
+| scheduler | Job scheduler (`slurm`, `pbspro`, `sge` or `fujitsu_tcs`) |
 | apps_dir | Application directory |
 | login_node | Login node when you launch the Open OnDemand web terminal |
 | data_dir | Directory where submitted job information is stored |
@@ -39,6 +40,25 @@ bin_overrides:
   scontrol: "/usr/local/bin/scontrol"
   scancel:  "/usr/local/bin/scancel"
   sacct:    "/usr/local/bin/sacct"
+```
+
+If the job scheduler is `pbspro`, set `qsub`, `qstat`, and `qdel` as follows.
+
+```
+bin_overrides:
+  qsub:   "/usr/local/bin/qsub"
+  qstat: "/usr/local/bin/qstat"
+  qdel:  "/usr/local/bin/qdel"
+```
+
+If the job scheduler is `sge`, set `qsub`, `qstat`, `qdel`, and `qacct` as follows.
+
+```
+bin_overrides:
+  qsub:   "/usr/local/bin/qsub"
+  qstat: "/usr/local/bin/qstat"
+  qdel:  "/usr/local/bin/qdel"
+  qacct: "/usr/local/bin/qacct"
 ```
 
 If the job scheduler is `fujitsu_tcs`, set `pjsub`, `pjstat`, and `pjdel` as follows.

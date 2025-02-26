@@ -418,17 +418,33 @@ ocForm.getParentDiv = function(key, widget, size) {
 
 // Show a widget.
 ocForm.showWidget = function(key, widget, size) {
-  const parent = ocForm.getParentDiv(key, widget, size);
-  if (parent) {
-    parent.style.display = 'block';
+  if (key === "_script_content") {
+    document.getElementById(key).style.display = 'block';
+    document.getElementById("label_" + key).style.display = 'block';
+    document.getElementById('_form_layout').classList.add('row-cols-md-2');
+    document.getElementById("_form_container").style.removeProperty("max-width");
+  }
+  else {
+    const parent = ocForm.getParentDiv(key, widget, size);
+    if (parent) {
+      parent.style.display = 'block';
+    }
   }
 };
 
 // Hide a widget.
 ocForm.hideWidget = function(key, widget, size) {
-  const parent = ocForm.getParentDiv(key, widget, size);
-  if (parent) {
-    parent.style.display = 'none';
+  if (key === "_script_content") {
+    document.getElementById(key).style.display = 'none';
+    document.getElementById("label_" + key).style.display = 'none';
+    document.getElementById('_form_layout').classList.remove('row-cols-md-2');
+    document.getElementById("_form_container").style.maxWidth = '800px';
+  }
+  else {
+    const parent = ocForm.getParentDiv(key, widget, size);
+    if (parent) {
+      parent.style.display = 'none';
+    }
   }
 };
 
@@ -564,6 +580,17 @@ ocForm.showLine = function(selectedValues, line, keys, widgets, canHide, separat
 
   for (const k in keys) {
     let value = ocForm.getValue(keys[k], widgets[k]);
+    if (!Array.isArray(value)) { // If nothing is checked in the checkbox, value = [].
+      const escapeSequences = {
+	"\\n": "\n",
+	"\\t": "\t",
+	"\\r": "\r",
+	"\\\\": "\\",
+	"\\\"": "\"",
+	"\\'": "'"
+      };
+      value = value.replace(/\\[ntr\\'"]/g, match => escapeSequences[match]);
+    }
 
     if (functions[k] === "dirname") {
       value = ocForm.dirname(value);
@@ -583,7 +610,7 @@ ocForm.showLine = function(selectedValues, line, keys, widgets, canHide, separat
       switch (widgets[k]) {
       case "checkbox":
       case "multi_select":
-        if (separators[k]) {
+        if (separators[k] !== null){
           let tmp_value = "";
           for (let i = 0; i < value.length; i++) {
             tmp_value += value[i];

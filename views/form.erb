@@ -31,15 +31,15 @@
     </div>
   </div>
 
-  <div class="row row-cols-1 row-cols-md-2 px-3">
+  <div id="<%= FORM_LAYOUT %>" class="row row-cols-1 row-cols-md-2 mx-1 bg-gradient" style="background: <%= @conf['form_color'] %>;">
     <!-- Form Body -->
-    <div class="col py-3 bg-gradient" style="background: <%= @conf['form_color'] %>;">
+    <div class="col py-3">
       <%= output_body(@body, @header) %>
     </div>
 
     <!-- Script Contents Section -->
-    <div class="col py-3 bg-gradient d-flex flex-column" style="background: <%= @conf['form_color'] %>;">
-      <label class="fw-semibold "for="<%= SCRIPT_CONTENT %>"><%= @script_label %></label>
+    <div class="col py-3 d-flex flex-column">
+      <label id="label_<%= SCRIPT_CONTENT %>" class="fw-semibold" for="<%= SCRIPT_CONTENT %>"><%= @script_label %></label>
       <textarea id="<%= SCRIPT_CONTENT %>" name="<%= SCRIPT_CONTENT %>" class="form-control mt-1 mb-3 flex-grow-1" tabindex="<%= @table_index %>" accesskey="s" oninput="ocForm.updateHeight()" required>
         (Something wrong)
       </textarea>

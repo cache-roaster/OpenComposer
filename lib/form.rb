@@ -6,7 +6,9 @@ helpers do
 
   # Output a label with HTML label tags and an optional asterisk of label.
   def output_label_with_label_tag(key, value, i)
-    label = if value['label']&.is_a?(Array)
+    label = if value['label'].dig(1).is_a?(Array)
+              value['label'][1].length > i ? value['label'][1][i] : ""
+            elsif value['label']&.is_a?(Array)
               value['label'].length > i ? value['label'][i] : ""
             else
               value['label']
@@ -35,7 +37,11 @@ helpers do
   
   # Output a label with HTML span tags and an optional asterisk of label.
   def output_label_with_span_tag(key, value)
-    label = value['label']
+    label = if !value['label'].is_a?(Array)
+              value['label']
+            else
+              value['label'][0]
+            end
     
     required = value['required'].to_s == "true"
 
@@ -88,8 +94,11 @@ helpers do
   # Output a number, text, or email widget.
   def output_number_text_email_html(key, value)
     size = value.key?('size') ? value['size'] : 1
-    html  = "<div class=\"row g-3\">\n"
-    html += output_label_with_span_tag(key, value) unless value['label'].is_a?(Array)
+    html  = "<div class=\"row g-1 gx-3\">\n"
+    if !value['label'].is_a?(Array) || value['label'].dig(1).is_a?(Array)
+      html += output_label_with_span_tag(key, value)
+    end
+    
     size.times do |i|
       id = value.key?('size') ? "#{key}_#{i+1}" : key
       if value['label'].is_a?(Array) || value['required'].is_a?(Array)
@@ -332,7 +341,7 @@ helpers do
       <button class="btn btn-dark mt-0 text-nowrap" data-bs-toggle="modal" data-bs-target="#modal-#{key}" tabindex="-1" onclick="ocForm.loadFiles('#{@script_name}', '#{current_path}', '#{key}', #{show_files}, '#{Dir.home}', true); return false;">Select Path</button>
     </div>
     <div class="modal" id="modal-#{key}">
-      <div class="modal-dialog modal-lg style="overflow-y: initial !important;">
+      <div class="modal-dialog modal-lg" style="overflow-y: initial !important;">
         <div class="modal-content">
           <div class="modal-body" style="max-height: 80vh;overflow-y: auto;">
             <div class="container-fluid">
@@ -428,6 +437,12 @@ helpers do
              else next
              end
 
+      # Check value
+      if (["min", "max", "step"].include?(attr) && !value.is_a?(Numeric)) ||
+         (attr == "required" && ![true, false].include?(value))
+        halt 500, "#{option} is invalid."
+      end
+      
       form.each do |k, v|
         if key =~ /^set-#{attr}-#{k}$/
           elements.push({"attr" => attr, "key" => k, "value" => value})
@@ -443,7 +458,7 @@ helpers do
         end
       end
     end
-    
+
     return elements
   end
 
@@ -576,7 +591,6 @@ helpers do
       
       form.each do |k, v|
         next unless form[k].is_a?(Hash)
-        
         case option
         when /^hide-#{k}$/
           hide_elements.push({"key" => k})
@@ -641,7 +655,7 @@ helpers do
   # Output a JavaScript code to initialize widgets with specific attributes like label, value, etc.
   def output_init_dw_set_js(options, form)
     js = ""
-    
+
     options.each do |option|
       elements = get_oc_set_attrs(option[2..-1], form)
 
@@ -650,8 +664,12 @@ helpers do
         value  = form[e['key']][e['attr']]
         
         if value.is_a?(Array) && !e['num'].nil?
-          value = value[e['num'] - 1]
-          if e['attr'] == 'label' && form[e['key']].key?("required") && form[e['key']]["required"][e['num'] - 1].to_s == "true"
+          value = if e['attr'] == 'label' && value.dig(1).is_a?(Array)
+                    value[1][e['num']-1]
+                  else
+                    value[e['num']-1]
+                  end
+          if e['attr'] == 'label' && form[e['key']].key?("required") && form[e['key']]["required"][e['num']-1].to_s == "true"
             value = value.nil? ? "*" : value + "*"
           end
         else
@@ -661,8 +679,11 @@ helpers do
                        false
                      end
 
-          if e['attr'] == 'label' && form[e["key"]].key?("options")
-            value = form[e["key"]]["options"][e['num']-1][0] unless e['num'].nil?
+          if e['attr'] == 'label' && value.is_a?(Array) && value.dig(1).is_a?(Array)
+            value = value[0]
+            value = value.nil? ? "*" : value + "*" if required
+          elsif e['attr'] == 'label' && form[e["key"]].key?("options")
+            value = form[e["key"]]["options"][e['num']-1][0]
             value = value.nil? ? "*" : value + "*" if required
           end
         end
@@ -729,12 +750,14 @@ helpers do
   def output_body(body, header)
     return "" unless body&.key?("form")
 
-    @js = {"init_dw" => "", "exec_dw" => "", "script" => "", "once" => ""}
-    form = body["form"]
+    @js ||= { "init_dw" => "", "exec_dw" => "", "script" => "", "once" => "" }
+    
+    form = body["form"].merge({SCRIPT_CONTENT => {"widget" => "textarea"}})
     html = ""
     form.each_with_index do |(key, value), index|
+      next if key == SCRIPT_CONTENT
       indent = add_indent_style(value)
-      html  += (index != form.size - 1) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
+      html  += (index != form.size - 2) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
       
       case value['widget']
       when 'number', 'text', 'email'
@@ -776,21 +799,33 @@ helpers do
   def output_header(header)
     return "" if header.nil? || header.empty?
 
+    @js = {"init_dw" => "", "exec_dw" => "", "script" => "", "once" => ""}
+    
     html = ""
+    header = header.merge({SCRIPT_CONTENT => {"widget" => "textarea"}})
     header.each_with_index do |(key, value), index|
+      next if key == SCRIPT_CONTENT
       indent = add_indent_style(value)
-      html  += (index != header.size - 1) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
+      html  += (index != header.size - 2) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
 
       case value['widget']
       when 'number', 'text', 'email'
         html += output_number_text_email_html(key, value)
       when 'select'
+        @js["init_dw"] += output_init_dw_js(value["options"], header)
+	@js["exec_dw"] += output_exec_dw_js(key, value["options"], header)
         html += output_select_html(key, value)
       when 'multi_select'
+        @js["once"] += output_multi_select_js(key, value)
         html += output_multi_select_html(key, value)
       when 'radio'
+        @js["init_dw"] += output_init_dw_js(value["options"], header)
+        @js["exec_dw"] += output_exec_dw_js(key, value["options"], header)
         html += output_radio_html(key, value)
       when 'checkbox'
+        @js["init_dw"] += output_init_dw_js(value["options"], header)
+        @js["exec_dw"] += output_exec_dw_js(key, value["options"], header)
+        @js["exec_dw"] += output_checkbox_js(key, value)
         html += output_checkbox_html(key, value)
       when 'path'
         html += output_path_html(key, value)

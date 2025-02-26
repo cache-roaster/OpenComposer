@@ -49,8 +49,9 @@ form:
 script: |
   #SBATCH --time=#{time_1}:#{time_2}:00
 ```
+![Label](img/label1.png)
 
-`label`が配列形式ではない場合、一行の長いタイトルを記述することができます。`help`も同様です。
+`label`が配列形式ではない場合、一行の長いラベルを記述することができます。`help`も同様です。
 
 ```
 form:
@@ -63,6 +64,22 @@ form:
     max:    [ 24, 59 ]
     step:   [  1,  1 ]
 ```
+![Label](img/label2.png)
+
+項目ごとのラベルと一行の長いラベルを記述することもできます。配列形式の最初の要素に長いラベルを、2つ目の要素を配列形式で記述ください。
+
+```
+form:
+  time:
+    widget: number
+    label:  [Maximum run time, [0 - 24 h, 0 - 59 m]]
+    size:   2
+    value:  [  1,  0 ]
+    min:    [  0,  0 ]
+    max:    [ 24, 59 ]
+    step:   [  1,  1 ]
+```
+![Label](img/label3.png)
 
 ジョブスクリプトのラベル（デフォルトは「Script Content」）を変更したい場合は`script`に対して`label`を設定します。その場合、ジョブスクリプトは`content`に記述します。
 
@@ -356,7 +373,7 @@ script: |
 `select`、`radio`、`checkbox`のウィジットである項目を選択すると、他のウィジットの設定を動的に変更できます。
 
 ### 最小値・最大値・ステップ幅・ラベル・値の設定
-`options`の各配列の第3要素以降に`set-(min|max|step|label|value|required|help)-(KEY)[-(num|1st element in options)]:(VALUE)`を指定します。
+`options`の各配列の第3要素以降に`set-(min|max|step|label|value|required|help)-(KEY)[_(num|1st element in options)]:(VALUE)`を指定します。
 
 次の例では、`node_type`で`Medium`を選択すると、`cores`のラベルと最大値は`Number of Cores (1-8)`と`8`になります。
 
@@ -501,8 +518,61 @@ script: |
 
 `options`のみは必須項目ですが、他の項目は省略可能です。
 
-## header.yml.erbの設定
+### ジョブスクリプトを隠す
+
+ジョブスクリプトを隠すことができます。特殊な変数`SCRIPT_CONTENT`とDynamic Form Widgetの`hide-`とを下記のように組み合せて利用します（ERBであるため、ファイル名は`form.yml.erb`であることに注意ください）。
+
+```
+form:
+  script_content:
+    widget: checkbox
+    value: "Hide script content"
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>]
+```
+
+![Hide script](img/hide-script.png)
+
+チェックボックスを表示させずに、ジョブスクリプトを隠したい場合は、そのチェックボックスに対して`hide-`を設定します。
+
+```
+form:
+  script_content:
+    widget: checkbox
+    value: "Hide script content"
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>, hide-script_content]
+```
+
+### headerの設定
 `form.yml`と同じウィジットを用いることができます。ただし、`lib/headers.yml.erb`で定義されているウィジットは必ず同じ名前で定義してください。
+
+下記の例は、定義されているウィジット（`_script_location`と`_script`）に、ジョブスクリプトを隠す新しいウィジット`script_content`を追加しています。
+
+```
+header:
+  _script_location:
+    widget:     path
+    value:      <%= Dir.home %>
+    label:      Script Location
+    show_files: false
+    required:   true
+
+  _script:
+    widget:   text
+    size :    2
+    label:    [Script Name, Job Name]
+    value:    [job.sh, ""]
+    required: [true, false]
+
+  script_content:
+    widget: checkbox
+    value: "Hide script content"
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>]
+```
+
+![Hide script in header](img/hide-script-header.png)
 
 ## manifest.ymlの設定
 アプリケーションの説明を記述します。サンプルは下記の通りです。

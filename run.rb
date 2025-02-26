@@ -12,7 +12,7 @@ set :environment, :production
 set :erb, trim: "-"
 
 # Internal Constants
-VERSION                = "1.2.0"
+VERSION                = "1.3.0"
 SCHEDULERS_DIR_PATH    = "./lib/schedulers"
 HISTORY_ROWS           = 10
 JOB_STATUS             = { "queued" => "QUEUED", "running" => "RUNNING", "completed" => "COMPLETED" }
@@ -24,6 +24,7 @@ HEADER_SCRIPT_LOCATION = "_script_location"
 HEADER_SCRIPT_NAME     = "_script_1"
 HEADER_JOB_NAME        = "_script_2"
 SCRIPT_CONTENT         = "_script_content"
+FORM_LAYOUT            = "_form_layout"
 SUBMIT_BUTTON          = "_submitButton"
 JOB_NAME               = "Job Name"
 JOB_SUBMISSION_TIME    = "Submission Time"
@@ -70,7 +71,7 @@ def create_conf
   conf["description_color"] ||= conf["category_color"]
   conf["form_color"]        ||= "#BFCFE7"
 
-  # Set special environment variables for (Sun) Grid Engine
+  # Set special environment variables for Grid Engine
   ENV['SGE_ROOT'] ||= conf["sge_root"]
 
   conf["history_db"] = File.join(conf["data_dir"], conf["scheduler"] + ".db")
@@ -159,21 +160,21 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
     @ssh_wrapper      = @conf["ssh_wrapper"]
     @status           = params["status"] || "all"
     @filter           = params["filter"]
-    @jobs, @error_msg = get_job_history(@status, @filter)
+    @jobs_size        = get_job_size()
+    @rows             = [[(params["rows"] || HISTORY_ROWS).to_i, 1].max, @jobs_size].min
+    @page_size        = (@rows == 0) ? 1 : ((@jobs_size - 1) / @rows) + 1
+    @current_page     = (params["p"] || 1).to_i
+    @start_index      = (@jobs_size == 0) ? 0 : (@current_page - 1) * @rows
+    @end_index        = (@jobs_size == 0) ? 0 : [@current_page * @rows, @jobs_size].min - 1
+    @jobs, @error_msg = get_job_history(@status, @start_index, @end_index, @filter)
 
     if !@error_msg.nil?
       erb :error
     else
-      @error_msg    = error_msg
-      @jobs_size    = @jobs&.size || 0
-      @rows         = [[(params["rows"] || HISTORY_ROWS).to_i, 1].max, @jobs_size].min
-      @page_size    = (@rows == 0) ? 1 : ((@jobs_size - 1) / @rows) + 1
-      @current_page = (params["p"] || 1).to_i
-      @start_index  = (@jobs_size == 0) ? 0 : (@current_page - 1) * @rows + 1
-      @end_index    = [@current_page * @rows, @jobs_size].min
+      @error_msg = error_msg
       erb :history
     end
-  else
+  else # application form
     @manifest = @manifests.find { |m| "/#{m.dirname}" == @path_info }
     if !@manifest.nil?
       @name   = @manifest["name"]
@@ -360,6 +361,20 @@ post "/*" do
       end
 
       replacements.each do |key, value|
+        if form.dig("form", key)
+          widget = form["form"][key]["widget"]
+          
+          if ["select", "radio", "checkbox"].include?(widget) # TODO: Add support for "multi_select"
+            options = form["form"][key]["options"]
+            
+            options.each do |option|
+              if option.is_a?(Array) && value.to_s == option[0]
+                value = option[1] if option.size > 1
+              end
+            end
+          end
+        end
+
         submit.gsub!(/\#\{#{key}\}/, value.to_s)
       end
 
@@ -382,7 +397,7 @@ post "/*" do
 
     # Submit a job script
     Dir.chdir(File.dirname(script_path)) do
-      job_id, error_msg = scheduler.submit(script_path, job_name, submit_options, bin, bin_overrides, ssh_wrapper)
+      job_id, error_msg = scheduler.submit(script_path, job_name.strip, submit_options, bin, bin_overrides, ssh_wrapper)
       params[JOB_SUBMISSION_TIME] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
 

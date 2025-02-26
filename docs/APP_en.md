@@ -64,8 +64,9 @@ form:
 script: |
   #SBATCH --time=#{time_1}:#{time_2}:00
 ```
+![Label](img/label1.png)
 
-If `label` is not an array, a single-line title can be provided.
+If `label` is not an array, a single-line label can be provided.
 The same applies to `help`.
 
 ```
@@ -79,6 +80,23 @@ form:
     max:    [ 24, 59 ]
     step:   [  1,  1 ]
 ```
+![Label](img/label2.png)
+
+You can also write a label for each item and a long label on one line.
+Write the long label as the first element of the array format, and write the second element in array format.
+
+```
+form:
+  time:
+    widget: number
+    label:  [Maximum run time, [0 - 24 h, 0 - 59 m]]
+    size:   2
+    value:  [  1,  0 ]
+    min:    [  0,  0 ]
+    max:    [ 24, 59 ]
+    step:   [  1,  1 ]
+```
+![Label](img/label3.png)
 
 If you want to change the label of the job script (default is "Script Content"), set `label` for `script`.
 In that case, write the job script in `content`.
@@ -394,7 +412,7 @@ script: |
 You can dynamically change the settings of other widgets based on the selected option in `select`, `radio`, and `checkbox` widgets..
 
 ### Minimum, maximum, step, label, and value settings
-Specifies `set-(min|max|step|label|value|required|help)-(KEY)[-(num|1st element in options)]:(VALUE)` from the third element and onward of each `options` array.
+Specifies `set-(min|max|step|label|value|required|help)-(KEY)[_(num|1st element in options)]:(VALUE)` from the third element and onward of each `options` array.
 
 In the following example, if you select `Medium` for `node_type`, the label and maximum value for `cores` will be `Number of Cores (1-8)` and `8`.
 
@@ -552,9 +570,64 @@ script: |
 
 Only `options` is required, the others are optional.
 
-## Settings of header.yml.erb
+### Hide job script
+
+You can hide your job script in the text area on the right side.
+Use the special variable `SCRIPT_CONTENT` and the `hide-` of the Dynamic Form Widget in the following way.
+Note that the filename is `form.yml.erb`, since it is an ERB.
+
+```
+form:
+  script_content:
+    widget: checkbox
+    value: "Hide script content"
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>]
+```
+
+![Hide script](img/hide-script.png)
+
+If you want to hide the job script without displaying the checkbox, set `hide-` to the checkbox itself.
+
+```
+form:
+  script_content:
+    widget: checkbox
+    value: "Hide script content"
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>, hide-script_content]
+```
+
+### Settings of header
 The same widgets can be used in `form.yml`.
 However, widgets with the same names as those defined in lib/headers.yml.erb must be defined.
+
+The following example adds a new widget `script_content`, which hides the job script, to the defined widgets (`_script_location` and `_script`).
+
+```
+header:
+  _script_location:
+    widget:     path
+    value:      <%= Dir.home %>
+    label:      Script Location
+    show_files: false
+    required:   true
+
+  _script:
+    widget:   text
+    size :    2
+    label:    [Script Name, Job Name]
+    value:    [job.sh, ""]
+    required: [true, false]
+
+  script_content:
+    widget: checkbox
+    value: "Hide script content"
+    options:
+      - ["Hide script content", "", hide-<%= SCRIPT_CONTENT %>]
+```
+
+![Hide script in header](img/hide-script-header.png)
 
 ## Settings of manifest.yml
 Describes your application. Here is a sample:

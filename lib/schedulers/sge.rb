@@ -2,14 +2,12 @@ require 'open3'
 
 # This program was based on the following specifications:
 # https://2022.help.altair.com/2022.1.0/AltairGridEngine/AdminsGuideGE.pdf
-class Age < Scheduler
-  # Submit a job to Altair Grid Engine using the 'qsub' command.
+class Sge < Scheduler
+  # Submit a job to Grid Engine using the 'qsub' command.
   def submit(script_path, job_name = nil, added_options = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
-    init_bash_path = "/usr/share/Modules/init/bash"
-    init_bash = "source #{init_bash_path};" if File.exist?(init_bash_path) && ssh_wrapper.nil?
     qsub = get_command_path("qsub", bin, bin_overrides)
-    option = "-N #{job_name}" if job_name && !job_name.empty?
-    command = [init_bash, ssh_wrapper, qsub, option, added_options, script_path].compact.join(" ")
+    job_name_option = "-N #{job_name}" if job_name && !job_name.empty?
+    command = [ssh_wrapper, qsub, job_name_option, added_options, script_path].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return nil, [stdout, stderr].join(" ") unless status.success?
 
@@ -31,7 +29,7 @@ class Age < Scheduler
     return nil, e.message
   end
 
-  # Cancel one or more jobs in Altair Grid Engine using the 'qdel' command.
+  # Cancel one or more jobs in Grid Engine using the 'qdel' command.
   def cancel(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
     qdel = get_command_path("qdel", bin, bin_overrides)
     transformed_jobs = jobs.map do |job_id|
@@ -55,26 +53,17 @@ class Age < Scheduler
   
   # Parses a block of job information extracted from the qacct output.
   def parse_block(block)
-    info = {}
-    block.lines.each do |line|
+    key_map = { "jobname" => JOB_NAME, "qname" => JOB_PARTITION }
+    block.lines.each_with_object({}) do |line, info|
       key, value = line.strip.split(' ', 2)
-      next if key.nil? || value.nil?
+      next unless key && value
       
-      key = case key
-            when "jobname"
-              JOB_NAME
-            when "qname"
-              JOB_PARTITION
-            else
-              key
-            end
-      
+      key = key_map[key] || key
       info[key] = value
     end
-    return info
   end
   
-  # Query the status of one or more jobs in Altair Grid Engine using 'qstat'.
+  # Query the status of one or more jobs in Grid Engine using 'qstat'.
   # It retrieves job details such as submission time, partition, and status.
   def query(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
     # r  : Running
@@ -168,7 +157,7 @@ class Age < Scheduler
     remaining_jobs = jobs.reject { |id| info.key?(id) }
     return info, nil if remaining_jobs.empty?
 
-    # Retrieve completed jobs using to Altair Grid Engine using the 'qacct' command.
+    # Retrieve completed jobs using to Grid Engine using the 'qacct' command.
     # Updates the information of specified jobs that were completed within the past week from today.
     # If the job was completed more than a week ago, only the status is set to JOB_STATUS["completed"].
     qacct = get_command_path("qacct", bin, bin_overrides)
@@ -181,10 +170,10 @@ class Age < Scheduler
       tmpfile.write(stdout2)
       tmpfile.rewind
       job_blocks = tmpfile.read.split("==============================================================")
-      
+
       remaining_jobs.each do |job_id|
-        # Job IDs that are not displayed in qstat are marked as completed even if they are not displayed in qacct.
-        info[job_id] = { JOB_STATUS_ID => JOB_STATUS["completed"] }
+        # For now, set the status to "Unknown".
+        info[job_id] = { JOB_STATUS_ID => nil }
         
         # Determine if the job is an array job or a single job
         base_id, task_id = job_id.include?(".") ? job_id.split('.') : [job_id, nil]
@@ -192,16 +181,17 @@ class Age < Scheduler
           # Check if the block contains the jobnumber
           if task_id # array job
             if block.match?(/jobnumber\s+#{base_id}/) && block.match?(/taskid\s+#{task_id}/)
-              info[job_id].merge!(parse_block(block))
+              info[job_id] = { JOB_STATUS_ID => JOB_STATUS["completed"] }.merge(parse_block(block))
             end
           else # single job
             if block.match?(/jobnumber\s+#{base_id}/)
-              info[job_id].merge!(parse_block(block))
+              info[job_id] = { JOB_STATUS_ID => JOB_STATUS["completed"] }.merge(parse_block(block))
             end
           end
         end
       end
     end
+
     return info, nil
   rescue => e
     return nil, e.message

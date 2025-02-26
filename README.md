@@ -9,12 +9,23 @@ Open Composer is a web application to generate batch job scripts and submit batc
 ## Supported job scheduler
 - Slurm
 - PBS Pro
-- Altair Grid Engine (AGE)
+- Grid Engine
 - Fujitsu_TCS
 
 ## Demo
 https://github.com/user-attachments/assets/0eee0b62-9364-465a-ae1e-7d412c1c9de9
 
+## Tips
+When developing Open Composer on Open OnDemand with general user privileges,
+it is recommended to run Open Composer in development mode.
+When an error occurs, its cause will be displayed in the web browser.
+Please edit `run.sh` as follows.
+
+```
+#set :environment, :production
+set :environment, :development
+```
+
 ## Reference
-- The 7th R-CCS International Symposium [[Poster](https://mnakao.net/data/2025/RCCS.pdf)], Jan., 2025
-- The 197th HPC Research Symposium (Japanese) [[Paper](https://mnakao.net/data/2024/HPC197.pdf)] [[Slide](https://mnakao.net/data/2024/HPC197-slide.pdf)], Dec., 2024
+- [SupercomputingAsia 2025](https://sca25.sc-asia.org/), Singapore, Mar., 2025 [[Poster](https://mnakao.net/data/2025/sca.pdf)]
+- [The 197th HPC Research Symposium](https://www.ipsj.or.jp/kenkyukai/event/arc251hpc197.html), Fukuoka, Japan, Dec., 2024 [[Paper](https://mnakao.net/data/2024/HPC197.pdf)] [[Slide](https://mnakao.net/data/2024/HPC197-slide.pdf)] (Japanese)
