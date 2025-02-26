@@ -679,7 +679,7 @@ helpers do
                        false
                      end
 
-          if e['attr'] == 'label' && value.dig(1).is_a?(Array)
+          if e['attr'] == 'label' && value.is_a?(Array) && value.dig(1).is_a?(Array)
             value = value[0]
             value = value.nil? ? "*" : value + "*" if required
           elsif e['attr'] == 'label' && form[e["key"]].key?("options")
