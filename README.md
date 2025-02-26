@@ -12,6 +12,9 @@ Open Composer is a web application to generate batch job scripts and submit batc
 - Grid Engine
 - Fujitsu_TCS
 
+## Discussions
+https://github.com/RIKEN-RCCS/OpenComposer/discussions
+
 ## Demo
 https://github.com/user-attachments/assets/0eee0b62-9364-465a-ae1e-7d412c1c9de9
 
