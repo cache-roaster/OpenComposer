@@ -14,13 +14,13 @@ helpers do
         icon_html = if is_bi_or_fa_icon
                       "<i class=\"#{value} fs-5\"></i>"
                     else
-                      "<img width=20 alt=\"#{key}\" src=\"#{icon_path}\">"
+                      "<img width=20 title=\"#{key}\" alt=\"#{key}\" src=\"#{icon_path}\">"
                     end
       else
         # Handle cases where app is not a hash (direct app name)
         key = app
         href = "#{@my_ood_url}/pun/sys/dashboard/batch_connect/sys/#{key}"
-        icon_html = "<img width=20 alt=\"#{key}\" src=\"#{@my_ood_url}/pun/sys/dashboard/apps/icon/#{key}/sys/sys\">"
+        icon_html = "<img width=20 title=\"#{key}\" alt=\"#{key}\" src=\"#{@my_ood_url}/pun/sys/dashboard/apps/icon/#{key}/sys/sys\">"
       end
       
       # Return the full HTML string for the link
