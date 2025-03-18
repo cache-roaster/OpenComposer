@@ -110,4 +110,3 @@ Click "Launch Open Composer".
 
 ![Bundle Install](img/bundle.png)
 
-When you edit `./OpenComposer/manifest.yml`, which is a manifest file for Open OnDemand, the Open Composer icon will appear on the Open OnDemand top page (this icon will only be displayed to the user who installed it).
