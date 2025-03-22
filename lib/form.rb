@@ -211,7 +211,7 @@ helpers do
     @table_index += 1
     
     value['options'].each_with_index do |v, i|
-      # The data-value is used in Script Contents (ocForm.getValue() in form.js)
+      # The data-value is used in Script Content (ocForm.getValue() in form.js)
       # If v[1] is not defined, v[0] is used instead.
       data_value = v[1].nil? ? v[0] : v[1]
       selected = value['value'] == v[0] ? 'selected' : ''
