@@ -14,7 +14,22 @@
     </title>
     <style>
       #<%= SCRIPT_CONTENT %> {
-      font-family: 'JetBrains Mono', monospace;
+        font-family: 'JetBrains Mono', monospace;
+      }
+      .ood-logo {
+        filter: invert(1) grayscale(100%);
+      }
+      a:hover .ood-logo {
+        filter: brightness(0) invert(1) grayscale(100%);
+      }
+
+      /* The timing of Bootstrap's navigation animation (which changes color when the mouse cursor is over it) differs
+         from the animation for the Open OnDemand image that you added, so turn off Bootstrap animations. */
+      .nav-link {
+	  transition: none !important;
+      }
+      .nav-link:hover {
+	  color: white !important;
       }
     </style>
   </head>
@@ -57,11 +72,29 @@
                 <a href="<%= @script_name %>/history" class="nav-link <%= active?("/history" == @path_info) %>">History</a>
               </li>
             </ul>
-            <ul class="navbar-nav ms-auto">
-              <li class="nav-item">
-                <a href="<%= @my_ood_url %>" class="nav-link">Open OnDemand</a>
+
+	    <ul class="navbar-nav ms-auto">
+	      <li class="nav-item">
+		<a href="<%= @my_ood_url %>/pun/sys/dashboard/files" class="nav-link py-0">
+                  <i class="fas fa-home fa-fw" style="font-size: 20px; display: inline-block; vertical-align: middle;" aria-hidden="true"></i>
+		  <span class="d-none d-md-inline ms-1" style="display: inline-block; vertical-align: middle;">Home Directory</span>
+                </a>
               </li>
-            </ul>
+      	      <% unless @login_node.nil? %>
+              <li class="nav-item">
+                <a href="<%= @my_ood_url %>/pun/sys/shell" class="nav-link py-0">
+                  <i class="bi bi-terminal-fill" style="font-size: 20px; display: inline-block; vertical-align: middle;" aria-hidden="true"></i>
+		  <span class="d-none d-md-inline ms-1" style="display: inline-block; vertical-align: middle;">Shell Access</span>
+                </a>
+              </li>
+              <% end %>
+	      <li class="nav-item">
+		<a href="<%= @my_ood_url %>" class="nav-link py-0">
+		  <img src="<%= @my_ood_url %>/ood.png" class="ood-logo" alt="OOD image" style="height: 20px; display: inline-block; vertical-align: middle;">
+		  <span class="d-none d-md-inline ms-1" style="vertical-align: middle;">Open OnDemand</span>
+		</a>
+	      </li>
+	    </ul>
           </div>
         </div>
       </nav>

@@ -139,6 +139,7 @@ end
 def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = nil)
   @conf         = create_conf
   @apps_dir     = @conf["apps_dir"]
+  @login_node   = @conf["login_node"]
   @version      = VERSION
   @my_ood_url   = request.base_url
   @script_name  = request.script_name
@@ -153,7 +154,6 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
     erb :index
   when "/history"
     @name             = "History"
-    @login_node       = @conf["login_node"]
     @scheduler        = scheduler || create_scheduler(@conf["scheduler"])
     @bin              = @conf["bin"]
     @bin_overrides    = @conf["bin_overrides"]
