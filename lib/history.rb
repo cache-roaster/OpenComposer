@@ -73,17 +73,6 @@ helpers do
     return if job[JOB_KEYS].nil? # If a job has just been submitted, it may not have been registered yet.
 
     modal_id = "_historyJobId#{job[JOB_ID]}"
-    job_details = [
-      ["JOB ID",            job[JOB_ID]],
-      [JOB_NAME,            job[JOB_NAME]],
-      ["Application",       job[JOB_APP_NAME]],
-      [JOB_PARTITION,       job[JOB_PARTITION]],
-      ["Script Location",   job[HEADER_SCRIPT_LOCATION]],
-      ["Script Name",       job[HEADER_SCRIPT_NAME]],
-      [JOB_SUBMISSION_TIME, job[JOB_SUBMISSION_TIME]],
-      [JOB_STATUS_ID,       job[JOB_STATUS_ID]]
-    ]
-
     html = <<~HTML
     <div class="modal" aria-hidden="true" id="#{modal_id}" tabindex="-1">
       <div class="modal-dialog">
@@ -96,13 +85,9 @@ helpers do
             <table class="table table-striped table-sm text-break">
     HTML
 
-    job_details.each do |label, value|
-      html += "<tr><td>#{ERB::Util.html_escape(label)}</td><td>#{ERB::Util.html_escape(value)}</td></tr>\n"
-    end
-
-    filtered_keys = job[JOB_KEYS] - [JOB_NAME, JOB_PARTITION, JOB_SUBMISSION_TIME, JOB_STATUS_ID]
+    filtered_keys = job[JOB_KEYS] - [JOB_NAME, JOB_PARTITION, JOB_STATUS_ID]
     filtered_keys.each do |key|
-      html += "<tr><td>#{ERB::Util.html_escape(key)}</td><td>#{ERB::Util.html_escape(job[key])}</td></tr>\n"
+      html += "<tr><td class=\"text-nowrap\">#{ERB::Util.html_escape(key)}</td><td>#{ERB::Util.html_escape(job[key])}</td></tr>\n"
     end
 
     html += <<~HTML
