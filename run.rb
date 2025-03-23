@@ -54,7 +54,7 @@ def create_conf
 
   # Check required values
   ["scheduler", "apps_dir"].each do |key|
-    halt 500, "In conf.yml, \"#{key}:\" must be defined." if conf[key].nil?
+    halt 500, "In conf.yml, \"#{key}:\" must be defined." if conf&.dif(key).nil?
   end
 
   conf["login_node"]        ||= nil
