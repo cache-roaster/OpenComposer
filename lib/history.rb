@@ -89,11 +89,11 @@ helpers do
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5>Job details</h5>
+            <h5>Job Details</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <table class="table table-striped">
+            <table class="table table-striped table-sm text-break">
     HTML
 
     job_details.each do |label, value|
@@ -124,6 +124,10 @@ helpers do
     <div class="modal" aria-hidden="true" id="#{modal_id}" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
+          <div class="modal-header">
+            <h5>Job Script</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
           <div class="modal-body">
             #{job_script}
           </div>
