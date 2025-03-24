@@ -44,57 +44,74 @@ class Pbspro < Scheduler
     return e.message
   end
 
+  # Save the results of qstat to the info hash array
+  def parse_qstat_output(output, info)
+    cur_id = nil
+    output.each_line do |line|
+      case line
+      when /Job Id:\s*(\d+)(\[\d+\])?\.opbs/
+        base_id = $1
+        index = $2 || ""
+        cur_id = "#{base_id}#{index}"
+        info[cur_id] ||= {}
+      when /^\s*([^=\s]+)\s*=\s*(.+)$/
+        key, value = $1.strip, $2.strip
+        
+        case key
+        when "Job_Name"
+          info[cur_id][JOB_NAME] = value
+        when "queue"
+          info[cur_id][JOB_PARTITION] = value
+        when "job_state"
+          info[cur_id][JOB_STATUS_ID] = case value
+                                        when "E", "F", "X"                     then JOB_STATUS["completed"]
+                                        when "H", "M", "Q", "S", "T", "U", "W" then JOB_STATUS["queued"]
+                                        when "B", "R"                          then JOB_STATUS["running"]
+                                        else nil
+                                        end
+        else
+          info[cur_id][key] = value
+        end
+      end
+    end
+  end
+  
   # Query the status of one or more jobs in PBS using 'qstat'.
   # It retrieves job details such as submission time, partition, and status.
   def query(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
-    # QUEUED  : Waiting for job execution
-    # RUNNING : Job running
-    # BEGUN   : The array job has at least one subjob running
-    # EXITING : Job ending
-    # FINISH  : Job End
-    # HOLD    : Job Storage
-    # EXPIRED : Deleted one of the Array jobs.
-    
+    # http://nusc.nsu.ru/wiki/lib/exe/fetch.php/doc/pbs/pbsprorefguide13.0.pdf
+    # B : Job arrays only: job array is begun
+    # E : Job is exiting after having run
+    # F : Job is finished. Job has completed execution, job failed during execution, or job was deleted.
+    # H : Job is held. A job is put into a held state by the server or by a user or administrator. A job stays in a held state
+    #     until it is released by a user or administrator.
+    # M : Job was moved to another server
+    # Q : Job is queued, eligible to run or be routed
+    # R : Job is running
+    # S : Job is suspended by server. A job is put into the suspended state when a higher priority job needs the resources.
+    # T : Job is in transition (being moved to a new location)
+    # U : Job is suspended due to workstation becoming busy
+    # W : Job is waiting for its requested execution time to be reached or job specified a stagein request which failed for some reason.
+    # X : Subjobs only; subjob is finished (expired.)
+                               
     qstat = get_command_path("qstat", bin, bin_overrides)
-    command = [ssh_wrapper, qstat, "-v -t", jobs.join(" ")].compact.join(" ")
+
+    # Try to get info for running jobs
+    command = [ssh_wrapper, qstat, "-f -t", jobs.join(" ")].compact.join(" ")
     stdout1, stderr1, status1 = Open3.capture3(command)
     return nil, [stdout1, stderr1].join(" ") unless status1.success?
 
-    # Retrieve completed jobs using the same command with '-H' flag
-    # Outputs a list of jobs that were completed within the past 7 days.
-    command = [ssh_wrapper, qstat, "-v -t -H --hday 7", jobs.join(" ")].compact.join(" ")
+    info = {}
+    parse_qstat_output(stdout1, info)
+    remaining_jobs = jobs.reject { |id| info.key?(id) }
+    return info, nil if remaining_jobs.empty?
+
+    # Try to get info for completed jobs (past 7 days)
+    command = [ssh_wrapper, qstat, "-f -t -H --hday 7", remaining_jobs.join(" ")].compact.join(" ")
     stdout2, stderr2, status2 = Open3.capture3(command)
     return nil, [stdout2, stderr2].join(" ") unless status2.success?
-    
-    info = {}
-    (stdout1 + stdout2).split("\n").each do |line|
-      fields = line.split
-      id     = fields[0]
-      next unless id =~ /^\d/
-
-      status_id = case fields[2]
-                  when "FINISH", "EXPIRED"
-                    JOB_STATUS["completed"]
-                  when "QUEUED", "HOLD"
-                    JOB_STATUS["queued"]
-                  when "RUNNING", "BEGUN", "EXITING"
-                    JOB_STATUS["running"]
-                  else
-                    nil
-                  end
-
-      info[id] = {
-        JOB_NAME      => fields[1],
-        JOB_PARTITION => fields[4],
-        JOB_STATUS_ID => status_id,
-        "PROJECT"     => fields[3],
-        "START_DATE"  => "#{Time.now.year}-#{fields[5].tr("/", "-")} #{fields[6]}",
-        "ELAPSE"      => fields[7],
-        "TOKEN"       => fields[8],
-        "NODE"        => fields[9],
-        "MIG"         => fields[10]
-      }
-    end
+  
+    parse_qstat_output(stdout2, info)
     return info, nil
   rescue => e
     return nil, e.message
