@@ -87,7 +87,7 @@ helpers do
 
     filtered_keys = job[JOB_KEYS] - [JOB_NAME, JOB_PARTITION, JOB_STATUS_ID]
     filtered_keys.each do |key|
-      html += "<tr><td class=\"text-nowrap\">#{ERB::Util.html_escape(key)}</td><td>#{ERB::Util.html_escape(job[key])}</td></tr>\n"
+      html += "<tr><td>#{ERB::Util.html_escape(key)}</td><td>#{ERB::Util.html_escape(job[key])}</td></tr>\n"
     end
 
     html += <<~HTML

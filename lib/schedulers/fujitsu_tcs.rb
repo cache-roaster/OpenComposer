@@ -5,6 +5,7 @@ class Fujitsu_tcs < Scheduler
   # Submit a job to the Fujitsu TCS scheduler using the 'pjsub' command.
   # If the submission is successful, it checks for job details using the 'pjstat' command.
   def submit(script_path, job_name = nil, added_options = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
+    script_path = "job.sh"
     pjsub = get_command_path("pjsub", bin, bin_overrides)
     job_name_option = "-N #{job_name}" if job_name && !job_name.empty?
     command = [ssh_wrapper, pjsub, job_name_option, added_options, script_path].compact.join(" ")
@@ -56,23 +57,87 @@ class Fujitsu_tcs < Scheduler
   # Query the status of one or more jobs in the Fujitsu TCS system using 'pjstat'.
   # It retrieves job details and combines information for both active and completed jobs.
   def query(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
-    pjstat = get_command_path("pjstat", bin, bin_overrides)
-    command = [ssh_wrapper, pjstat, "-s -E --data --choose=jid,jnam,rscg,st,jmdl,ec,pc,sdt,elp,edt", jobs.join(" ")].compact.join(" ")
+    # j2ul-2549-01z0.pdf
     # -s: Display additional items (e.g. edt)
     # -E: Display subjob
     # --data: Display in CSV format
     # --choose: Display only the specified items
-    #   jid: Job ID/ sub-Job ID
-    #   jnam: Job name
-    #   rscg: Resource Group
-    #   st: Status
-    #   jmdl: Job Model
-    #   ec: Exit Code
-    #   pc: PJM Code
-    #   sdt: Start Time
-    #   elp: Job Elapse Time
-    #   edt: End Time
-
+    fields = {
+      jid:     "Job ID/sub-Job ID",
+      jnam:    "Job name",
+      jtyp:    "Job type",
+      jmdl:    "Job model",
+      rnum:    "Retry count",
+      snum:    "Number of sub jobs",
+      usr:     "Name of user executing job",
+      grp:     "Name of group executing job",
+      rscu:    "Resource unit",
+      rscg:    "Resource group",
+      pri:     "Job priority",
+      sh:      "Shell path name",
+      cmt:     "Comment",
+      lst:     "Previous processing state of job",
+      st:      "Current processing state of job",
+      prmdt:   "PRM data collection time (YYYY/MM/DD hh:mm:ss)",
+      ec:      "End code of shell script",
+      sn:      "Signal number",
+      pc:      "PJM code",
+      ermsg:   "Error message",
+      mail:    "E-mail send flag",
+      adr:     "E-mail send destination address",
+      sde:     "Step job dependency relational expression",
+      mask:    "umask value of user submitting job",
+      std:     "Path name of the standard output file",
+      stde:    "Path name of the standard error output file",
+      infop:   "Statistical information file path",
+      adt:     "Job submission time (MM/DD hh:mm:ss)",
+      qdt:     "Last queuing time",
+      exc:     "EXIT/CANCEL state transition time",
+      lhusr:   "Last hold user name",
+      holnm:   "Hold count",
+      thldtm:  "Accumulated hold time",
+      sdt:     "Job execution start time",
+      edt:     "Job execution end time",
+      nnumr:   "Node shapes and count at job submission (N : X x Y x Z or N : X x Y or N)",
+      cnumr:   "Requested number of CPUs",
+      elpl:    "Elapsed time limit or maximum value of elapsed time limit (hhhh:mm:ss)",
+      mszl:    "Physical memory amount limit by node",
+      pcl:     "CPU usage time limit (sec) by process",
+      pcfl:    "Core file limit by process",
+      pcpl:    "Max user process count limit by process",
+      pdl:     "Data segment limit by process",
+      prml:    "Lock memory size limit by process",
+      pmql:    "POSIX message queue size limit by process",
+      pofl:    "File descriptor limit by process",
+      ppsl:    "Signal count limit by process",
+      ppl:     "File size limit by process",
+      psl:     "Stack segment limit by process",
+      pvml:    "Virtual memory size limit by process",
+      nnuma:   "Allocated node shape and count (N:XxYxZ or N)",
+      msza:    "Physical memory amount allocated to a node",
+      cnumat:  "Total number of CPUs allocated",
+      elp:     "Execution elapsed t ime (hhhh:mm:ss)",
+      nnumv:   "Number of unavailable nodes within the allocated node range",
+      nnumu:   "Number of nodes used",
+      nidlu:   "Node ID list of the nodes used (hexadecimals delimited by single-byte space)",
+      tofulu:  "Tofu coordinate list ((X,Y,Z)) of the nodes used",
+      mmszu:   "Total max physical memory usage",
+      cnumut:  "Total number of CPUs used",
+      uctmut:  "Total user CPU time (ms)",
+      sctmut:  "Total system CPU time (ms)",
+      usctmut: "Total user CPU time and total of system CPU time (ms)",
+      vnid:    "Virtual node ID",
+      vnnuma:  "Allocated number of virtual nodes",
+      vcnuma:  "Number of cores of each virtual nodes",
+      vmema:   "Allocated memory amount for each virtual node",
+      #vmszu:   "Maximal amount of virtual memory used",
+      #vpol:    "Policy that arranges virtual node",
+      #epol:    "Execution mode policy",
+      #rankm:   "Rank map"
+    }
+    
+    pjstat = get_command_path("pjstat", bin, bin_overrides)
+    command = [ssh_wrapper, pjstat, "-s -E --data --choose=#{fields.keys.join(",")}", jobs.join(" ")].compact.join(" ")
     stdout1, stderr1, status1 = Open3.capture3(command)
     return nil, [stdout1, stderr1].join(" ") unless status1.success?
     # Example of stdout1 (pjstat -s -E --data --choose=jid,rscg,st 34716159 34716160 34716168 34716168[1] 34716168[2])
@@ -115,12 +180,13 @@ class Fujitsu_tcs < Scheduler
       # CCL: Ended due to job execution being canceled
       # HLD: Fixed state by user
       # ERR: Fixed state due to error
-      
-      job_id = line[1]
+
+      job_id = line[fields.keys.index(:jid)+1]
+      # Add necessary fields
       info[job_id] = {
-        JOB_NAME      => line[2],
-        JOB_PARTITION => line[3],
-        JOB_STATUS_ID => case line[4]
+        JOB_NAME      => line[fields.keys.index(:jnam)+1],
+        JOB_PARTITION => line[fields.keys.index(:rscg)+1],
+        JOB_STATUS_ID => case line[fields.keys.index(:st)+1]
                          when "RJT", "EXT", "CCL", "ERR"
                            JOB_STATUS["completed"]
                          when "ACC", "QUE", "RNA", "SPP", "SPD", "RSM", "HLD"
@@ -129,26 +195,15 @@ class Fujitsu_tcs < Scheduler
                            JOB_STATUS["running"]
                          else
                            nil
-                         end,
-        "Status Detail" => line[4],
-        "Job Model"     => case line[5]
-                           when "NM"
-                             "Normal Job"
-                           when "ST"
-                             "Step Job"
-                           when "BU"
-                             "Bulk Job"
-                           when "MW"
-                             "Master-Worker Job"
-                           end,
-        "Exit Code"   => line[6],
-        "PJM Code"    => line[7],
-        "Start Time"  => line[8],
-        "Elapse Time" => line[9],
-        "End Time"    => line[10]
+                         end
       }
+
+      # Add other fields
+      fields.each_with_index do |(key, value), idx|
+        info[job_id][value] = line[idx+1]
+      end
     end
-      
+
     return info, nil
   rescue => e
     return nil, e.message
