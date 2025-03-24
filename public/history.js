@@ -20,7 +20,7 @@ ocHistory.capitalizeFirstLetter = function(str) {
 
 // Update the status of a batch operation (e.g., cancel, submit) for selected jobs.
 ocHistory.updateStatusBatch = function(action, jobIds) {
-  if (!Array.isArray(jobIds) || jobIds.length === 0) return;
+  if (!Array.isArray(jobIds)) return;
 
   const capitalizedAction = ocHistory.capitalizeFirstLetter(action);
   const button    = document.getElementById(`_history${capitalizedAction}Badge`);
