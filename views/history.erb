@@ -60,14 +60,14 @@
       <thead>
         <tr class="table-primary text-center">
           <th><input class="form-check-input" type="checkbox" id="_historySelectAll" value="-1"></th>
-          <th>Job ID</th>
-          <th>Application</th>
-          <th class="d-none d-lg-table-cell">Partition</th>
-          <th>Script Location</th>
-          <th>Script Name</th>
-          <th class="d-none d-lg-table-cell">Job Name</th>
-          <th class="d-none d-lg-table-cell">Submission at</th>
-          <th>Status</th>
+          <th class="text-wrap text-break">Job ID</th>
+          <th class="text-wrap text-break">Application</th>
+          <th class="text-wrap text-break">Script Location</th>
+          <th class="text-wrap text-break">Script Name</th>
+          <th class="text-wrap text-break d-none d-lg-table-cell">Job Name</th>
+          <th class="text-wrap text-break d-none d-lg-table-cell">Partition</th>
+          <th class="text-wrap text-break d-none d-lg-table-cell">Submission at</th>
+          <th class="text-wrap text-break">Status</th>
         </tr>
       </thead>
       <tbody class="text-center" id="_historyTbody">
@@ -77,10 +77,10 @@
             <td class="table-primary">
               <input class="form-check-input" type="checkbox" id="ocJobId-<%= job[JOB_ID] %>" value="-1">
             </td>
-            <td class="text-end">
+            <td class="text-wrap text-break text-end">
               <a href="#" data-bs-toggle="modal" data-bs-target="#_historyJobId<%= job[JOB_ID] %>"><%= job[JOB_ID] %></a>
             </td>
-            <td>
+            <td class="text-wrap text-break">
               <a href="<%= @script_name %><%= job[JOB_APP_PATH] %>"><%= job[JOB_APP_NAME] %></a>
 	      <% directory_path = File.join(@apps_dir, job[JOB_APP_PATH]) %>
 	      <% unless cached_related_app.key?(directory_path) %>
@@ -90,8 +90,7 @@
 	        <%= r %>
               <% end %>
             </td>
-	    <td class="d-none d-lg-table-cell"><%= ERB::Util.html_escape(job[JOB_PARTITION]) %></td>
-            <td>
+            <td class="text-wrap text-break">
               <a target="_blank" href="<%= @my_ood_url %>/pun/sys/dashboard/files/fs<%= job[HEADER_SCRIPT_LOCATION] %>"><%= job[HEADER_SCRIPT_LOCATION] %></a>
 	      <% unless @login_node.nil? %>
 	      <a style="color: black; text-decoration: none; vertical-align: middle;" target="_blank" href="<%= @my_ood_url %>/pun/sys/shell/ssh/<%= @login_node %>/<%= job[HEADER_SCRIPT_LOCATION] %>">
@@ -99,12 +98,13 @@
               </a>
 	      <% end %>
             </td>
-            <td>
+            <td class="text-wrap text-break">
               <a href="#" data-bs-toggle="modal" data-bs-target="#_historyJobScript<%= job[JOB_ID] %>"><%= job[HEADER_SCRIPT_NAME] %></a>
             </td>
-            <td class="d-none d-lg-table-cell"><%= job[JOB_NAME] %></td>
-            <td class="d-none d-lg-table-cell"><%= job[JOB_SUBMISSION_TIME] %></td>
-            <td><%= output_status(job[JOB_STATUS_ID]) %></td>
+            <td class="text-wrap text-break d-none d-lg-table-cell"><%= job[JOB_NAME] %></td>
+	    <td class="text-wrap text-break d-none d-lg-table-cell"><%= ERB::Util.html_escape(job[JOB_PARTITION]) %></td>
+            <td class="text-wrap text-break d-none d-lg-table-cell"><%= job[JOB_SUBMISSION_TIME] %></td>
+            <td class="text-wrap text-break"><%= output_status(job[JOB_STATUS_ID]) %></td>
           </tr>
         <% end %>
       </tbody>
