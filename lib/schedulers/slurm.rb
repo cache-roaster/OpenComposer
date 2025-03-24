@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'open3'
 
 class Slurm < Scheduler
@@ -67,50 +68,52 @@ class Slurm < Scheduler
     # The categorization was determined based on the table above and the codes below.
     #  - https://github.com/OSC/ood_core/blob/master/lib/ood_core/job/adapters/slurm.rb
 
+    # Get the list of all available fields from sacct
     sacct = get_command_path("sacct", bin, bin_overrides)
-    command = [ssh_wrapper, sacct, "--format=JobID,JobName,Partition,State%20,Start,End -n -j", jobs.join(",")].compact.join(" ")
-    stdout, stderr, status = Open3.capture3(command)
-    return nil, [stdout, stderr].join(" ") unless status.success?
+    command1 = [ssh_wrapper, sacct, "--helpformat"].compact.join(" ")
+    stdout1, stderr1, status1 = Open3.capture3(command1)
+    return nil, [stdout1, stderr1].join(" ") unless status1.success?
 
+    # Run sacct with all fields, using --parsable2 for clean pipe-separated output
+    command2 = [ssh_wrapper, sacct, "--format=#{stdout1.split.join(",")} --parsable2 -j", jobs.join(",")].compact.join(" ")
+    stdout2, stderr2, status2 = Open3.capture3(command2)
+    return nil, [stdout2, stderr2].join(" ") unless status2.success?
+
+    lines = stdout2.lines.map(&:chomp)
+    header = lines.shift.split('|')
     info = {}
-    stdout.split("\n").each do |line|
-      fields = line.split
-      id     = fields[0]
+    lines.each do |line|
+      job_fields = line.split('|')
+      id = job_fields[header.index("JobID")]
       next if id.end_with?(".batch", ".extern")
 
-      # Some information may not be obtained when `sacct` command runs immediately after submitting a job.
-      # Moreover, if a job is canceled, line.split.size is more than the number of formats.
-      #   e.g. 18257 None 2024-10-08T15:23:34 r340 CANCELLED by 1015
-      if fields.size >= 6
-        status_id = case fields[3]
-                    when "BOOT_FAIL", "CANCELLED", "COMPLETED", "DEADLINE", "FAILED", "NODE_FAIL", "OUT_OF_MEMORY", "REVOKED", "SPECIAL_EXIT", "TIMEOUT"
-                      JOB_STATUS["completed"]
-                    when "CONFIGURING", "REQUEUED", "RESIZING", "PENDING", "PREEMPTED", "SUSPENDED"
-                      JOB_STATUS["queued"]
-                    when "COMPLETING", "RUNNING", "STOPPED"
-                      JOB_STATUS["running"]
-                    else
-                      nil
-                    end
-
-        info[id] = {
-          JOB_NAME      => fields[1],
-          JOB_PARTITION => fields[2],
-          JOB_STATUS_ID => status_id,
-          "Start Time"  => fields[4].gsub('T', ' '),
-          "End Time"    => fields[5].gsub('T', ' ')
-        }
-      else
-        info[id] = {
-          JOB_NAME      => nil,
-          JOB_PARTITION => nil,
-          JOB_STATUS_ID => nil,
-          "Start Time"  => fields[4] ? fields[4].gsub('T', ' ') : nil,
-          "End Time"    => fields[5] ? fields[5].gsub('T', ' ') : nil
-        }
+      # Get job state to determine status ID
+      status_id = case job_fields[header.index("State")]
+                  when "BOOT_FAIL", "CANCELLED", "COMPLETED", "DEADLINE", "FAILED", "NODE_FAIL", "OUT_OF_MEMORY", "REVOKED", "SPECIAL_EXIT", "TIMEOUT"
+                    JOB_STATUS["completed"]
+                  when "CONFIGURING", "REQUEUED", "RESIZING", "PENDING", "PREEMPTED", "SUSPENDED"
+                    JOB_STATUS["queued"]
+                  when "COMPLETING", "RUNNING", "STOPPED"
+                    JOB_STATUS["running"]
+                  else
+                    nil
+                  end
+      
+      # Create job info hash
+      info[id] = {
+        JOB_NAME      => job_fields[header.index("JobName")],
+        JOB_PARTITION => job_fields[header.index("Partition")],
+        JOB_STATUS_ID => status_id
+      }
+      
+      # Add remaining fields
+      header.each_with_index do |field, idx|
+        value = job_fields[idx]
+        next if value.nil? || value.strip.empty? || field == "JobName" || field == "Partition"
+        info[id][field] = value
       end
     end
-
+    
     return info, nil
   rescue => e
     return nil, e.message

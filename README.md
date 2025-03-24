@@ -6,6 +6,9 @@ Open Composer is a web application to generate batch job scripts and submit batc
 - Settings of application ([English](./docs/APP_en.md)  | [Japanese](./docs/APP_ja.md))
 - Manual ([English](./docs/MANUAL_en.md) | [Japanese](./docs/MANUAL_ja.md))
 
+## Disscussions
+- https://github.com/RIKEN-RCCS/OpenComposer/discussions
+
 ## Supported job scheduler
 - Slurm
 - PBS Pro

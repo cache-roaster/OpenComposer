@@ -134,8 +134,16 @@ helpers do
     line.gsub!(/\#\{_JOB_NAME\}/,         "\#\{#{HEADER_JOB_NAME}\}")
     line.gsub!(/\#\{:_JOB_NAME\}/,        "\#\{:#{HEADER_JOB_NAME}\}")
     
+    # Escape backslashes (`\`) by replacing each `\` with `\\`.
+    # This ensures the backslashes are properly interpreted in JavaScript strings.
+    line.gsub!("\\", "\\\\\\\\")
+    
+    # Escape single quotes (`'`) by replacing each `'` with `\'`.
+    # This prevents syntax errors in JavaScript when embedding the string.
+    line.gsub!("'", "\\\\'")
+
     matches = line.scan(/\#\{.+?\}/)
-    return "selectedValues.push(\'#{line}\');\n" if matches.empty?
+    return "  selectedValues.push(\'#{line}\');\n" if matches.empty?
 
     keys = matches.map { |str| str[2..-2] } # "\#{example1}" -> "example1"
 
@@ -190,7 +198,7 @@ helpers do
 
       return "  ocForm.showLine(selectedValues, '#{line}', #{keys_array}, #{widgets_array}, #{can_hide_array}, #{separators_array}, #{functions_array});\n"
     else
-      return "  selectedValues.push('#{line}');"
+      return "  selectedValues.push('#{line}');\n"
     end
   end
 
@@ -203,7 +211,7 @@ helpers do
     @table_index += 1
     
     value['options'].each_with_index do |v, i|
-      # The data-value is used in Script Contents (ocForm.getValue() in form.js)
+      # The data-value is used in Script Content (ocForm.getValue() in form.js)
       # If v[1] is not defined, v[0] is used instead.
       data_value = v[1].nil? ? v[0] : v[1]
       selected = value['value'] == v[0] ? 'selected' : ''

@@ -102,4 +102,3 @@ url: https://example.net/pun/sys/OpenComposer/Slurm
 
 ![Bundle Install](img/bundle.png)
 
-Open OnDemand用の設定ファイルである`./OpenComposer/manifest.yml`を編集すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます（このアイコンはインストールしたユーザでしか表示されません）。

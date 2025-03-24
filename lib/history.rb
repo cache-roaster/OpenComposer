@@ -14,13 +14,13 @@ helpers do
         icon_html = if is_bi_or_fa_icon
                       "<i class=\"#{value} fs-5\"></i>"
                     else
-                      "<img width=20 alt=\"#{key}\" src=\"#{icon_path}\">"
+                      "<img width=20 title=\"#{key}\" alt=\"#{key}\" src=\"#{icon_path}\">"
                     end
       else
         # Handle cases where app is not a hash (direct app name)
         key = app
         href = "#{@my_ood_url}/pun/sys/dashboard/batch_connect/sys/#{key}"
-        icon_html = "<img width=20 alt=\"#{key}\" src=\"#{@my_ood_url}/pun/sys/dashboard/apps/icon/#{key}/sys/sys\">"
+        icon_html = "<img width=20 title=\"#{key}\" alt=\"#{key}\" src=\"#{@my_ood_url}/pun/sys/dashboard/apps/icon/#{key}/sys/sys\">"
       end
       
       # Return the full HTML string for the link
@@ -73,36 +73,21 @@ helpers do
     return if job[JOB_KEYS].nil? # If a job has just been submitted, it may not have been registered yet.
 
     modal_id = "_historyJobId#{job[JOB_ID]}"
-    job_details = [
-      ["JOB ID",            job[JOB_ID]],
-      [JOB_NAME,            job[JOB_NAME]],
-      ["Application",       job[JOB_APP_NAME]],
-      [JOB_PARTITION,       job[JOB_PARTITION]],
-      ["Script Location",   job[HEADER_SCRIPT_LOCATION]],
-      ["Script Name",       job[HEADER_SCRIPT_NAME]],
-      [JOB_SUBMISSION_TIME, job[JOB_SUBMISSION_TIME]],
-      [JOB_STATUS_ID,       job[JOB_STATUS_ID]]
-    ]
-
     html = <<~HTML
     <div class="modal" aria-hidden="true" id="#{modal_id}" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5>Job details</h5>
+            <h5>Job Details</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <table class="table table-striped">
+            <table class="table table-striped table-sm text-break">
     HTML
 
-    job_details.each do |label, value|
-      html += "<tr><td>#{ERB::Util.html_escape(label)}</td><td>#{ERB::Util.html_escape(value)}</td></tr>\n"
-    end
-
-    filtered_keys = job[JOB_KEYS] - [JOB_NAME, JOB_PARTITION, JOB_SUBMISSION_TIME, JOB_STATUS_ID]
+    filtered_keys = job[JOB_KEYS] - [JOB_NAME, JOB_PARTITION, JOB_STATUS_ID]
     filtered_keys.each do |key|
-      html += "<tr><td>#{ERB::Util.html_escape(key)}</td><td>#{ERB::Util.html_escape(job[key])}</td></tr>\n"
+      html += "<tr><td class=\"text-nowrap\">#{ERB::Util.html_escape(key)}</td><td>#{ERB::Util.html_escape(job[key])}</td></tr>\n"
     end
 
     html += <<~HTML
@@ -124,6 +109,10 @@ helpers do
     <div class="modal" aria-hidden="true" id="#{modal_id}" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
+          <div class="modal-header">
+            <h5>Job Script</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
           <div class="modal-body">
             #{job_script}
           </div>

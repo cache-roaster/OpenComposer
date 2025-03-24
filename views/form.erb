@@ -37,7 +37,7 @@
       <%= output_body(@body, @header) %>
     </div>
 
-    <!-- Script Contents Section -->
+    <!-- Script Content Section -->
     <div class="col py-3 d-flex flex-column">
       <label id="label_<%= SCRIPT_CONTENT %>" class="fw-semibold" for="<%= SCRIPT_CONTENT %>"><%= @script_label %></label>
       <textarea id="<%= SCRIPT_CONTENT %>" name="<%= SCRIPT_CONTENT %>" class="form-control mt-1 mb-3 flex-grow-1" tabindex="<%= @table_index %>" accesskey="s" oninput="ocForm.updateHeight()" required>
