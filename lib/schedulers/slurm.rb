@@ -88,20 +88,36 @@ class Slurm < Scheduler
       next if id.end_with?(".batch", ".extern")
 
       # Add necessary fields
-      info[id] = {
-        JOB_NAME      => job_fields[header.index("JobName")],
-        JOB_PARTITION => job_fields[header.index("Partition")],
-        JOB_STATUS_ID => case job_fields[header.index("State")]
-                         when "BOOT_FAIL", "CANCELLED", "COMPLETED", "DEADLINE", "FAILED", "NODE_FAIL", "OUT_OF_MEMORY", "REVOKED", "SPECIAL_EXIT", "TIMEOUT"
-                           JOB_STATUS["completed"]
-                         when "CONFIGURING", "REQUEUED", "RESIZING", "PENDING", "PREEMPTED", "SUSPENDED"
-                           JOB_STATUS["queued"]
-                         when "COMPLETING", "RUNNING", "STOPPED"
-                           JOB_STATUS["running"]
-                         else
-                           nil
-                         end
-      }
+      if job_fields.size != stdout1.split.size
+      # Some information may not be obtained when `sacct` command runs immediately after submitting a job.
+        info[id] = {
+          JOB_NAME      => nil,
+          JOB_PARTITION => nil,
+          JOB_STATUS_ID => nil
+        }
+      else
+        job_state = job_fields[header.index("State")]
+        info[id] = {
+          JOB_NAME      => job_fields[header.index("JobName")],
+          JOB_PARTITION => job_fields[header.index("Partition")],
+          JOB_STATUS_ID =>
+          # When a job is canceled, the output is "CANCELLED by 1025".
+          if job_state.start_with?("CANCELLED")
+            JOB_STATUS["completed"]
+          else
+            case job_state
+            when "BOOT_FAIL", "CANCELLED", "COMPLETED", "DEADLINE", "FAILED", "NODE_FAIL", "OUT_OF_MEMORY", "REVOKED", "SPECIAL_EXIT", "TIMEOUT"
+              JOB_STATUS["completed"]
+            when "CONFIGURING", "REQUEUED", "RESIZING", "PENDING", "PREEMPTED", "SUSPENDED"
+              JOB_STATUS["queued"]
+            when "COMPLETING", "RUNNING", "STOPPED"
+              JOB_STATUS["running"]
+            else
+              nil
+            end
+          end
+        }
+      end
       
       # Add other fields
       header.each_with_index do |field, idx|
