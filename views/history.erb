@@ -62,11 +62,11 @@
           <th><input class="form-check-input" type="checkbox" id="_historySelectAll" value="-1"></th>
           <th>Job ID</th>
           <th>Application</th>
-          <th>Partition</th>
+          <th class="d-none d-lg-table-cell">Partition</th>
           <th>Script Location</th>
           <th>Script Name</th>
-          <th>Job Name</th>
-          <th>Submission at</th>
+          <th class="d-none d-lg-table-cell">Job Name</th>
+          <th class="d-none d-lg-table-cell">Submission at</th>
           <th>Status</th>
         </tr>
       </thead>
@@ -90,7 +90,7 @@
 	        <%= r %>
               <% end %>
             </td>
-            <td><%= ERB::Util.html_escape(job[JOB_PARTITION]) %></td>
+	    <td class="d-none d-lg-table-cell"><%= ERB::Util.html_escape(job[JOB_PARTITION]) %></td>
             <td>
               <a target="_blank" href="<%= @my_ood_url %>/pun/sys/dashboard/files/fs<%= job[HEADER_SCRIPT_LOCATION] %>"><%= job[HEADER_SCRIPT_LOCATION] %></a>
 	      <% unless @login_node.nil? %>
@@ -102,8 +102,8 @@
             <td>
               <a href="#" data-bs-toggle="modal" data-bs-target="#_historyJobScript<%= job[JOB_ID] %>"><%= job[HEADER_SCRIPT_NAME] %></a>
             </td>
-            <td><%= job[JOB_NAME] %></td>
-            <td><%= job[JOB_SUBMISSION_TIME] %></td>
+            <td class="d-none d-lg-table-cell"><%= job[JOB_NAME] %></td>
+            <td class="d-none d-lg-table-cell"><%= job[JOB_SUBMISSION_TIME] %></td>
             <td><%= output_status(job[JOB_STATUS_ID]) %></td>
           </tr>
         <% end %>
