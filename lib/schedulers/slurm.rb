@@ -87,29 +87,26 @@ class Slurm < Scheduler
       id = job_fields[header.index("JobID")]
       next if id.end_with?(".batch", ".extern")
 
-      # Get job state to determine status ID
-      status_id = case job_fields[header.index("State")]
-                  when "BOOT_FAIL", "CANCELLED", "COMPLETED", "DEADLINE", "FAILED", "NODE_FAIL", "OUT_OF_MEMORY", "REVOKED", "SPECIAL_EXIT", "TIMEOUT"
-                    JOB_STATUS["completed"]
-                  when "CONFIGURING", "REQUEUED", "RESIZING", "PENDING", "PREEMPTED", "SUSPENDED"
-                    JOB_STATUS["queued"]
-                  when "COMPLETING", "RUNNING", "STOPPED"
-                    JOB_STATUS["running"]
-                  else
-                    nil
-                  end
-      
-      # Create job info hash
+      # Add necessary fields
       info[id] = {
         JOB_NAME      => job_fields[header.index("JobName")],
         JOB_PARTITION => job_fields[header.index("Partition")],
-        JOB_STATUS_ID => status_id
+        JOB_STATUS_ID => case job_fields[header.index("State")]
+                         when "BOOT_FAIL", "CANCELLED", "COMPLETED", "DEADLINE", "FAILED", "NODE_FAIL", "OUT_OF_MEMORY", "REVOKED", "SPECIAL_EXIT", "TIMEOUT"
+                           JOB_STATUS["completed"]
+                         when "CONFIGURING", "REQUEUED", "RESIZING", "PENDING", "PREEMPTED", "SUSPENDED"
+                           JOB_STATUS["queued"]
+                         when "COMPLETING", "RUNNING", "STOPPED"
+                           JOB_STATUS["running"]
+                         else
+                           nil
+                         end
       }
       
-      # Add remaining fields
+      # Add other fields
       header.each_with_index do |field, idx|
         value = job_fields[idx]
-        next if value.nil? || value.strip.empty? || field == "JobName" || field == "Partition"
+        next if value.nil? || value.strip.empty?
         info[id][field] = value
       end
     end
