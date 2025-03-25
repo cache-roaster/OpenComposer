@@ -438,7 +438,7 @@ ocForm.hideWidget = function(key, widget, size) {
     document.getElementById(key).style.display = 'none';
     document.getElementById("label_" + key).style.display = 'none';
     document.getElementById('_form_layout').classList.remove('row-cols-lg-2');
-    document.getElementById("_form_container").style.maxWidth = '800px';
+    document.getElementById("_form_container").style.maxWidth = '960px';
   }
   else {
     const parent = ocForm.getParentDiv(key, widget, size);
