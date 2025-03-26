@@ -19,7 +19,7 @@ helpers do
       else
         # Handle cases where app is not a hash (direct app name)
         key = app
-        href = "#{@my_ood_url}/pun/sys/dashboard/batch_connect/sys/#{key}"
+        href = "#{@my_ood_url}/pun/sys/dashboard/apps/show/#{key}"
         icon_html = "<img width=20 title=\"#{key}\" alt=\"#{key}\" src=\"#{@my_ood_url}/pun/sys/dashboard/apps/icon/#{key}/sys/sys\">"
       end
       
