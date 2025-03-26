@@ -7,7 +7,7 @@ helpers do
       if app.is_a?(Hash)
         # Extract key and value from the hash
         key, value = app.first
-        href = "#{@my_ood_url}/pun/sys/dashboard/batch_connect/sys/#{key}"
+        href = "#{@my_ood_url}/pun/sys/dashboard/apps/show/#{key}"
         is_bi_or_fa_icon, icon_path = get_icon_path(job_apps_path, value)
         
         # Generate icon HTML based on whether it's a Bootstrap/Font Awesome icon or an image
