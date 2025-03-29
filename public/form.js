@@ -1007,4 +1007,18 @@ ocForm.validateCheckboxForSubmit = function(key) {
     });
     document.getElementById("_submitButton").disabled = !isChecked;
   }
-}
+};
+
+// Show "Submitting..." on the button and disable it to prevent double submission.
+// The form is submitted normally and the button resets after page reload. 
+ocForm.submitEffect = function() {
+  const btn = document.getElementById('_submitButton');
+  console.log(btn);
+  btn.disabled = true;
+  btn.value = 'Submitting...';
+  btn.classList.remove('btn-primary');
+  btn.classList.add('btn-warning');
+  
+  return true;
+};
+

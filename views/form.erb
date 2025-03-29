@@ -11,7 +11,7 @@
   </div>
 <% end %>
 
-<form action="<%= @current_path %>" method="post">
+<form action="<%= @current_path %>" method="post" onsubmit="return ocForm.submitEffect();">
   <div class="row px-3 text-white">
     <!-- Application Info Section -->
     <div class="col pt-2 bg-gradient" style="background:<%= @conf['description_color'] %>; color: white;">
@@ -108,7 +108,6 @@ ocForm.updateValues = function(fromId) {
     ocForm.updateContents(selectedValues);
     ocForm.textArea.value = Object.values(selectedValues).join('\n');
   }
-  ocForm.textArea.value += "\n";
   ocForm.updateHeight();
 };
 window.onload = ocForm.updateValues();
