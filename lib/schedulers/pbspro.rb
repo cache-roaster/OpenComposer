@@ -34,8 +34,8 @@ class Pbspro < Scheduler
     return nil, e.message
   end
 
-  # Cancel one or more jobs in PBS using the 'qdel' command.
-  def cancel(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
+  # Delete one or more jobs in PBS using the 'qdel' command.
+  def delete(jobs, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
     qdel = get_command_path("qdel", bin, bin_overrides)
     command = [ssh_wrapper, qdel, jobs.join(' ')].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)

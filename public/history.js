@@ -12,21 +12,14 @@ ocHistory.applyFilter = function() {
   window.location.href = `${window.location.pathname}?${urlParams.toString()}`;
 };
 
-// Capitalize the first letter of a string.
-ocHistory.capitalizeFirstLetter = function(str) {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
-};
-
-// Update the status of a batch operation (e.g., cancel, submit) for selected jobs.
+// Update the status of a batch operation (e.g., DeleteJob, DeleteInfo) for selected jobs.
 ocHistory.updateStatusBatch = function(action, jobIds) {
   if (!Array.isArray(jobIds)) return;
 
-  const capitalizedAction = ocHistory.capitalizeFirstLetter(action);
-  const button    = document.getElementById(`_history${capitalizedAction}Badge`);
-  const count     = document.getElementById(`_history${capitalizedAction}Count`);
-  const input     = document.getElementById(`_history${capitalizedAction}Input`);
-  const modalBody = document.getElementById(`_history${capitalizedAction}Body`);
+  const button    = document.getElementById(`_history${action}Badge`);
+  const count     = document.getElementById(`_history${action}Count`);
+  const input     = document.getElementById(`_history${action}Input`);
+  const modalBody = document.getElementById(`_history${action}Body`);
 
   input.value = jobIds.join(',');
 
@@ -45,10 +38,10 @@ ocHistory.updateStatusBatch = function(action, jobIds) {
 
   // Update the modal content.
   const jobCountText = jobIds.length === 1 
-    ? ` one selected ${action === 'cancel' ? 'job' : 'information'} (Job ID is ${jobIds[0]}) ?`
-    : ` ${jobIds.length} selected ${action === 'cancel' ? 'jobs' : 'information'} ?`;
+    ? ` one ${action === 'DeleteJob' ? 'job' : 'information'} (Job ID is ${jobIds[0]}) ?`
+    : ` ${jobIds.length} ${action === 'DeleteJob' ? 'jobs' : 'information'} ?`;
 
-  modalBody.innerHTML = `Do you want to ${action}${jobCountText}`;
+  modalBody.innerHTML = `Do you want to delete ${jobCountText}`;
 
   // If more than one job is selected, display the list of job IDs.
   if (jobIds.length > 1) {
@@ -62,7 +55,7 @@ ocHistory.updateStatusBatch = function(action, jobIds) {
   }
 };
 
-// Update the batch operations for checked rows (e.g., cancel, delete).
+// Update the batch operations for checked rows (e.g., DeleteJob, DeleteInfo).
 ocHistory.updateBatch = function(rows) {
   const countId = { checked: [], running: [] };
 
@@ -80,9 +73,9 @@ ocHistory.updateBatch = function(rows) {
     }
   });
 
-  // Update batch status for cancel and delete actions.
-  ocHistory.updateStatusBatch("cancel", countId.running);
-  ocHistory.updateStatusBatch("delete", countId.checked);
+  // Update batch status for deleting job or info action.
+  ocHistory.updateStatusBatch("DeleteJob",  countId.running);
+  ocHistory.updateStatusBatch("DeleteInfo", countId.checked);
 };
 
 // Redirect to the current URL with the selected number of rows as a query parameter.

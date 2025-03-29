@@ -291,9 +291,9 @@ post "/*" do
     error_msg = nil
 
     case params["action"]
-    when "cancel"
-      error_msg = scheduler.cancel(job_ids, bin, bin_overrides, ssh_wrapper)
-    when "delete"
+    when "DeleteJob"
+      error_msg = scheduler.delete(job_ids, bin, bin_overrides, ssh_wrapper)
+    when "DeleteInfo"
       if File.exist?(history_db)
         db = PStore.new(history_db)
         db.transaction do

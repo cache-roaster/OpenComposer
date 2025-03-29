@@ -28,9 +28,9 @@ helpers do
     end
   end
 
-  # Output a modal for a specific action (e.g., cancel or delete).
+  # Output a modal for a specific action (e.g., DeleteJob or DeleteInfo).
   def output_action_modal(action)
-    id = "_history#{action.capitalize}"
+    id = "_history#{action}"
     form_action = "#{@script_name}/history?action=#{action}"
 
     <<~HTML
@@ -43,8 +43,8 @@ helpers do
           <div class="modal-footer">
             <form action="#{form_action}" method="post">
               <input type="hidden" name="JobIds" id="#{id}Input">
-              <button type="submit" class="btn btn-primary" tabindex="-1">Yes</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" tabindex="-1">No</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" tabindex="-1">Cancel</button>
+              <button type="submit" class="btn btn-primary" tabindex="-1">Delete</button>
             </form>
           </div>
         </div>
@@ -53,19 +53,16 @@ helpers do
     HTML
   end
 
-  # Output a badge for an action button (e.g., cancel or delete) with a modal trigger.
+  # Output a badge for an action button (e.g., DeleteJob or DeleteInfo) with a modal trigger.
   def output_action_badge(action)
-    modal_target = (action == "delete") ? "info" : "job"
-    capitalized_action = action.capitalize
-    
-    if %w[Cancel Delete].include?(capitalized_action)
-      <<~HTML
-      <button id="_history#{capitalized_action}Badge" data-bs-toggle="modal" data-bs-target="#_history#{capitalized_action}" class="btn btn-sm btn-danger disabled" disabled>
-        #{capitalized_action} #{modal_target} 
-        <span id="_history#{capitalized_action}Count" class="badge bg-secondary">0</span>
-      </button>
-      HTML
-    end
+    return if action != "DeleteJob" && action != "DeleteInfo"
+
+    <<~HTML
+    <button id="_history#{action}Badge" data-bs-toggle="modal" data-bs-target="#_history#{action}" class="btn btn-sm btn-danger disabled" disabled>
+      #{(action == "DeleteJob") ? "Delete Job" : "Delete Info"} 
+      <span id="_history#{action}Count" class="badge bg-secondary">0</span>
+    </button>
+    HTML
   end
 
   # Output a modal for displaying details of a specific job.
