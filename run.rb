@@ -342,6 +342,10 @@ post "/*" do
 
       eval(check)
     end
+
+    # Save a job script
+    FileUtils.mkdir_p(script_location)
+    File.open(script_path, "w") { |file| file.write(script_content) }
     
     # Run commands in submit block
     submit = form["submit"]
@@ -380,6 +384,7 @@ post "/*" do
       end
 
       submit_with_echo = <<~BASH
+        set -e # Enable error exit
         #{submit}
         if [ -n "$OC_SUBMIT_OPTIONS" ]; then
           echo "$OC_SUBMIT_OPTIONS"
@@ -387,14 +392,15 @@ post "/*" do
           echo "__UNDEFINED__"
         fi
         BASH
-      
-      submit_options = `bash -c '#{submit_with_echo}' | tail -n 1`.strip
-      submit_options = nil if submit_options == "__UNDEFINED__"
-    end
 
-    # Save a job script
-    FileUtils.mkdir_p(script_location)
-    File.open(script_path, "w") { |file| file.write(script_content) }
+      stdout, stderr, status = Open3.capture3("bash", "-c", submit_with_echo)
+      unless status.success?
+        halt 500, stderr
+      end
+
+      last_line = stdout.lines.last&.strip
+      submit_options = (last_line == "__UNDEFINED__") ? nil : last_line
+    end
 
     # Submit a job script
     Dir.chdir(File.dirname(script_path)) do
