@@ -51,10 +51,11 @@ end
 # Defaults are applied for any missing values.
 def create_conf
   conf = read_yaml("./conf.yml")
+  halt 500, "./conf.yml.erb does not be found." if conf.nil?
 
   # Check required values
   ["scheduler", "apps_dir"].each do |key|
-    halt 500, "In conf.yml, \"#{key}:\" must be defined." if conf&.dig(key).nil?
+    halt 500, "In ./conf.yml.erb, \"#{key}:\" must be defined." if conf&.dig(key).nil?
   end
 
   conf["login_node"]        ||= nil
@@ -152,7 +153,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
   case @path_info
   when "/"
     @name = "Top"
-    erb :index
+    return erb :index
   when "/history"
     @name             = "History"
     @scheduler        = scheduler || create_scheduler(@conf["scheduler"])
@@ -170,12 +171,13 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
     @jobs, @error_msg = get_job_history(@status, @start_index, @end_index, @filter)
 
     if !@error_msg.nil?
-      erb :error
+      return erb :error
     else
       @error_msg = error_msg
-      erb :history
+      return erb :history
     end
   else # application form
+    @table_index = 1
     @manifest = @manifests.find { |m| "/#{m.dirname}" == @path_info }
     if !@manifest.nil?
       @name   = @manifest["name"]
@@ -192,14 +194,20 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
       # beginning of the name to avoid conflicts with Open Composer's internal variables.
       if @body&.dig("form")
         invalid_keys = @body["form"].each_key.reject { |key| key.match?(/^[a-zA-Z][a-zA-Z0-9_]*$/) }
-        halt 500, "Widget name(s) (#{invalid_keys.join(', ')}) cannot be used.\n" unless invalid_keys.empty?
+        unless invalid_keys.empty?
+          @error_msg = "Widget name(s) (#{invalid_keys.join(', ')}) cannot be used.\n"
+          return erb :error
+        end
       end
-      
+
       # Load cache
       @script_content = nil
       if params["jobId"] || job_id
         history_db = @conf["history_db"]
-        halt 404, "#{history_db} is not found." unless File.exist?(history_db)
+        unless File.exist?(history_db)
+          @error_msg = "#{history_db} is not found."
+          return erb :form
+        end
         db = PStore.new(history_db)
         cache = ""
         db.transaction(true) do
@@ -209,7 +217,10 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
                  job_id.is_a?(Array) ? job_id[0].to_s : job_id.to_s
                end
           cache = db[id]
-          halt 404, "Specified Job ID (#{id}) is not found." if cache.nil?
+          if cache.nil?
+            @error_msg = "Specified Job ID (#{id}) is not found."
+            return erb :error
+          end
         end        
         replace_with_cache(@header, cache)
         replace_with_cache(@body["form"], cache)
@@ -225,13 +236,12 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
         @body["script"] = @body["script"]["content"]
       end
 
-      @table_index = 1
-      @job_id      = job_id.is_a?(Array) ? job_id.join(", ") : job_id
-      @error_msg   = error_msg
-      erb :form
+      @job_id    = job_id.is_a?(Array) ? job_id.join(", ") : job_id
+      @error_msg = error_msg
+      return erb :form
     else
       @error_msg = "#{request.url} is not found."
-      erb :error
+      return erb :error
     end
   end
 end
@@ -311,14 +321,21 @@ post "/*" do
     script_location = params[HEADER_SCRIPT_LOCATION]
     script_name     = params[HEADER_SCRIPT_NAME]
     job_name        = params[HEADER_JOB_NAME]
-    halt 500, "#{HEADER_SCRIPT_LOCATION} is not defined in #{app_path}/form.yml[.erb]." if script_location.nil?
-    halt 500, "#{HEADER_SCRIPT_NAME} is not defined in #{app_path}/form.yml[.erb]."     if script_name.nil?
-    halt 500, "#{HEADER_JOB_NAME} is not defined in #{app_path}/form.yml[.erb]."        if job_name.nil?
+    error_msg =
+      if script_location.nil?
+        "#{HEADER_SCRIPT_LOCATION} is not defined in #{app_path}/form.yml[.erb]."
+      elsif script_name.nil?
+        "#{HEADER_SCRIPT_NAME} is not defined in #{app_path}/form.yml[.erb]."
+      elsif job_name.nil?
+        "#{HEADER_JOB_NAME} is not defined in #{app_path}/form.yml[.erb]."
+      else
+        nil
+      end
+    return show_website(nil, scheduler, error_msg, params) if error_msg
     
     script_path    = File.join(script_location, script_name)
     script_content = params[SCRIPT_CONTENT].gsub("\r\n", "\n")
     job_id         = nil
-    error_msg      = nil
     form           = read_yaml(File.join(app_path, "form.yml"))
     submit_options = nil
     
@@ -395,9 +412,9 @@ post "/*" do
 
       stdout, stderr, status = Open3.capture3("bash", "-c", submit_with_echo)
       unless status.success?
-        halt 500, stderr
+        return show_website(nil, scheduler, stderr, params)
       end
-
+      
       last_line = stdout.lines.last&.strip
       submit_options = (last_line == "__UNDEFINED__") ? nil : last_line
     end
@@ -407,7 +424,7 @@ post "/*" do
       job_id, error_msg = scheduler.submit(script_path, job_name.strip, submit_options, bin, bin_overrides, ssh_wrapper)
       params[JOB_SUBMISSION_TIME] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
-
+    
     # Save a job history
     FileUtils.mkdir_p(data_dir)
     db = PStore.new(history_db)
@@ -417,6 +434,6 @@ post "/*" do
       end
     end
     
-    show_website(job_id, scheduler, error_msg, params)
+    return show_website(job_id, scheduler, error_msg, params)
   end
 end
