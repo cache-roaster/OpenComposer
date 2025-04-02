@@ -44,7 +44,9 @@ helpers do
     # Use the text-reset class to prevent color changes when using font awesome icons
     html = <<~HTML
       <div class="col text-center">
-        <a href="#{@script_name}/#{dirname}" class="stretched-link position-relative text-reset">
+        <div class="d-flex flex-column h-100 align-items-center">
+          <div class="flex-grow-1 d-flex align-items-center">
+            <a href="#{@script_name}/#{dirname}" class="stretched-link position-relative text-reset">
 HTML
     width = @conf['thumbnail_width']
     if is_bi_or_fa_icon
@@ -53,9 +55,10 @@ HTML
       html << "<img src=\"#{icon_path}\" class=\"img-thumbnail\" width=\"#{width}\" height=\"100\" alt=\"#{name}\">"
     end
     html << <<~HTML
-        </a>
-        <br>
+             </a>
+           </div>
         #{name}
+        </div>
       </div>
     HTML
   end

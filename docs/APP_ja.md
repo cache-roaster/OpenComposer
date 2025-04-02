@@ -90,7 +90,7 @@ script:
     #SBATCH --nodes=#{nodes}
 ```
 
-`check`のサンプルは下記の通りです。Rubyスクリプトで記述します。下記のサンプルでは、24時間以上の値が入力された状態で「Submit」ボタンをクリックすると、エラーメッセージが出力され、ジョブスクリプトの投入は行わないことを意味しています。`form`の変数を参照する場合は、@マークの後に変数名を記述してください。なお、すべての変数は文字列であることに注意ください。
+`check`では、Rubyスクリプトと関数`oc_assert(condition, message)`を利用できます。この関数は`condition`が`false`の場合、`message`を出力して処理を終了します。下記のサンプルでは、24時間よりも大きな値が入力された状態で「Submit」ボタンをクリックすると、エラーメッセージが出力され、ジョブスクリプトの投入は行わないことを意味しています。`form`の変数を参照する場合は、@マークの後に変数名を記述してください。なお、すべての変数は文字列であることに注意ください。
 
 `check`では、下記の特殊な変数も利用できます。
 - @OC_APP_NAME : `manifest.yml`の`name`で定義しているアプリケーション名
@@ -114,9 +114,10 @@ script: |
   #SBATCH --time=#{time_1}:#{time_2}:00
   
 check: |
-  if @time_1.to_i == 24 && @time_2.to_i > 0
-    halt 500, "Exceeded Time"
-  end
+  time_1 = @time_1.to_i
+  time_2 = @time_2.to_i
+  message = "Exceeded Time"
+  oc_assert(time_1 != 24 || time_2 == 0, message)
 ```
 
 `submit`のサンプルは下記の通りです。シェルスクリプトで記述します。`form`の変数を参照する場合は、`form`と同様に`#{...}`を利用してください。環境変数`OC_SUBMIT_OPTIONS`は、ジョブスクリプト投入コマンドに追加のオプションを設定できます。この処理の実行後に、ジョブスクリプトを投入するためのコマンド（例えば、sbatch #{OC_SUBMIT_OPTIONS} -J #{OC_JOB_NAME} #{OC_SCRIPT_NAME}）が実行されます。

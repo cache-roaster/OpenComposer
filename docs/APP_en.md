@@ -108,8 +108,9 @@ script:
     #SBATCH --nodes=#{nodes}
 ```
 
-In the `check` section, a Ruby script ensures validation.
-For example, if a total time exceeding 24 hours is entered,
+In the `check` section, a Ruby script and the function `oc_assert(condition, message)` ensures validation.
+This function outputs a `message` and terminates if `condition` is `false`.
+In the example below, if a total time exceeding 24 hours is entered,
 an error message will be displayed when the "Submit" button is clicked,
 preventing the script from being submitted.
 To refer to a `form` variable, write the variable name after the @ sign, and all variables are treated as strings.
@@ -136,9 +137,10 @@ script: |
   #SBATCH --time=#{time_1}:#{time_2}:00
 
 check: |
-  if @time_1.to_i == 24 && @time_2.to_i > 0
-    halt 500, "Exceeded Time"
-  end
+  time_1 = @time_1.to_i
+  time_2 = @time_2.to_i
+  message = "Exceeded Time"
+  oc_assert(time_1 != 24 || time_2 == 0, message)
 ```
 
 In the `submit` section, a shell script is written to process before the job is submitted.

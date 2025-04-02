@@ -246,6 +246,12 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
   end
 end
 
+# Raise a RuntimeError with the given message if the condition is false.
+# This function is used in a check section of form.yml[.erb].
+def oc_assert(condition, message = "Error exists in script content.")
+  raise RuntimeError, message unless condition
+end
+
 # Send an application icon.
 get "/:apps_dir/:folder/:icon" do
   icon_path = File.join(create_conf["apps_dir"], params[:folder], params[:icon])
@@ -356,8 +362,12 @@ post "/*" do
 
         instance_variable_set("@#{suffix}", value)
       end
-
-      eval(check)
+      
+      begin
+        eval(check)
+      rescue => e
+        return show_website(job_id, scheduler, e.message, params)
+      end
     end
 
     # Save a job script
