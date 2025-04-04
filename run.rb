@@ -82,8 +82,13 @@ end
 # Create a manifest object in a specified application.
 # If the name is not defined, the directory name is used.
 def create_manifest(directory_path)
-  manifest = read_yaml(File.join(directory_path, "manifest.yml"))
-  dirname  = File.basename(directory_path)
+  begin
+    manifest = read_yaml(File.join(directory_path, "manifest.yml"))
+  rescue => e
+    return nil
+  end
+
+  dirname = File.basename(directory_path)
   return Manifest.new(dirname, dirname, nil, nil, nil, nil) if manifest.nil?
 
   manifest["name"] ||= dirname
@@ -94,7 +99,7 @@ end
 
 # Create an array of manifest objects for all applications.
 def create_all_manifests(apps_dir)
-  Dir.children(apps_dir).each_with_object([]) do |dir, manifests|
+  all_manifests = Dir.children(apps_dir).each_with_object([]) do |dir, manifests|
     next if dir.start_with?(".") # Skip hidden files and directories
 
     directory_path = File.join(apps_dir, dir)
@@ -102,6 +107,8 @@ def create_all_manifests(apps_dir)
       manifests << create_manifest(directory_path)
     end
   end
+
+  return all_manifests.compact
 end
 
 # Replace with cached value.
@@ -180,14 +187,19 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
     @table_index = 1
     @manifest = @manifests.find { |m| "/#{m.dirname}" == @path_info }
     if !@manifest.nil?
-      @name   = @manifest["name"]
-      @body   = read_yaml(File.join(@apps_dir, @path_info, "form.yml"))
-      @header = if @body.key?("header")
-                  @body["header"]
-                else
-                  read_yaml("./lib/header.yml")["header"]
-                end
-
+      begin
+        @body = read_yaml(File.join(@apps_dir, @path_info, "form.yml"))
+        @header = if @body.key?("header")
+                    @body["header"]
+                  else
+                    read_yaml("./lib/header.yml")["header"]
+                  end
+      rescue => e
+        @error_msg = e.message
+        return erb :error
+      end
+      @name = @manifest["name"]
+      
       # Since the widget name is used as a variable in Ruby, it should consist of only
       # alphanumeric characters and underscores, and numbers should not be used at the
       # beginning of the name. Furthermore, underscores are also prohibited at the
@@ -339,10 +351,16 @@ post "/*" do
       end
     return show_website(nil, scheduler, error_msg, params) if error_msg
     
+    begin
+      form = read_yaml(File.join(app_path, "form.yml"))
+    rescue => e
+      @error_msg = e.message
+      return erb :error
+    end
+
     script_path    = File.join(script_location, script_name)
     script_content = params[SCRIPT_CONTENT].gsub("\r\n", "\n")
     job_id         = nil
-    form           = read_yaml(File.join(app_path, "form.yml"))
     submit_options = nil
     
     # Run commands in check block
