@@ -84,7 +84,7 @@ end
 def create_manifest(directory_path)
   begin
     manifest = read_yaml(File.join(directory_path, "manifest.yml"))
-  rescue => e
+  rescue Exception => e
     return nil
   end
 
@@ -194,7 +194,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
                   else
                     read_yaml("./lib/header.yml")["header"]
                   end
-      rescue => e
+      rescue Exception => e
         @error_msg = e.message
         return erb :error
       end
@@ -353,7 +353,7 @@ post "/*" do
     
     begin
       form = read_yaml(File.join(app_path, "form.yml"))
-    rescue => e
+    rescue Exception => e
       @error_msg = e.message
       return erb :error
     end
@@ -383,7 +383,7 @@ post "/*" do
       
       begin
         eval(check)
-      rescue => e
+      rescue Exception => e
         return show_website(job_id, scheduler, e.message, params)
       end
     end
