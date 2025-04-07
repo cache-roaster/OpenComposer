@@ -440,6 +440,7 @@ post "/*" do
 
       stdout, stderr, status = Open3.capture3("bash", "-c", submit_with_echo)
       unless status.success?
+        stderr = stderr.encode("UTF-8", invalid: :replace, undef: :replace)
         return show_website(nil, scheduler, stderr, params)
       end
       
