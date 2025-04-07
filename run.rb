@@ -249,7 +249,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
       end
 
       @job_id    = job_id.is_a?(Array) ? job_id.join(", ") : job_id
-      @error_msg = error_msg
+      @error_msg = error_msg&.force_encoding('UTF-8')
       return erb :form
     else
       @error_msg = "#{request.url} is not found."
@@ -440,7 +440,6 @@ post "/*" do
 
       stdout, stderr, status = Open3.capture3("bash", "-c", submit_with_echo)
       unless status.success?
-        stderr = stderr.encode("UTF-8", invalid: :replace, undef: :replace)
         return show_website(nil, scheduler, stderr, params)
       end
       
