@@ -5,6 +5,7 @@ class Slurm < Scheduler
   # Submit a job to the Slurm scheduler using the 'sbatch' command.
   # If the submission is successful, it checks for job details using the 'scontrol' command.
   def submit(script_path, job_name = nil, added_options = nil, bin = nil, bin_overrides = nil, ssh_wrapper = nil)
+    script_path = "job.sh"
     sbatch = get_command_path("sbatch", bin, bin_overrides)
     job_name_option = "-J #{job_name}" if job_name && !job_name.empty?
     added_options = "--export=NONE" if added_options.nil?
@@ -31,7 +32,7 @@ class Slurm < Scheduler
       end.sort
       return expanded_ids.map { |i| "#{job_id}_#{i}" }, nil # Array Job
     end
-  rescue => e
+  rescue Exception => e
     return nil, e.message
   end
 
@@ -41,7 +42,7 @@ class Slurm < Scheduler
     command = [ssh_wrapper, scancel, jobs.join(',')].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return status.success? ? nil : [stdout, stderr].join(" ")
-  rescue => e
+  rescue Exception => e
     return e.message
   end
 
@@ -128,7 +129,7 @@ class Slurm < Scheduler
     end
     
     return info, nil
-  rescue => e
+  rescue Exception => e
     return nil, e.message
   end
 end

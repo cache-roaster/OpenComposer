@@ -25,7 +25,7 @@ class Sge < Scheduler
       return job_ids, nil
     end
     return nil, "Job ID not found in output."
-  rescue => e
+  rescue Exception => e
     return nil, e.message
   end
 
@@ -39,7 +39,7 @@ class Sge < Scheduler
     command = [ssh_wrapper, qdel, transformed_jobs.join(' ')].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return status.success? ? nil : [stdout, stderr].join(" ")
-  rescue => e
+  rescue Exception => e
     return e.message
   end
 
@@ -193,7 +193,7 @@ class Sge < Scheduler
     end
 
     return info, nil
-  rescue => e
+  rescue Exception => e
     return nil, e.message
   end
 end

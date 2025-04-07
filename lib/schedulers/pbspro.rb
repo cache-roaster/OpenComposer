@@ -30,7 +30,7 @@ class Pbspro < Scheduler
     else
       return nil, "Job ID not found in output."
     end
-  rescue => e
+  rescue Exception => e
     return nil, e.message
   end
 
@@ -40,7 +40,7 @@ class Pbspro < Scheduler
     command = [ssh_wrapper, qdel, jobs.join(' ')].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return status.success? ? nil : [stdout, stderr].join(" ")
-  rescue => e
+  rescue Exception => e
     return e.message
   end
 
@@ -113,7 +113,7 @@ class Pbspro < Scheduler
   
     parse_qstat_output(stdout2, info)
     return info, nil
-  rescue => e
+  rescue Exception => e
     return nil, e.message
   end
 end

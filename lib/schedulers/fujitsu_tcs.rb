@@ -39,7 +39,7 @@ class Fujitsu_tcs < Scheduler
     else
       return rows[1][1], nil # Single Job
     end
-  rescue => e
+  rescue Exception => e
     return nil, e.message
   end
   
@@ -49,7 +49,7 @@ class Fujitsu_tcs < Scheduler
     command = [ssh_wrapper, pjdel, jobs.join(" ")].compact.join(" ")
     stdout, stderr, status = Open3.capture3(command)
     return status.success? ? nil : stderr
-  rescue => e
+  rescue Exception => e
     return e.message
   end
 
@@ -204,7 +204,7 @@ class Fujitsu_tcs < Scheduler
     end
 
     return info, nil
-  rescue => e
+  rescue Exception => e
     return nil, e.message
   end
 end
