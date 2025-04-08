@@ -8,7 +8,7 @@ Save Open Composer in your Open OnDemand application directory: `/var/www/ood/ap
 ```
 
 ## Open Composer configuration
-Edit `./OpenComposer/conf.yml.erb`.
+Create `./OpenComposer/conf.yml.erb` with reference to `./OpenComposer/conf.yml.erb.sample`.
 All fields except `scheduler` and `apps_dir` can be omitted.
 However, if you select `sge` for `scheduler`, you need to set `sge_root`.
 

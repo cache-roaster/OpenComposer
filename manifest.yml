@@ -1,7 +1,7 @@
 name: Open Composer
 category: Jobs
-description: |-
-  Open Composer allows the creation and submission of batch jobs
+description: |
+  Open Composer is an application that creates and submits batch job scripts.
 icon: fas://hat-wizard
 tile:
   sub_caption: |

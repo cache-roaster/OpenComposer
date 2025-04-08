@@ -7,7 +7,7 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 ```
 
 ## Open Composerの設定
-`./OpenComposer/conf.yml.erb`を編集してください。`scheduler`と`apps_dir`以外は省略可能です。ただし、`scheduler`で`sge`を選択した場合は、`sge_root`の設定が必要です。
+`./OpenComposer/conf.yml.erb.sample`を参考にして`./OpenComposer/conf.yml.erb`を作成してください。`scheduler`と`apps_dir`以外は省略可能です。ただし、`scheduler`で`sge`を選択した場合は、`sge_root`の設定が必要です。
 
 | 項目名 | 設定内容 |
 | ---- | ---- |

@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.4.0] - 2025-04-08
+
+### Added
+- Support to set a main label and a sub-label.
+- Support to hide job scripts.
+- Dynamic Form Widget is also enabled in the header.
+- Add icons such as Open OnDemand to the navigation bar.
+- Add an effect for submit button.
+- Add a function oc_assert() which can be used in form.yml.
+
+### Changed
+- For slurm, remove init_bash and added --export=NONE to the sbatch option.
+- For slurm, PBSpro and Fujitsu TCS, increase the amount of verbose output.
+- On the history page, when you hover the cursor over the image of a visualization app, the name of the application is displayed.
+- On the history page, adjust the amount of information depending on the window width.
+- Change width when script content is hidden from 800px to 960px.
+- Adjust the amount of information displayed in the history depending on the window width.
+- Change the command from Cancel Job to Delete Job.
+- Display error messages more clearly in form.
+
+### Fixed
+- A reference so that it works even if the destination of related_app in manuscript is a link.
+
 ## [1.3.0] - 2025-02-12
 
 ### Added

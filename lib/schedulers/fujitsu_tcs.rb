@@ -125,14 +125,7 @@ class Fujitsu_tcs < Scheduler
       uctmut:  "Total user CPU time (ms)",
       sctmut:  "Total system CPU time (ms)",
       usctmut: "Total user CPU time and total of system CPU time (ms)",
-      vnid:    "Virtual node ID",
-      vnnuma:  "Allocated number of virtual nodes",
-      vcnuma:  "Number of cores of each virtual nodes",
-      vmema:   "Allocated memory amount for each virtual node",
-      #vmszu:   "Maximal amount of virtual memory used",
-      #vpol:    "Policy that arranges virtual node",
-      #epol:    "Execution mode policy",
-      #rankm:   "Rank map"
+      vmszu:   "Maximal amount of virtual memory used"
     }
     
     pjstat = get_command_path("pjstat", bin, bin_overrides)
