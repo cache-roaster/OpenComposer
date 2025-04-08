@@ -174,7 +174,10 @@ helpers do
           suffix   = match[2]
           with_suffix = true
         end
-        next unless form.key?(base_key)
+        unless form.key?(base_key)
+          can_hide.pop()
+          next
+        end
         
         exist_keys << (with_suffix ? "#{base_key}_#{suffix}" : base_key)
         widgets << form[base_key]["widget"]
@@ -185,6 +188,8 @@ helpers do
         widgets << form[base_key]["widget"]
         separators << nil # Widgets of number, text, email do not have separator option
         functions << false
+      else
+        can_hide.pop()
       end
     end
 
