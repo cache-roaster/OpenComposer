@@ -84,9 +84,12 @@ ocHistory.redirectWithRows = function() {
   if (!selectBox) return;
 
   const selectedValue = selectBox.value;
-  const currentUrl = window.location.href.split('?')[0]; // Get URL without query parameters.
+  const url = new URL(window.location.href);
+  const params = url.searchParams;
 
-  window.location.href = `${currentUrl}?rows=${selectedValue}`;
+  params.delete('p');
+  params.set('rows', selectedValue);
+  window.location.href = url.toString();
 };
 
 // Add event listeners to status radio buttons and update the URL when a selection changes.
@@ -94,7 +97,7 @@ document.querySelectorAll('input[name="_historyStatus"]').forEach(radio => {
   radio.addEventListener('change', () => {
     const url = new URL(window.location.href);
     url.searchParams.set('status', radio.value);
-    url.searchParams.set('p', 1);
+    url.searchParams.delete('p');
     window.location.href = url.toString();
   });
 });
@@ -104,9 +107,8 @@ document.querySelectorAll('input[name="_historyCluster"]').forEach(radio => {
   radio.addEventListener('change', () => {
     const url = new URL(window.location.href);
     url.searchParams.set('cluster', radio.value);
-    url.searchParams.set('p', 1);
+    url.searchParams.delete('p');
     window.location.href = url.toString();
-    document.getElementById('_historyCluster_').value = cluster;
   });
 });
 

@@ -103,8 +103,7 @@ helpers do
     modal_id = "_historyJobScript#{job[JOB_ID]}"
     job_script = job[SCRIPT_CONTENT]&.gsub(/\r\n|\n/, '<br>')
     job_link = "#{@script_name}#{job[JOB_APP_PATH]}?jobId=#{URI.encode_www_form_component(job[JOB_ID])}"
-    cluster_name = job[HEADER_CLUSTER_NAME]
-    job_link += "&cluster=#{cluster_name}" if cluster_name
+    job_link += "&cluster=#{@cluster_name}" if @cluster_name
 
     <<~HTML
     <div class="modal" aria-hidden="true" id="#{modal_id}" tabindex="-1">
@@ -118,7 +117,7 @@ helpers do
             #{job_script}
           </div>
           <div class="modal-footer">
-            <a href="#{job_link}" class="btn btn-primary text-white text-decoration-none">Load Parameters</a>
+            <a href="#{job_link}" class="btn btn-primary text-white text-decoration-none">Load parameters</a>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" tabindex="-1">Close</button>
           </div>
         </div>
