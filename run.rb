@@ -269,9 +269,9 @@ def show_website(job_id = nil, error_msg = nil, error_params = nil)
                      else
                        @conf["history_db"]
                      end
-        
-        unless File.exist?(history_db)
-          @error_msg = "#{history_db} is not found."
+
+        if history_db.nil? || !File.exist?(history_db)
+          @error_msg = history_db.nil? ? "#{cluster_name} is not invalid." : "#{history_db} is not found."
           return erb :error
         end
 
