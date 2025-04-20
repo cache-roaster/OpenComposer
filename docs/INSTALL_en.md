@@ -8,19 +8,19 @@ Save Open Composer in your Open OnDemand application directory: `/var/www/ood/ap
 ```
 
 ## Open Composer configuration
-Create `./OpenComposer/conf.yml.erb` with reference to `./OpenComposer/conf.yml.erb.sample`.
-All fields except `scheduler` and `apps_dir` can be omitted.
-However, if you select `sge` for `scheduler`, you need to set `sge_root`.
+Create `./conf.yml.erb` with reference to `./conf.yml.erb.sample`.
+The `apps_dir` is required and either `scheduler` or `cluster` is required.
 
 | Item name | Setting |
 | ---- | ---- |
-| scheduler | Job scheduler (`slurm`, `pbspro`, `sge` or `fujitsu_tcs`) |
 | apps_dir | Application directory |
+| scheduler | Job scheduler (`slurm`, `pbspro`, `sge` or `fujitsu_tcs`) |
+| cluster | Cluster properties |
+| data_dir | Directory where submitted job information is stored (Default is `${HOME}/composer`) |
 | login_node | Login node when you launch the Open OnDemand web terminal |
-| data_dir | Directory where submitted job information is stored |
+| ssh_wrapper | Commands for using the job scheduler of another node using SSH |
 | bin | PATH of commands of job scheduler |
 | bin_overrides | PATH of each command of job scheduler |
-| ssh_wrapper | Commands for using the job scheduler of another node using SSH |
 | sge_root | Directory for the Grid Engine root (SGE_ROOT) |
 | footer | Text in the footer |
 | thumbnail_width | Width of thumbnails for each application on the top page |
@@ -70,12 +70,28 @@ bin_overrides:
   pjdel:  "/usr/local/bin/pjdel"
 ```
 
+### Setting cluster (Optional)
+Set this when using multiple job schedulers.
+The `name` and `scheduler` are required and set the cluster name and scheduler respectively.
+Other scheduler related settings (`bin`, `bin_overrides`, `sge_root`) are also possible.
+Note that when setting `cluster`, `scheduler`, `bin`, `bin_overrides`, `sge_root` cannot be set outside of `cluster`.
+
+```
+cluster:
+  - name: "fugaku"
+    scheduler: "fujitsu_tcs"
+  - name: "prepost"
+    scheduler: "slurm"
+    bin_overrides:
+      sbatch:   "/usr/local/bin/sbatch"
+```
+
 ## Registration for Open OnDemand by administrator
 When you save Open Composer to `/var/www/ood/apps/sys/`, the Open Composer icon will be displayed on the Open OnDemand top page.
-If it is not displayed, check `./OpenComposer/manifest.yml`.
+If it is not displayed, check `./manifest.yml`.
 
 You can also display Open Composer applications on the Open OnDemand top page.
-For example, if you want to display an application `./OpenComposer/apps/Slurm/`,
+For example, if you want to display an application `./sample_apps/apps/Slurm/`,
 create a directory with the same name in the Open OnDemand application directory (`# mkdir /var/www/ood/apps/sys/Slurm`).
 Then, create the following Open OnDemand configuration file `manifest.yml` in that directory.
 

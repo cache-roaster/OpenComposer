@@ -412,8 +412,7 @@ ocForm.getParentDiv = function(key, widget, size) {
     break;
   }
 
-  const v = document.getElementById(key);
-  return (v.closest('.mb-3') === null)? v.closest('.mb-0') : v.closest('.mb-3'); // widget: path and the bottom widget are set to mb-0.
+  return document.getElementById(key).closest('.mb-3');
 }
 
 // Show a widget.

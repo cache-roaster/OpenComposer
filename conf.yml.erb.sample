@@ -1,12 +1,20 @@
 ---
-# Required Settings
-scheduler: slurm
+# Required settings
 apps_dir: "./sample_apps"
+scheduler: "slurm"
+#cluster:
+#  - name: "fugaku"
+#    scheduler: "fujitsu_tcs"
+#  - name: "prepost"
+#    scheduler: "slurm"
+#    bin_overrides:
+#      sbatch:   "/usr/local/bin/sbatch"
 
-# Optional Settings
+# Optional settings
 ## General
-#login_node: "example.com"
 #data_dir:  <%= ENV['HOME'] %>/composer
+#login_node: "example.com"
+#ssh_wrapper: "ssh hoge@example.com"
 #bin: "/usr/local/bin"
 #bin_overrides:
 #  sbatch:   "/usr/local/bin/sbatch"
@@ -20,7 +28,6 @@ apps_dir: "./sample_apps"
 #  qstat:    "/usr/local/bin/qstat"
 #  qdel:     "/usr/local/bin/qdel"
 #  qacct:    "/usr/local/bin/qacct"
-#ssh_wrapper: "ssh hoge@example.com"
 #sge_root: "/apps/t4/rhel9/uge/latest"
 
 ## Layout

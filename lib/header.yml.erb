@@ -3,14 +3,27 @@ header:
   _script_location:
     widget:     path
     value:      <%= Dir.home %>
-    label:      Script Location
+    label:      Script location
     show_files: false
     required:   true
 
   _script:
     widget:   text
     size :    2
-    label:    [Script Name, Job Name]
+    label:    [Script name, Job name]
     value:    [job.sh, ""]
     required: [true, false]
 
+  <% if @conf.key?("cluster") && @conf["cluster"].size > 1 %>
+  _cluster_name:
+    widget: select
+    label: Cluster name
+    required: true
+    direction: horizontal
+    value: <%= @conf["cluster"].first["name"] %>
+    options:
+    <% @conf["cluster"].each do |c| %>
+      - [ <%= c["name"] %> ]
+    <% end %>
+  <% end %>
+  

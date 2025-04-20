@@ -31,7 +31,8 @@ helpers do
   # Output a modal for a specific action (e.g., DeleteJob or DeleteInfo).
   def output_action_modal(action)
     id = "_history#{action}"
-    form_action = "#{@script_name}/history?action=#{action}"
+    form_action = "#{@script_name}/history"
+    form_action += "?cluster=#{@cluster_name}" if @cluster_name
 
     <<~HTML
     <div class="modal" id="#{id}" aria-hidden="true" tabindex="-1">
@@ -41,7 +42,8 @@ helpers do
             (Something wrong)
           </div>
           <div class="modal-footer">
-            <form action="#{form_action}" method="post">
+            <form action="#{form_action}" method="post" id="#{id}Form">
+              <input type="hidden" name="action" value="#{action}">
               <input type="hidden" name="JobIds" id="#{id}Input">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" tabindex="-1">Cancel</button>
               <button type="submit" class="btn btn-primary" tabindex="-1">Delete</button>
@@ -101,6 +103,8 @@ helpers do
     modal_id = "_historyJobScript#{job[JOB_ID]}"
     job_script = job[SCRIPT_CONTENT]&.gsub(/\r\n|\n/, '<br>')
     job_link = "#{@script_name}#{job[JOB_APP_PATH]}?jobId=#{URI.encode_www_form_component(job[JOB_ID])}"
+    cluster_name = job[HEADER_CLUSTER_NAME]
+    job_link += "&cluster=#{cluster_name}" if cluster_name
 
     <<~HTML
     <div class="modal" aria-hidden="true" id="#{modal_id}" tabindex="-1">
@@ -131,6 +135,7 @@ helpers do
       "<li class=\"page-item\"><a href=\"#\" class=\"page-link\">...</a></li>\n"
     else
       link = "./history?status=#{@status}&p=#{i}&rows=#{@rows}"
+      link += "&cluster=#{@cluster_name}" if @cluster_name
       link += "&filter=#{@filter}" if @filter && !@filter.empty?
       "<li class=\"page-item\"><a href=\"#{link}\" class=\"page-link\">#{i}</a></li>\n"
     end
@@ -144,7 +149,8 @@ helpers do
     if current_page == 1
       html += "    <li class=\"page-item disabled\"><a href=\"#\" class=\"page-link\">&laquo;</a></li>\n"
     else
-      previous_link = "./history?status=#{@status}&p=#{current_page - 1}&rows=#{@rows}"
+      previous_link = "./history?status=#{@status}&p=#{current_page-1}&rows=#{@rows}"
+      previous_link += "&cluster=#{@cluster_name}" if @cluster_name
       previous_link += "&filter=#{@filter}" if @filter && !@filter.empty?
       html += "    <li class=\"page-item\"><a href=\"#{previous_link}\" class=\"page-link\">&laquo;</a></li>\n"
     end
@@ -176,7 +182,8 @@ helpers do
     if current_page == page_size
       html += "   <li class=\"page-item disabled\"><a href=\"#\" class=\"page-link\">&raquo;</a></li>\n"
     else
-      next_link = "./history?status=#{@status}&p=#{current_page + 1}&rows=#{@rows}"
+      next_link = "./history?status=#{@status}&p=#{current_page+1}&rows=#{@rows}"
+      next_link += "&cluster=#{@cluster_name}" if @cluster_name
       next_link += "&filter=#{@filter}" if @filter && !@filter.empty?
       html += "   <li class=\"page-item\"><a href=\"#{next_link}\" class=\"page-link\">&raquo;</a></li>\n"
     end
@@ -187,64 +194,88 @@ helpers do
 
   # Return the number of Job IDs stored in the database.
   def get_job_size()
-    history_db = @conf["history_db"]
+    history_db = if @conf["history_db"].is_a?(Hash)
+                   @conf["history_db"][@cluster_name]
+                 else
+                   @conf["history_db"]
+                 end
     return 0 unless File.exist?(history_db)
 
-    size = 0
     db = PStore.new(history_db)
     db.transaction(true) do
-      size = db.roots.size
+      if @status.nil? || @status == "all"
+        return db.roots.size
+      else
+        count = 0
+        db.roots.each do |id|
+          data = db[id]
+          count += 1 if data["status"] == JOB_STATUS[@status]
+        end
+        return count
+      end
     end
-
-    return size
   end
-  
-  # Query a job history based on the target status and filter.
+
+  # Retrieves job history from either a single PStore DB or a hash of them
   def get_job_history(target_status, start_index, end_index, filter)
-    history_db = @conf["history_db"]
-    return [] unless File.exist?(history_db)
-    db = PStore.new(history_db)
+    return [nil, nil] if start_index >= @jobs_size
     
-    # Update job status
-    if target_status != "completed"
-      queried_ids = []
-      db.transaction(true) do
-        db.roots.reverse[start_index...(end_index+1)].each do |id|
-          queried_ids << id if db[id][JOB_STATUS_ID] != JOB_STATUS["completed"]
-        end
-      end
-
-      if queried_ids != []
-        status, error_msg = @scheduler.query(queried_ids, @bin, @bin_overrides, @ssh_wrapper)
-        return nil, error_msg if error_msg
-
-        db.transaction do
-          status.each do |id, info|
-            data = db[id]
-            if !data.nil?
-              data[JOB_KEYS] = info.keys
-              db[id] = data.merge(info)
-            end
-          end
-        end
-      end
-    end
-
+    history_db = if @conf["history_db"].is_a?(Hash)
+                   @conf["history_db"][@cluster_name]
+                 else
+                   @conf["history_db"]
+                 end
+    return [nil, "#{history_db} is not found"] unless File.exist?(history_db)
+  
+    db = PStore.new(history_db)
+    error_msg = update_status_if_needed(db, target_status, start_index, end_index)
+    return [nil, error_msg] if error_msg
+    
     jobs = []
     db.transaction(true) do
-      db.roots.reverse[start_index...(end_index+1)].each do |id|
+      db.roots.reverse[start_index..end_index].each do |id|
         data = db[id]
-        next if (data[JOB_STATUS_ID]&.downcase != target_status && target_status != "all")
-
-        info = { JOB_ID => id }
-        info.merge!(data)
+        next unless data
+        next if target_status != "all" && data[JOB_STATUS_ID]&.downcase != target_status
+        info = { JOB_ID => id }.merge(data)
         next if filter && !info[HEADER_SCRIPT_NAME]&.include?(filter) && !info[JOB_NAME]&.include?(filter)
-        
-        jobs.push(info)
+        jobs << info
       end
     end
 
     [jobs, nil]
+  end
+
+  # Queries job status updates for jobs not yet completed
+  def update_status_if_needed(db, target_status, start_index, end_index)
+    return nil if target_status == "completed"
+    
+    queried_ids = []
+    db.transaction(true) do
+      db.roots.reverse[start_index..end_index].each do |id|
+        queried_ids << id if db[id][JOB_STATUS_ID] != JOB_STATUS["completed"]
+      end
+    end
+    return nil if queried_ids.empty?
+    
+    scheduler     = @cluster_name ? @scheduler[@cluster_name]     : @scheduler
+    bin           = @cluster_name ? @bin[@cluster_name]           : @bin
+    bin_overrides = @cluster_name ? @bin_overrides[@cluster_name] : @bin_overrides
+    ENV['SGE_ROOT'] ||= @cluster_name ? @conf["sge_root"][@cluster_name] : @conf["sge_root"]
+    
+    status, error_msg = scheduler.query(queried_ids, bin, bin_overrides, @ssh_wrapper)
+    return error_msg if error_msg
+    
+    db.transaction do
+      status.each do |id, info|
+        data = db[id]
+        next unless data
+        data[JOB_KEYS] = info.keys
+        db[id] = data.merge(info)
+      end
+    end
+    
+    nil
   end
 
   # Output a styled status badge for a job based on its current status.

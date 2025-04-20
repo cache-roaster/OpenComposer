@@ -7,17 +7,18 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 ```
 
 ## Open Composerの設定
-`./OpenComposer/conf.yml.erb.sample`を参考にして`./OpenComposer/conf.yml.erb`を作成してください。`scheduler`と`apps_dir`以外は省略可能です。ただし、`scheduler`で`sge`を選択した場合は、`sge_root`の設定が必要です。
+`./conf.yml.erb.sample`を参考にして`./conf.yml.erb`を作成してください。`apps_dir`は必須です。`scheduler`もしくは`cluster`のどちらか1つは必須です。
 
 | 項目名 | 設定内容 |
 | ---- | ---- |
-| scheduler | 利用するスケジューラ（`slurm`、`pbspro`、`sge`、`fujitsu_tcs`） |
 | apps_dir | アプリケーションのディレクトリ |
+| scheduler | 利用するスケジューラ（`slurm`、`pbspro`、`sge`、`fujitsu_tcs`） |
+| cluster | クラスタの定義 |
+| data_dir | 投入したジョブの情報のディレクトリ（デフォルトは`${HOME}/composer`） |
 | login_node | Open OnDemandのWebターミナルを起動した際のログイン先 |
-| data_dir | 投入したジョブの情報のディレクトリ |
+| ssh_wrapper | SSHを用いて他のノードのジョブスケジューラを用いる場合のコマンド |
 | bin | ジョブスケジューラのコマンドのパス |
 | bin_overrides | ジョブスケジューラの各コマンドのパス |
-| ssh_wrapper | SSHを用いて他のノードのジョブスケジューラを用いる場合のコマンド |
 | sge_root | Grid Engineのルート用ディレクトリ（SGE_ROOT） |
 | footer | フッタに記載する文字 |
 | thumbnail_width | トップページの各アプリケーションのサムネイルの横幅 |
@@ -67,10 +68,24 @@ bin_overrides:
   pjdel:  "/usr/local/bin/pjdel"
 ```
 
-## 管理者によるOpen OnDemandへの登録
-Open Composerを`/var/www/ood/apps/sys/`に保存すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます。Open Composerのアイコンが表示されない場合は、Open OnDemand用の設定ファイル`./OpenComposer/manifest.yml`を確認してください。
+### clusterの設定（オプション）
 
-Open Composer上のアプリケーションをOpen OnDemandのトップページに表示することもできます。例えば、`./OpenComposer/apps/Slurm/`というアプリケーションを表示させたい場合は、同名のディレクトリをOpen OnDemandのアプリケーションディレクトリに作成します（`# mkdir /var/www/ood/apps/sys/Slurm`）。そして、そのディレクトリ内に下記のようなOpen OnDemand用の設定ファイル`manifest.yml`を作成します。
+複数のジョブスケジューラを用いる場合に設定します。`name`と`scheduler`は必須で、それぞれクラスタの名前とスケジューラを設定します。また、他のスケジューラに関する設定（`bin`、`bin_overrides`、`sge_root`）も可能です。注意点として、`cluster`を設定する場合は、`cluster`の外部で`scheduler`、`bin`、`bin_overrides`、`sge_root`を設定することはできません。
+
+```
+cluster:
+  - name: "fugaku"
+    scheduler: "fujitsu_tcs"
+  - name: "prepost"
+    scheduler: "slurm"
+    bin_overrides:
+      sbatch:   "/usr/local/bin/sbatch"
+```
+
+## 管理者によるOpen OnDemandへの登録
+Open Composerを`/var/www/ood/apps/sys/`に保存すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます。Open Composerのアイコンが表示されない場合は、Open OnDemand用の設定ファイル`./manifest.yml`を確認してください。
+
+Open Composer上のアプリケーションをOpen OnDemandのトップページに表示することもできます。例えば、`./sample_apps/Slurm/`というアプリケーションを表示させたい場合は、同名のディレクトリをOpen OnDemandのアプリケーションディレクトリに作成します（`# mkdir /var/www/ood/apps/sys/Slurm`）。そして、そのディレクトリ内に下記のようなOpen OnDemand用の設定ファイル`manifest.yml`を作成します。
 
 ```
 # cat /var/www/ood/apps/sys/Slurm/manifest.yml

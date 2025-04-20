@@ -99,6 +99,17 @@ document.querySelectorAll('input[name="_historyStatus"]').forEach(radio => {
   });
 });
 
+// Add event listeners to cluster radio buttons and update the URL when a selection changes.
+document.querySelectorAll('input[name="_historyCluster"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('cluster', radio.value);
+    url.searchParams.set('p', 1);
+    window.location.href = url.toString();
+    document.getElementById('_historyCluster_').value = cluster;
+  });
+});
+
 // Handle "Select All" checkbox functionality.
 ocHistory.selectAllCheckbox = document.getElementById('_historySelectAll');
 ocHistory.tbody = document.getElementById('_historyTbody');

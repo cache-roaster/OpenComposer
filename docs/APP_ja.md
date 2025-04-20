@@ -1,7 +1,7 @@
 ## 概要
 1. すべてのアプリケーションの保存するためのディレクトリ名を`./conf.yml.erb`の`apps_dir`に記入します。ここでは、`apps_dir: ./apps`とします。
 2. `./apps/`以下にアプリケーション用のディレクトリを作成します。アプリケーション名を`test`とした場合、`./apps/test`を作成します。
-3. 下記の設定ファイルを作成します。Embedded Ruby形式で作成する場合は、各ファイル名を`form.yml.erb`と`manifest.yml.erb`にしてください。
+3. `form.yml`と`manifest.yml`を`./apps/test`の中に作成します。Embedded Ruby形式で作成する場合は、各ファイル名を`form.yml.erb`と`manifest.yml.erb`にしてください。
 - `./apps/test/form.yml`：Webフォームの設定
 - `./apps/test/manifest.yml`：アプリケーションの説明
 
@@ -95,9 +95,10 @@ script:
 `check`では、下記の特殊な変数も利用できます。
 - @OC_APP_NAME : `manifest.yml`の`name`で定義しているアプリケーション名
 - @OC_APP_PATH : `form.yml`が保存されているアプリケーションのパス（例：`/Slurm`）
-- @OC_SCRIPT_LOCATION : ヘッダで定義されている`Script Location`
-- @OC_SCRIPT_NAME : ヘッダで定義されている`Script Name`
-- @OC_JOB_NAME :ヘッダで定義されている`Job Name`
+- @OC_SCRIPT_LOCATION : ヘッダで定義されている`Script location`
+- @OC_CLUSTER_NAME : ヘッダで定義されている`Cluster name`（`./conf.yml.erb`で`cluster`が定義されている場合に有効）
+- @OC_SCRIPT_NAME : ヘッダで定義されている`Script name`
+- @OC_JOB_NAME :ヘッダで定義されている`Job name`
 
 ```
 form:
@@ -521,7 +522,7 @@ script: |
 
 ### ジョブスクリプトを隠す
 
-ジョブスクリプトを隠すことができます。特殊な変数`SCRIPT_CONTENT`とDynamic Form Widgetの`hide-`とを下記のように組み合せて利用します（ERBであるため、ファイル名は`form.yml.erb`であることに注意ください）。
+ジョブスクリプトを隠すことができます。特殊な変数`SCRIPT_CONTENT`とDynamic Form Widgetの`hide-`とを下記のように組み合せて利用します（ERBを用いるため、ファイル名は`form.yml.erb`であることに注意ください）。
 
 ```
 form:
@@ -548,7 +549,7 @@ form:
 ### headerの設定
 `form.yml`と同じウィジットを用いることができます。ただし、`lib/headers.yml.erb`で定義されているウィジットは必ず同じ名前で定義してください。
 
-下記の例は、定義されているウィジット（`_script_location`と`_script`）に、ジョブスクリプトを隠す新しいウィジット`script_content`を追加しています。
+下記の例は、定義されているウィジット（`_script_location`と`_script`）に、ジョブスクリプトを隠す新しいウィジット`script_content`を追加しています。`./conf.yml.erb`で`cluster`が定義されている場合は、`_cluster_name`の定義も必要です。
 
 ```
 header:

@@ -1,5 +1,6 @@
 require "yaml"
 require "erb"
+require "./run"
 
 file_path = ARGV[0]
 if file_path.nil? || !File.exist?(file_path)

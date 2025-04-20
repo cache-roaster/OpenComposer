@@ -22,7 +22,7 @@
             <input type="text" class="form-control" aria-label="Filter" name="filter" value="<%= @filter %>" id="_filterInput">
           </div>
         </form>
-        <div class="d-flex justify-content-end">
+	<div class="d-flex justify-content-end">
           <div class="form-check form-check-inline">
             <input class="form-check-input" type="radio" name="_historyStatus" id="_historyStatusAll" value="all" <%= 'checked' if @status == 'all' %>>
             <label class="form-check-label" for="_historyStatusAll">All</label>
@@ -40,6 +40,18 @@
             <label class="form-check-label" for="_historyStatusCompleted">Completed</label>
           </div>
         </div>
+	<% if @conf.key?("cluster") && @conf["cluster"].size > 1 %>
+        <div class="d-flex justify-content-end mt-1">
+	  <% @conf["cluster"].each_with_index do |cluster, index| %>
+	  <%   end_margin = index == @conf["cluster"].size - 1 ? "me-1" : "" %>
+	  <%   cname = cluster["name"] %>
+	  <div class="form-check form-check-inline <%= end_margin %>">
+            <input class="form-check-input" type="radio" name="_historyCluster" id="_historyCluster_<%= cname %>" value="<%= cname %>" <%= 'checked' if @cluster_name == cname %>>
+            <label class="form-check-label" for="_historyCluster_<%= cname %>"><%= cname %></label>
+	  </div>
+	  <% end %>
+        </div>
+      <% end %>
       </div>
     </div>
   </div>
@@ -109,21 +121,21 @@
         <% end %>
       </tbody>
     </table>
-
-    <div class="row mt-2">
-      <div class="col text-start">
-        <div>Showing <%= @start_index + 1 %> to <%= @end_index + 1 %> of <%= @jobs_size %> entries</div>
-        <div>Show 
-          <input type="number" id="_historyRows" value=<%= @rows %> style="width: 80px;" onkeydown="if(event.key === 'Enter') ocHistory.redirectWithRows()" >
-        entries
-        </div>
+  <% end %>
+  
+  <div class="row mt-2">
+    <div class="col text-start">
+      <div>Showing <%= @start_index + 1 %> to <%= @end_index + 1 %> of <%= @jobs_size %> entries</div>
+      <div>Show 
+        <input type="number" id="_historyRows" value=<%= @rows %> style="width: 80px;" onkeydown="if(event.key === 'Enter') ocHistory.redirectWithRows()" >
+      entries
       </div>
-      <div class="col text-center">
-        <%= output_pagination(@current_page, @page_size, @rows) %>
-      </div>
-      <div class="col text-end"></div>
     </div>
+    <div class="col text-center">
+      <%= output_pagination(@current_page, @page_size, @rows) %>
+    </div>
+    <div class="col text-end"></div>
   </div>
-<% end %>
+</div>
 
 <script src="./history.js"></script>

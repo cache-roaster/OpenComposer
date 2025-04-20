@@ -133,6 +133,8 @@ helpers do
     line.gsub!(/\#\{:_SCRIPT_NAME\}/,     "\#\{:#{HEADER_SCRIPT_NAME}\}")
     line.gsub!(/\#\{_JOB_NAME\}/,         "\#\{#{HEADER_JOB_NAME}\}")
     line.gsub!(/\#\{:_JOB_NAME\}/,        "\#\{:#{HEADER_JOB_NAME}\}")
+    line.gsub!(/\#\{_CLUSTER_NAME\}/,     "\#\{#{HEADER_CLUSTER_NAME}\}")
+    line.gsub!(/\#\{:_CLUSTER_NAME\}/,    "\#\{:#{HEADER_CLUSTER_NAME}\}")
     
     # Escape backslashes (`\`) by replacing each `\` with `\\`.
     # This ensures the backslashes are properly interpreted in JavaScript strings.
@@ -558,7 +560,7 @@ helpers do
       is_disable = type == "disable"
       conditions_by_key = Hash.new { |hash, key| hash[key] = Set.new }
       actions_by_key    = Hash.new { |hash, key| hash[key] = Set.new }
-       
+
       options.each_with_index do |option, i|
         elements = is_disable ? get_oc_disable_attrs(option[2..-1], form).first : get_oc_disable_attrs(option[2..-1], form).last
         
@@ -589,7 +591,7 @@ helpers do
         js += "  }\n"
       end
     end
-    
+
     return js
   end
   
@@ -766,29 +768,30 @@ helpers do
     @js ||= { "init_dw" => "", "exec_dw" => "", "script" => "", "once" => "" }
     
     form = body["form"].merge({SCRIPT_CONTENT => {"widget" => "textarea"}})
+    obj = form.merge(header)
     html = ""
     form.each_with_index do |(key, value), index|
       next if key == SCRIPT_CONTENT
       indent = add_indent_style(value)
-      html  += (index != form.size - 2) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
+      html  += "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n"
       
       case value['widget']
       when 'number', 'text', 'email'
         html += output_number_text_email_html(key, value)
       when 'select'
-        @js["init_dw"] += output_init_dw_js(value["options"], form)
-        @js["exec_dw"] += output_exec_dw_js(key, value["options"], form)
+        @js["init_dw"] += output_init_dw_js(value["options"], obj)
+        @js["exec_dw"] += output_exec_dw_js(key, value["options"], obj)
         html += output_select_html(key, value)
       when 'multi_select'
         @js["once"] += output_multi_select_js(key, value)
         html += output_multi_select_html(key, value)
       when 'radio'
-        @js["init_dw"] += output_init_dw_js(value["options"], form)
-        @js["exec_dw"] += output_exec_dw_js(key, value["options"], form)
+        @js["init_dw"] += output_init_dw_js(value["options"], obj)
+        @js["exec_dw"] += output_exec_dw_js(key, value["options"], obj)
         html += output_radio_html(key, value)
       when 'checkbox'
-        @js["init_dw"] += output_init_dw_js(value["options"], form)
-        @js["exec_dw"] += output_exec_dw_js(key, value["options"], form)
+        @js["init_dw"] += output_init_dw_js(value["options"], obj)
+        @js["exec_dw"] += output_exec_dw_js(key, value["options"], obj)
         @js["exec_dw"] += output_checkbox_js(key, value)
         html += output_checkbox_html(key, value)
       when 'path'
@@ -798,10 +801,9 @@ helpers do
       html += "</div>\n"
     end
 
-    form = form.merge(header)
     if !body["script"].nil?
       body["script"].split("\n").each do |line|
-        @js["script"] += output_script_js(form, line)
+        @js["script"] += output_script_js(obj, line)
       end
     end
 
@@ -809,35 +811,36 @@ helpers do
   end
 
   # Output a header of webform. This function is a shorthand for output_body().
-  def output_header(header)
+  def output_header(body, header)
     return "" if header.nil? || header.empty?
 
     @js = {"init_dw" => "", "exec_dw" => "", "script" => "", "once" => ""}
     
     html = ""
     header = header.merge({SCRIPT_CONTENT => {"widget" => "textarea"}})
+    obj    = header.merge(body["form"])
     header.each_with_index do |(key, value), index|
       next if key == SCRIPT_CONTENT
       indent = add_indent_style(value)
-      html  += (index != header.size - 2) ? "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n" : "<div class=\"mb-0 position-relative\" style=\"#{indent}\">\n"
+      html  += "<div class=\"mb-3 position-relative\" style=\"#{indent}\">\n"
 
       case value['widget']
       when 'number', 'text', 'email'
         html += output_number_text_email_html(key, value)
       when 'select'
-        @js["init_dw"] += output_init_dw_js(value["options"], header)
-	@js["exec_dw"] += output_exec_dw_js(key, value["options"], header)
+        @js["init_dw"] += output_init_dw_js(value["options"], obj)
+	@js["exec_dw"] += output_exec_dw_js(key, value["options"], obj)
         html += output_select_html(key, value)
       when 'multi_select'
         @js["once"] += output_multi_select_js(key, value)
         html += output_multi_select_html(key, value)
       when 'radio'
-        @js["init_dw"] += output_init_dw_js(value["options"], header)
-        @js["exec_dw"] += output_exec_dw_js(key, value["options"], header)
+        @js["init_dw"] += output_init_dw_js(value["options"], obj)
+        @js["exec_dw"] += output_exec_dw_js(key, value["options"], obj)
         html += output_radio_html(key, value)
       when 'checkbox'
-        @js["init_dw"] += output_init_dw_js(value["options"], header)
-        @js["exec_dw"] += output_exec_dw_js(key, value["options"], header)
+        @js["init_dw"] += output_init_dw_js(value["options"], obj)
+        @js["exec_dw"] += output_exec_dw_js(key, value["options"], obj)
         @js["exec_dw"] += output_checkbox_js(key, value)
         html += output_checkbox_html(key, value)
       when 'path'
@@ -846,7 +849,7 @@ helpers do
       
       html += "</div>\n"
     end
-    
+
     return html
   end
 end

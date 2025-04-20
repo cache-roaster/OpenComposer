@@ -23,6 +23,7 @@ JOB_STATUS_ID          = "status"
 HEADER_SCRIPT_LOCATION = "_script_location"
 HEADER_SCRIPT_NAME     = "_script_1"
 HEADER_JOB_NAME        = "_script_2"
+HEADER_CLUSTER_NAME    = "_cluster_name"
 SCRIPT_CONTENT         = "_script_content"
 FORM_LAYOUT            = "_form_layout"
 SUBMIT_BUTTON          = "_submitButton"
@@ -35,34 +36,45 @@ JOB_KEYS               = "job_keys"
 Manifest = Struct.new(:dirname, :name, :category, :description, :icon, :related_app)
 
 # Create a YAML or ERB file object. Give priority to ERB.
-# If the file does not exist or is not valid, return nil.
+# If the file does not exist, return nil.
 def read_yaml(yml_path)
   erb_path = yml_path + ".erb"
   if File.exist?(erb_path)
     return YAML.load(ERB.new(File.read(erb_path), trim_mode: "-").result(binding))
   elsif File.exist?(yml_path)
     return YAML.load_file(yml_path)
-  else
-    return nil
   end
+  
+  return nil
 end
 
 # Create a configuration object.
 # Defaults are applied for any missing values.
 def create_conf
-  conf = read_yaml("./conf.yml")
-  halt 500, "./conf.yml.erb does not be found." if conf.nil?
-
-  # Check required values
-  ["scheduler", "apps_dir"].each do |key|
-    halt 500, "In ./conf.yml.erb, \"#{key}:\" must be defined." if conf&.dig(key).nil?
+  begin
+    conf = read_yaml("./conf.yml")
+    halt 500, "./conf.yml.erb does not be found." if conf.nil?
+  rescue Exception => e
+    halt 500, "There is something wrong with ./conf.yml or ./conf.yml.erb."
   end
 
-  conf["login_node"]        ||= nil
+  # Check required values
+  halt 500, "In ./conf.yml.erb, \"apps_dir:\" must be defined." unless conf.key?("apps_dir")
+  halt 500, "In ./conf.yml.erb, either \"scheduler:\" or \"cluster:\" must be defined, but not both." unless conf.key?("scheduler") ^ conf.key?("cluster")
+  if conf.key?("cluster")
+    ["bin", "bin_overrides", "sge_root"].each do |key|
+      halt 500, "In ./conf.yml.erb, \"#{key}:\" can only be defined in \"cluster:\"." if conf.key?(key)
+    end
+    halt 500, "In ./conf.yml.erb, \"cluster:\" must be an array." unless conf['cluster'].is_a?(Array)
+    conf["cluster"].each do |c|
+      ["name", "scheduler"].each do |key|
+        halt 500, "In ./conf.yml.erb, \"cluster:\" must have \"#{key}:\"." unless c.key?(key)
+      end
+    end
+  end
+
+  # Set initial values if not defined
   conf["data_dir"]          ||= ENV["HOME"] + "/composer"
-  conf["bin"]               ||= nil
-  conf["bin_overrides"]     ||= nil
-  conf["ssh_wrapper"]       ||= nil
   conf["footer"]            ||= "&nbsp;"
   conf["thumbnail_width"]   ||= "100"
   conf["navbar_color"]      ||= "#3D3B40"
@@ -72,29 +84,42 @@ def create_conf
   conf["description_color"] ||= conf["category_color"]
   conf["form_color"]        ||= "#BFCFE7"
 
-  # Set special environment variables for Grid Engine
-  ENV['SGE_ROOT'] ||= conf["sge_root"]
+  # Set the values for "cluster:" and "history_db"
+  if conf.key?("cluster")
+    conf["scheduler"]     = {}
+    conf["bin"]           = {}
+    conf["bin_overrides"] = {}
+    conf["sge_root"]      = {}
+    conf["history_db"]    = {}
+    
+    conf['cluster'].each do |c|
+      cluster_name = c["name"]
+      ["scheduler", "bin", "bin_overrides", "sge_root"].each do |key|
+        conf[key][cluster_name] = c[key]
+      end
+      conf["history_db"][cluster_name] = File.join(conf["data_dir"], cluster_name + ".db")
+    end
+  else
+    conf["history_db"] = File.join(conf["data_dir"], conf["scheduler"] + ".db")
+  end
 
-  conf["history_db"] = File.join(conf["data_dir"], conf["scheduler"] + ".db")
   return conf
 end
 
 # Create a manifest object in a specified application.
 # If the name is not defined, the directory name is used.
-def create_manifest(directory_path)
+def create_manifest(app_path)
   begin
-    manifest = read_yaml(File.join(directory_path, "manifest.yml"))
+    manifest = read_yaml(File.join(app_path, "manifest.yml"))
   rescue Exception => e
     return nil
   end
 
-  dirname = File.basename(directory_path)
+  dirname = File.basename(app_path)
   return Manifest.new(dirname, dirname, nil, nil, nil, nil) if manifest.nil?
 
   manifest["name"] ||= dirname
-  related_app = Array(manifest["related_app"]) # If manifest["related_app"] is nil, it will be an empty array.
-  
-  return Manifest.new(dirname, manifest["name"], manifest["category"], manifest["description"], manifest["icon"], related_app)
+  return Manifest.new(dirname, manifest["name"], manifest["category"], manifest["description"], manifest["icon"], manifest["related_app"])
 end
 
 # Create an array of manifest objects for all applications.
@@ -102,9 +127,9 @@ def create_all_manifests(apps_dir)
   all_manifests = Dir.children(apps_dir).each_with_object([]) do |dir, manifests|
     next if dir.start_with?(".") # Skip hidden files and directories
 
-    directory_path = File.join(apps_dir, dir)
-    if ["form.yml", "form.yml.erb"].any? { |file| File.exist?(File.join(directory_path, file)) }
-      manifests << create_manifest(directory_path)
+    app_path = File.join(apps_dir, dir)
+    if ["form.yml", "form.yml.erb"].any? { |file| File.exist?(File.join(app_path, file)) }
+      manifests << create_manifest(app_path)
     end
   end
 
@@ -117,34 +142,52 @@ def replace_with_cache(form, cache)
     value["value"] = case value["widget"]
                      when "number", "text", "email"
                        if value.key?("size")
-                         value["size"].times.map { |i| cache["#{key}_#{i+1}"] }
+                         value["size"].times.map { |i| cache["#{key}_#{i+1}"] || value["value"][i] }
                        else
-                         cache[key]
+                         cache[key] || value["value"]
                        end
                      when "select", "radio"
-                       cache[key]
+                       cache[key] || value["value"]
                      when "multi_select"
-                       length = cache["#{key}_length"].to_i
-                       length.times.map { |i| cache["#{key}_#{i+1}"] }
+                       length = cache["#{key}_length"]&.to_i || 0
+                       result = length.times.map { |i| cache["#{key}_#{i+1}"] }
+                       result.any?(&:nil?) ? value["value"] : result
                      when "checkbox"
-                       value["options"].size.times.map { |i| cache["#{key}_#{i+1}"] }
+                       options = value["options"] || []
+                       result = options.size.times.map { |i| cache["#{key}_#{i+1}"] }
+                       result.any?(&:nil?) ? value["value"] : result
                      when "path"
-                       cache["#{key}"]
+                       cache["#{key}"] || value["value"]
                      end
   end
 end
 
 # Create a scheduler object.
-def create_scheduler(scheduler_name)
-  schedulers = Dir.glob(SCHEDULERS_DIR_PATH + "/*.rb").map { |file| File.basename(file, ".rb") }
-  halt 500, "No such scheduler_name (#{scheduler_name}) found." unless schedulers.include?(scheduler_name)
+def create_scheduler(conf)
+  available = Dir.glob("#{SCHEDULERS_DIR_PATH}/*.rb").map { |f| File.basename(f, ".rb") }
 
-  require SCHEDULERS_DIR_PATH + "/" + scheduler_name + ".rb"
-  return Object.const_get(scheduler_name.capitalize).new
+  if conf.key?("cluster")
+    schedulers = {}
+
+    conf["scheduler"].each do |cluster_name, scheduler_name|
+      halt 500, "No such scheduler_name (#{scheduler_name}) found." unless available.include?(scheduler_name)
+
+      require "#{SCHEDULERS_DIR_PATH}/#{scheduler_name}.rb"
+      schedulers[cluster_name] = Object.const_get(scheduler_name.capitalize).new
+    end
+  else
+    scheduler_name = conf["scheduler"]
+    halt 500, "No such scheduler_name (#{scheduler_name}) found." unless available.include?(scheduler_name)
+
+    require "#{SCHEDULERS_DIR_PATH}/#{scheduler_name}.rb"
+    schedulers = Object.const_get(scheduler_name.capitalize).new
+  end
+
+  schedulers
 end
 
 # Create a website of Top, Application, and History.
-def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = nil)
+def show_website(job_id = nil, error_msg = nil, error_params = nil)
   @conf          = create_conf
   @apps_dir      = @conf["apps_dir"]
   @login_node    = @conf["login_node"]
@@ -152,6 +195,11 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
   @my_ood_url    = request.base_url
   @script_name   = request.script_name
   @path_info     = request.path_info
+  @cluster_name  = if @conf.key?("cluster")
+                     params[@path_info == "/history" ? "cluster" : HEADER_CLUSTER_NAME] || @conf["cluster"].first["name"]
+                   else
+                     nil
+                   end
   @ood_logo_path = URI.join(@my_ood_url, @script_name + "/", "ood.png")
   @current_path  = File.join(@script_name, @path_info)
   @manifests     = create_all_manifests(@apps_dir).sort_by { |m| [(m.category || "").downcase, m.name.downcase] }
@@ -163,13 +211,13 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
     return erb :index
   when "/history"
     @name             = "History"
-    @scheduler        = scheduler || create_scheduler(@conf["scheduler"])
+    @scheduler        = create_scheduler(@conf)
     @bin              = @conf["bin"]
     @bin_overrides    = @conf["bin_overrides"]
     @ssh_wrapper      = @conf["ssh_wrapper"]
     @status           = params["status"] || "all"
     @filter           = params["filter"]
-    @jobs_size        = get_job_size()
+    @jobs_size        = get_job_size
     @rows             = [[(params["rows"] || HISTORY_ROWS).to_i, 1].max, @jobs_size].min
     @page_size        = (@rows == 0) ? 1 : ((@jobs_size - 1) / @rows) + 1
     @current_page     = (params["p"] || 1).to_i
@@ -177,7 +225,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
     @end_index        = (@jobs_size == 0) ? 0 : [@current_page * @rows, @jobs_size].min - 1
     @jobs, @error_msg = get_job_history(@status, @start_index, @end_index, @filter)
 
-    if !@error_msg.nil?
+    unless @error_msg.nil?
       return erb :error
     else
       @error_msg = error_msg
@@ -186,7 +234,7 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
   else # application form
     @table_index = 1
     @manifest = @manifests.find { |m| "/#{m.dirname}" == @path_info }
-    if !@manifest.nil?
+    unless @manifest.nil?
       begin
         @body = read_yaml(File.join(@apps_dir, @path_info, "form.yml"))
         @header = if @body.key?("header")
@@ -215,13 +263,21 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
       # Load cache
       @script_content = nil
       if params["jobId"] || job_id
-        history_db = @conf["history_db"]
+        history_db = if @conf.key?("cluster")
+                       cluster_name = params[params["jobId"] ? "cluster" : HEADER_CLUSTER_NAME] || @conf["cluster"].first["name"]
+                       @conf["history_db"][cluster_name]
+                     else
+                       @conf["history_db"]
+                     end
+        
         unless File.exist?(history_db)
           @error_msg = "#{history_db} is not found."
-          return erb :form
+          return erb :error
         end
+
+        cache = nil
+        id = nil
         db = PStore.new(history_db)
-        cache = ""
         db.transaction(true) do
           id = if params["jobId"]
                  params["jobId"]
@@ -229,20 +285,23 @@ def show_website(job_id = nil, scheduler = nil, error_msg = nil, error_params = 
                  job_id.is_a?(Array) ? job_id[0].to_s : job_id.to_s
                end
           cache = db[id]
-          if cache.nil?
-            @error_msg = "Specified Job ID (#{id}) is not found."
-            return erb :error
-          end
-        end        
+        end
+
+        if cache.nil?
+          @error_msg = "Specified Job ID (#{id}) is not found."
+          return erb :error
+        end
+
         replace_with_cache(@header, cache)
         replace_with_cache(@body["form"], cache)
         @script_content = cache[SCRIPT_CONTENT]
-      elsif !error_msg.nil?
+      elsif !error_msg.nil? # When job submission failed
         replace_with_cache(@header, error_params)
         replace_with_cache(@body["form"], error_params)
         @script_content = error_params[SCRIPT_CONTENT]
       end
 
+      # Set script content
       @script_label = @body["script"].is_a?(Hash) ? @body["script"]["label"] : "Script Content"
       if @body["script"].is_a?(Hash) && @body["script"].key?("content")
         @body["script"] = @body["script"]["content"]
@@ -307,12 +366,18 @@ end
 
 post "/*" do
   conf          = create_conf
-  bin           = conf["bin"]
-  bin_overrides = conf["bin_overrides"]
+  cluster_name  = if conf.key?("cluster")
+                    params[request.path_info == "/history" ? "cluster" : HEADER_CLUSTER_NAME] || conf["cluster"].first["name"]
+                  else
+                    nil
+                  end
+  bin           = conf.key?("cluster") ? conf["bin"][cluster_name] : conf["bin"]
+  bin_overrides = conf.key?("cluster") ? conf["bin_overrides"][cluster_name] : conf["bin_overrides"]
+  history_db    = conf.key?("cluster") ? conf["history_db"][cluster_name] : conf["history_db"]
+  scheduler     = conf.key?("cluster") ? create_scheduler(conf)[cluster_name] : create_scheduler(conf)
   ssh_wrapper   = conf["ssh_wrapper"]
   data_dir      = conf["data_dir"]
-  history_db    = conf["history_db"]
-  scheduler     = create_scheduler(conf["scheduler"])
+  ENV['SGE_ROOT'] ||= conf.key?("cluster") ? conf["sge_root"][cluster_name] : conf["sge_root"]
 
   if request.path_info == "/history"
     job_ids   = params["JobIds"].split(",")
@@ -332,8 +397,8 @@ post "/*" do
       end
     end
 
-    show_website(nil, scheduler, error_msg)
-  else
+    return show_website(nil, error_msg)
+  else # application form
     app_path = File.join(conf["apps_dir"], request.path_info)
     
     script_location = params[HEADER_SCRIPT_LOCATION]
@@ -349,7 +414,7 @@ post "/*" do
       else
         nil
       end
-    return show_website(nil, scheduler, error_msg, params) if error_msg
+    return show_website(nil, error_msg, params) if error_msg
     
     begin
       form = read_yaml(File.join(app_path, "form.yml"))
@@ -375,6 +440,7 @@ post "/*" do
                  when HEADER_SCRIPT_LOCATION then "OC_SCRIPT_LOCATION"
                  when HEADER_SCRIPT_NAME     then "OC_SCRIPT_NAME"
                  when HEADER_JOB_NAME        then "OC_JOB_NAME"
+                 when HEADER_CLUSTER_NAME    then "OC_CLUSTER_NAME"
                  else key
                  end
 
@@ -384,7 +450,7 @@ post "/*" do
       begin
         eval(check)
       rescue Exception => e
-        return show_website(job_id, scheduler, e.message, params)
+        return show_website(nil, e.message, params)
       end
     end
 
@@ -397,13 +463,14 @@ post "/*" do
     unless submit.nil?
       replacements = params.each_with_object({}) do |(key, value), env|
         next if ['splat', SCRIPT_CONTENT].include?(key)
-        
+
         suffix = case key
                  when JOB_APP_NAME           then "OC_APP_NAME"
                  when JOB_APP_PATH           then "OC_APP_PATH"
                  when HEADER_SCRIPT_LOCATION then "OC_SCRIPT_LOCATION"
                  when HEADER_SCRIPT_NAME     then "OC_SCRIPT_NAME"
                  when HEADER_JOB_NAME        then "OC_JOB_NAME"
+                 when HEADER_CLUSTER_NAME    then "OC_CLUSTER_NAME"
                  else key
                  end
         
@@ -440,7 +507,7 @@ post "/*" do
 
       stdout, stderr, status = Open3.capture3("bash", "-c", submit_with_echo)
       unless status.success?
-        return show_website(nil, scheduler, stderr, params)
+        return show_website(nil, stderr, params)
       end
       
       last_line = stdout.lines.last&.strip
@@ -452,7 +519,7 @@ post "/*" do
       job_id, error_msg = scheduler.submit(script_path, job_name.strip, submit_options, bin, bin_overrides, ssh_wrapper)
       params[JOB_SUBMISSION_TIME] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
-    
+
     # Save a job history
     FileUtils.mkdir_p(data_dir)
     db = PStore.new(history_db)
@@ -462,6 +529,6 @@ post "/*" do
       end
     end
     
-    return show_website(job_id, scheduler, error_msg, params)
+    return show_website(job_id, error_msg, params)
   end
 end

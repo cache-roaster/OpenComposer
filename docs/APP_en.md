@@ -1,7 +1,7 @@
 ## Overview
 1. Enter the directory name to store all applications in `apps_dir` in `./conf.yml.erb`. Here, set it to `apps_dir: ./apps`.
 2. Create a directory for applications under `./apps/`. If the application name is `test`, create `./apps/test`.
-3. Create the following configuration files in the directory. To write the files in Embedded Ruby format, rename the files to `form.yml.erb` and `manifest.yml.erb`, respectively.
+3. Create the configuration files `form.yml` and `manifest.yml` in `./apps/test`. To write the files in Embedded Ruby format, rename the files to `form.yml.erb` and `manifest.yml.erb`, respectively.
 - `./apps/test/form.yml`: Settings for the web form
 - `./apps/test/manifest.yml`: Description of the application
 
@@ -119,6 +119,7 @@ The `check` section also supports the following special variables:
 - @OC_APP_NAME : Application name defined in `name` of `manifest.yml`
 - @OC_APP_PATH : The path to the application where `form.yml` is stored (e.g. `/Slurm`)
 - @OC_SCRIPT_LOCATION : `Script Location` defined in `header`
+- @OC_CLUSTER_NAME : `Cluster name` defined in `header` (This is only available when `cluster` is defined in `./conf.yml.erb`)
 - @OC_SCRIPT_NAME : `Script Name` defined in `header`
 - @OC_JOB_NAME : `Job Name` defined in `header`
 
@@ -605,6 +606,7 @@ The same widgets can be used in `form.yml`.
 However, widgets with the same names as those defined in lib/headers.yml.erb must be defined.
 
 The following example adds a new widget `script_content`, which hides the job script, to the defined widgets (`_script_location` and `_script`).
+If `cluster` is defined in `./conf.yml.erb`, `_cluster_name` must also be defined.
 
 ```
 header:
