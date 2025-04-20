@@ -32,7 +32,11 @@ helpers do
   def output_action_modal(action)
     id = "_history#{action}"
     form_action = "#{@script_name}/history"
-    form_action += "?cluster=#{@cluster_name}" if @cluster_name
+    query_params = []
+    query_params << "cluster=#{@cluster_name}" if @cluster_name
+    query_params << "rows=#{@rows}" if @rows != HISTORY_ROWS
+    query_params << "p=#{@current_page}" if @current_page != 1
+    form_action += "?#{query_params.join('&')}" unless query_params.empty?
 
     <<~HTML
     <div class="modal" id="#{id}" aria-hidden="true" tabindex="-1">
