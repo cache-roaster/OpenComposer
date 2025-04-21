@@ -152,12 +152,10 @@ def replace_with_cache(form, cache)
                        cache[key] || value["value"]
                      when "multi_select"
                        length = cache["#{key}_length"]&.to_i || 0
-                       result = length.times.map { |i| cache["#{key}_#{i+1}"] }
-                       result.any?(&:nil?) ? value["value"] : result
+                       length.times.map { |i| cache["#{key}_#{i+1}"] }
                      when "checkbox"
-                       options = value["options"] || []
-                       result = options.size.times.map { |i| cache["#{key}_#{i+1}"] }
-                       result.any?(&:nil?) ? value["value"] : result
+                       result = value["options"].size.times.map { |i| cache["#{key}_#{i+1}"] }
+                       result.all?(&:nil?) ? value["value"] : result
                      when "path"
                        cache["#{key}"] || value["value"]
                      end
