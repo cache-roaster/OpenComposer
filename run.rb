@@ -142,7 +142,9 @@ def replace_with_cache(form, cache)
     value["value"] = case value["widget"]
                      when "number", "text", "email"
                        if value.key?("size")
-                         value["size"].times.map { |i| cache["#{key}_#{i+1}"] || value["value"][i] }
+                         value["size"].times.map do |i|
+                           cache["#{key}_#{i+1}"] || Array(value["value"])[i]  # Array(nil)[i] is nil
+                         end
                        else
                          cache[key] || value["value"]
                        end
