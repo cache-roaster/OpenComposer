@@ -72,7 +72,7 @@ helpers do
   end
 
   # Output a modal for displaying details of a specific job.
-  def output_job_id_modal(job)
+  def output_job_id_modal(job, filter)
     return if job[JOB_KEYS].nil? # If a job has just been submitted, it may not have been registered yet.
 
     modal_id = "_historyJobId#{job[JOB_ID]}"
@@ -90,7 +90,7 @@ helpers do
 
     filtered_keys = job[JOB_KEYS] - [JOB_NAME, JOB_PARTITION, JOB_STATUS_ID]
     filtered_keys.each do |key|
-      html += "<tr><td>#{ERB::Util.html_escape(key)}</td><td>#{ERB::Util.html_escape(job[key])}</td></tr>\n"
+      html += "<tr><td>#{output_text(key, filter)}</td><td>#{output_text(job[key], filter)}</td></tr>\n"
     end
 
     html += <<~HTML
@@ -103,7 +103,7 @@ helpers do
   end
 
   # Output a modal displaying a job script and a link to load parameters for a specific job.
-  def output_job_script_modal(job)
+  def output_job_script_modal(job, filter)
     modal_id = "_historyJobScript#{job[JOB_ID]}"
     job_script = job[SCRIPT_CONTENT]&.gsub(/\r\n|\n/, '<br>')
     job_link = "#{@script_name}#{job[JOB_APP_PATH]}?jobId=#{URI.encode_www_form_component(job[JOB_ID])}"
@@ -118,7 +118,7 @@ helpers do
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            #{job_script}
+            #{output_text(job_script, filter)}
           </div>
           <div class="modal-footer">
             <a href="#{job_link}" class="btn btn-primary text-white text-decoration-none">Load parameters</a>
@@ -264,7 +264,7 @@ helpers do
           end
           next unless fields_to_search.any? { |v| v.to_s.include?(filter) }
         end
-        
+
         jobs << info
       end
     end
@@ -286,5 +286,10 @@ helpers do
                                end
     
     "<span class=\"badge fs-6 #{badge_class}\">#{status_text}</span>\n"
+  end
+
+  # Return the value for the cell with the filter highlighted.
+  def output_text(text, filter)
+    return (filter.nil? || filter.empty? || text.nil? ) ? text : text.gsub(/(#{Regexp.escape(filter)})/i, '<mark>\1</mark>')
   end
 end
