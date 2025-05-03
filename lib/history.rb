@@ -195,80 +195,34 @@ helpers do
     html += "</nav>\n"
   end
 
-  # Return the number of Job IDs stored in the database.
-  def get_job_size()
-    history_db = if @conf["history_db"].is_a?(Hash)
-                   @conf["history_db"][@cluster_name]
-                 else
-                   @conf["history_db"]
-                 end
-    return 0 unless File.exist?(history_db)
-
-    db = PStore.new(history_db)
-    db.transaction(true) do
-      if @status.nil? || @status == "all"
-        return db.roots.size
-      else
-        count = 0
-        db.roots.each do |id|
-          data = db[id]
-          count += 1 if data["status"] == JOB_STATUS[@status]
-        end
-        return count
-      end
+  # Return history DB
+  def get_history_db(conf, cluster_name)
+    if conf["history_db"].is_a?(Hash)
+      return conf["history_db"][cluster_name]
+    else
+      return conf["history_db"]
     end
   end
 
-  # Retrieves job history from either a single PStore DB or a hash of them
-  def get_job_history(target_status, start_index, end_index, filter)
-    return [nil, nil] if start_index >= @jobs_size
-    
-    history_db = if @conf["history_db"].is_a?(Hash)
-                   @conf["history_db"][@cluster_name]
-                 else
-                   @conf["history_db"]
-                 end
-    return [nil, "#{history_db} is not found"] unless File.exist?(history_db)
-  
-    db = PStore.new(history_db)
-    error_msg = update_status_if_needed(db, target_status, start_index, end_index)
-    return [nil, error_msg] if error_msg
-    
-    jobs = []
-    db.transaction(true) do
-      db.roots.reverse[start_index..end_index].each do |id|
-        data = db[id]
-        next unless data
-        next if target_status != "all" && data[JOB_STATUS_ID]&.downcase != target_status
-        info = { JOB_ID => id }.merge(data)
-        next if filter && !info[HEADER_SCRIPT_NAME]&.include?(filter) && !info[JOB_NAME]&.include?(filter)
-        jobs << info
-      end
-    end
-
-    [jobs, nil]
-  end
-
-  # Queries job status updates for jobs not yet completed
-  def update_status_if_needed(db, target_status, start_index, end_index)
-    return nil if target_status == "completed"
-    
+  # Update the status of all jobs that are not completed
+  def update_status(conf, scheduler, bin, bin_overrides, ssh_wrapper, cluster_name)
     queried_ids = []
+    db = PStore.new(get_history_db(conf, cluster_name))
     db.transaction(true) do
-      db.roots.reverse[start_index..end_index].each do |id|
+      db.roots.each do |id|
         queried_ids << id if db[id][JOB_STATUS_ID] != JOB_STATUS["completed"]
       end
     end
     return nil if queried_ids.empty?
-    
-    scheduler     = @cluster_name ? @scheduler[@cluster_name]     : @scheduler
-    bin           = @cluster_name ? @bin[@cluster_name]           : @bin
-    bin_overrides = @cluster_name ? @bin_overrides[@cluster_name] : @bin_overrides
-    ENV['SGE_ROOT'] ||= @cluster_name ? @conf["sge_root"][@cluster_name] : @conf["sge_root"]
-    
-    status, error_msg = scheduler.query(queried_ids, bin, bin_overrides, @ssh_wrapper)
+
+    scheduler     = cluster_name ? scheduler[cluster_name]     : scheduler
+    bin           = cluster_name ? bin[cluster_name]           : bin
+    bin_overrides = cluster_name ? bin_overrides[cluster_name] : bin_overrides
+    ENV['SGE_ROOT'] ||= cluster_name ? conf["sge_root"][cluster_name] : conf["sge_root"]
+
+    status, error_msg = scheduler.query(queried_ids, bin, bin_overrides, ssh_wrapper)
     return error_msg if error_msg
-    
+
     db.transaction do
       status.each do |id, info|
         data = db[id]
@@ -277,8 +231,45 @@ helpers do
         db[id] = data.merge(info)
       end
     end
-    
-    nil
+
+    return nil
+  end
+  
+  # Return all jobs that match the specified status and filter.
+  def get_all_jobs(conf, cluster_name, status, filter)
+    jobs = []
+    db = PStore.new(get_history_db(conf, cluster_name))
+    db.transaction(true) do
+      db.roots.each do |id|
+        data = db[id]
+        next if status && status != "all" && data && data[JOB_STATUS_ID] != JOB_STATUS[status]
+
+        info = { JOB_ID => id }.merge(data)
+
+        if filter && !filter.empty?
+          filtered_keys = info[JOB_KEYS] - [JOB_NAME, JOB_PARTITION, JOB_STATUS_ID]
+          fields_to_search = [
+            info[JOB_ID],
+            filtered_keys,
+            info[JOB_APP_NAME],
+            info[HEADER_SCRIPT_LOCATION],
+            info[HEADER_SCRIPT_NAME],
+            info[SCRIPT_CONTENT],
+            info[JOB_NAME],
+            info[JOB_PARTITION],
+            info[JOB_SUBMISSION_TIME]
+          ]
+          filtered_keys.each do |key|
+            fields_to_search << info[key]
+          end
+          next unless fields_to_search.any? { |v| v.to_s.include?(filter) }
+        end
+        
+        jobs << info
+      end
+    end
+
+    return jobs.reverse
   end
 
   # Output a styled status badge for a job based on its current status.

@@ -114,7 +114,7 @@
               <a href="#" data-bs-toggle="modal" data-bs-target="#_historyJobScript<%= job[JOB_ID] %>"><%= job[HEADER_SCRIPT_NAME] %></a>
             </td>
             <td class="text-wrap text-break d-none d-lg-table-cell"><%= job[JOB_NAME] %></td>
-	    <td class="text-wrap text-break d-none d-lg-table-cell"><%= ERB::Util.html_escape(job[JOB_PARTITION]) %></td>
+	    <td class="text-wrap text-break d-none d-lg-table-cell"><%= job[JOB_PARTITION] %></td>
             <td class="text-wrap text-break d-none d-lg-table-cell"><%= job[JOB_SUBMISSION_TIME] %></td>
             <td class="text-wrap text-break"><%= output_status(job[JOB_STATUS_ID]) %></td>
           </tr>

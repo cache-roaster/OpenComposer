@@ -210,27 +210,26 @@ def show_website(job_id = nil, error_msg = nil, error_params = nil)
     @name = "Top"
     return erb :index
   when "/history"
-    @name             = "History"
-    @scheduler        = create_scheduler(@conf)
-    @bin              = @conf["bin"]
-    @bin_overrides    = @conf["bin_overrides"]
-    @ssh_wrapper      = @conf["ssh_wrapper"]
-    @status           = params["status"] || "all"
-    @filter           = params["filter"]
-    @jobs_size        = get_job_size
-    @rows             = [[(params["rows"] || HISTORY_ROWS).to_i, 1].max, @jobs_size].min
-    @page_size        = (@rows == 0) ? 1 : ((@jobs_size - 1) / @rows) + 1
-    @current_page     = (params["p"] || 1).to_i
-    @start_index      = (@jobs_size == 0) ? 0 : (@current_page - 1) * @rows
-    @end_index        = (@jobs_size == 0) ? 0 : [@current_page * @rows, @jobs_size].min - 1
-    @jobs, @error_msg = get_job_history(@status, @start_index, @end_index, @filter)
+    @name          = "History"
+    @scheduler     = create_scheduler(@conf)
+    @bin           = @conf["bin"]
+    @bin_overrides = @conf["bin_overrides"]
+    @ssh_wrapper   = @conf["ssh_wrapper"]
+    @error_msg     = update_status(@conf, @scheduler, @bin, @bin_overrides, @ssh_wrapper, @cluster_name)
+    return erb :error if @error_msg != nil
 
-    unless @error_msg.nil?
-      return erb :error
-    else
-      @error_msg = error_msg
-      return erb :history
-    end
+    @status       = params["status"] || "all"
+    @filter       = params["filter"]
+    all_jobs      = get_all_jobs(@conf, @cluster_name, @status, @filter)
+    @jobs_size    = all_jobs.size
+    @rows         = [[(params["rows"] || HISTORY_ROWS).to_i, 1].max, @jobs_size].min
+    @page_size    = (@rows == 0) ? 1 : ((@jobs_size - 1) / @rows) + 1
+    @current_page = (params["p"] || 1).to_i
+    @start_index  = @jobs_size == 0 ? 0 : (@current_page - 1) * @rows
+    @end_index    = @jobs_size == 0 ? 0 : [@current_page * @rows, @jobs_size].min - 1
+    @jobs         = @start_index >= @jobs_size ? [] : all_jobs[@start_index..@end_index]
+    @error_msg    = error_msg
+    return erb :history
   else # application form
     @table_index = 1
     @manifest = @manifests.find { |m| "/#{m.dirname}" == @path_info }
