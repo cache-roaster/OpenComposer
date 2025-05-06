@@ -105,7 +105,6 @@ helpers do
   # Output a modal displaying a job script and a link to load parameters for a specific job.
   def output_job_script_modal(job, filter)
     modal_id = "_historyJobScript#{job[JOB_ID]}"
-    job_script = job[SCRIPT_CONTENT]&.gsub(/\r\n|\n/, '<br>')
     job_link = "#{@script_name}#{job[JOB_APP_PATH]}?jobId=#{URI.encode_www_form_component(job[JOB_ID])}"
     job_link += "&cluster=#{@cluster_name}" if @cluster_name
 
@@ -118,7 +117,7 @@ helpers do
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            #{output_text(job_script, filter)}
+            #{output_text(job[SCRIPT_CONTENT], filter)}
           </div>
           <div class="modal-footer">
             <a href="#{job_link}" class="btn btn-primary text-white text-decoration-none">Load parameters</a>
@@ -197,11 +196,13 @@ helpers do
 
   # Return history DB
   def get_history_db(conf, cluster_name)
-    if conf["history_db"].is_a?(Hash)
-      return conf["history_db"][cluster_name]
-    else
-      return conf["history_db"]
-    end
+    db = conf["history_db"]
+    return db unless db.is_a?(Hash)
+
+    cluster_db = db[cluster_name]
+    halt 500, "#{cluster_name} is invalid." unless cluster_db
+    
+    return cluster_db
   end
 
   # Update the status of all jobs that are not completed
@@ -245,7 +246,6 @@ helpers do
         next if status && status != "all" && data && data[JOB_STATUS_ID] != JOB_STATUS[status]
 
         info = { JOB_ID => id }.merge(data)
-
         if filter && !filter.empty?
           filtered_keys = info[JOB_KEYS] - [JOB_NAME, JOB_PARTITION, JOB_STATUS_ID]
           fields_to_search = [
@@ -262,7 +262,7 @@ helpers do
           filtered_keys.each do |key|
             fields_to_search << info[key]
           end
-          next unless fields_to_search.any? { |v| v.to_s.include?(filter) }
+          next unless fields_to_search.any? { |v| v.to_s.include?(CGI.unescapeHTML(filter)) }
         end
 
         jobs << info
@@ -290,6 +290,13 @@ helpers do
 
   # Return the value for the cell with the filter highlighted.
   def output_text(text, filter)
-    return (filter.nil? || filter.empty? || text.nil? ) ? text : text.gsub(/(#{Regexp.escape(filter)})/i, '<mark>\1</mark>')
+    text = if text.nil? || filter.nil? || filter.empty?
+             escape_html(text)
+           else
+             # If it is not replaced after escape, the replacement tag will be escaped.
+             escape_html(text).gsub(/(#{Regexp.escape(filter)})/i, '<span class="bg-warning text-dark">\1</span>')
+           end
+    
+    return text.gsub("\n", "<br>")
   end
 end

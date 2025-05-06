@@ -84,8 +84,11 @@ ocForm.isCacheFile = function() {
 };
 
 // Load cache file contents.
+// Since @script_content uses escape_html() in ruby, it is converted using textarea to decode.
 ocForm.loadCacheFile = function() {
-  return <%= @script_content.to_json %>;
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = <%= @script_content.to_json %>;
+  return textarea.value;
 };
 
 // Prevent default behavior for Enter key unless specific elements are focused.
@@ -111,6 +114,11 @@ ocForm.updateValues = function(fromId) {
   else {
     ocForm.updateContents(selectedValues);
     ocForm.textArea.value = Object.values(selectedValues).join('\n');
+  }
+
+  // Add a newline if it is not the last one
+  if (!ocForm.textArea.value.endsWith('\n')){
+    ocForm.textArea.value += '\n';
   }
   ocForm.updateHeight();
 };

@@ -65,7 +65,7 @@ helpers do
     
     attr_value = value[attr].is_a?(Array) ? value[attr][i] : value[attr]
     if attr_value
-      return attr == 'required' ? " required " : " #{attr}=\"#{attr_value}\" "
+      return attr == 'required' ? " required " : " #{attr}=\"#{escape_html(attr_value)}\" "
     else
       return ""
     end
@@ -222,7 +222,9 @@ helpers do
       # If v[1] is not defined, v[0] is used instead.
       data_value = v[1].nil? ? v[0] : v[1]
       selected = value['value'] == v[0] ? 'selected' : ''
-      html += "<option id=\"#{key}_#{i+1}\" data-value='#{data_value}' value='#{v[0]}' #{selected}>#{v[0]}</option>\n"
+      escaped_data = escape_html(data_value)
+      escaped_item = escape_html(v[0])
+      html += "<option id=\"#{key}_#{i+1}\" data-value='#{escaped_data}' value='#{escaped_item}' #{selected}>#{escaped_item}</option>\n"
     end
     
     html + "</select>\n" + output_help(key, value) 
@@ -244,7 +246,9 @@ helpers do
     html += "<ul id='#{valid_suggestions_id}' style='display: none;'>\n"
     value['options'].each do |i|
       data_value = i[1].nil? ? i[0] : i[1]
-      html += "<li data-value='#{data_value}'>#{i[0]}</li>\n"
+      escaped_data = escape_html(data_value)
+      escaped_item = escape_html(i[0])
+      html += "<li data-value='#{escaped_data}'>#{escaped_item}</li>\n"
     end
     html += "</ul>\n"
 
@@ -265,11 +269,11 @@ helpers do
   def output_multi_select_js(key, value)
     return "" unless value.key?('value') && !value['value'].to_s.empty?
     
-    js = ""
     values = value['value'].is_a?(Array) ? value['value'] : [value['value']]
-    
+    js = "  const textarea = document.createElement('textarea');\n"
     values.each do |v|
-      js += "  ocForm.getSearchInput('#{key}').value = '#{v}';\n"
+      js += "  textarea.innerHTML = '#{escape_html(v)}';\n"
+      js += "  ocForm.getSearchInput('#{key}').value = textarea.value;\n"
       js += "  ocForm.addSelectedItem('#{key}', false);\n"
     end
     
@@ -287,11 +291,13 @@ helpers do
       div_class = is_horizontal ? "form-check form-check-inline me-4 mt-2" : "form-check mt-2"
       checked = value['value'] == v[0] ? "checked" : ""
       data_value = v[1].nil? ? v[0] : v[1]
+      escaped_data = escape_html(data_value)
+      escaped_item = escape_html(v[0])
       id = "#{key}_#{i+1}"
       html += <<-HTML
       <div class="#{div_class}">
-        <input type="radio" tabindex="#{@table_index}" id="#{id}" data-value='#{data_value}' value="#{v[0]}" name="#{key}" class="form-check-input" #{checked} #{required} oninput="ocForm.updateValues('#{id}')">
-        <label class="form-check-label" for="#{id}">#{v[0]}</label>
+        <input type="radio" tabindex="#{@table_index}" id="#{id}" data-value='#{escaped_data}' value="#{escaped_item}" name="#{key}" class="form-check-input" #{checked} #{required} oninput="ocForm.updateValues('#{id}')">
+        <label class="form-check-label" for="#{id}">#{escaped_item}</label>
       </div>
       HTML
     end
@@ -318,12 +324,14 @@ helpers do
                  else
                    false
                  end
-      item_label = "#{v[0]}#{required ? '*' : ''}"
       data_value = v[1].nil? ? v[0]: v[1]
+      escaped_data = escape_html(data_value)
+      escaped_item = escape_html(v[0])
+      item_label = "#{escaped_item}#{required ? '*' : ''}"
       id = "#{key}_#{i+1}"
       html += <<-HTML
       <div class="#{div_class}">
-        <input type="checkbox" tabindex="#{@table_index}" data-value='#{data_value}' value="#{v[0]}" id="#{id}" name="#{id}" class="form-check-input" #{'checked' if checked} #{'required' if required} oninput="ocForm.updateValues('#{id}')">
+        <input type="checkbox" tabindex="#{@table_index}" data-value='#{escaped_data}' value="#{escaped_item}" id="#{id}" name="#{id}" class="form-check-input" #{'checked' if checked} #{'required' if required} oninput="ocForm.updateValues('#{id}')">
         <label class="form-check-label" data-label="#{item_label}" data-required="#{required}" id="label_#{id}" for="#{id}">#{item_label}</label>
       </div>
       HTML
@@ -343,8 +351,8 @@ helpers do
   # Output a path widget.
   def output_path_html(key, value)
     favorites = value['favorites'] ? value['favorites'].select { |path| File.exist?(path) } : []
-    current_value = value['value'] || ""
-    current_path = value['value'] || Dir.home
+    current_value = escape_html(value['value']) || ""
+    current_path = escape_html(value['value']) || Dir.home
     current_path = Dir.home unless File.exist?(current_path.to_s)
     current_path = (File.directory?(current_path) && !current_path.end_with?('/')) ? "#{current_path}/" : current_path
     show_files   = value['show_files'].nil? ? true : value['show_files']
@@ -712,6 +720,7 @@ helpers do
 
   # Output a JavaScript code to initialize widgets with set, disable, and hide directives.
   def output_init_dw_js(options, form)
+    return "" if options == nil
     js  = output_init_dw_set_js(options, form)
     js += output_init_dw_disable_js(options, form)
     js += output_init_dw_hide_js(options, form)
@@ -754,6 +763,7 @@ helpers do
 
   # Output a JavaScript code to execute widget logic based on set, disable, and hide directives.
   def output_exec_dw_js(key, options, form)
+    return "" if options == nil
     js  = output_exec_dw_set_js(key, options, form)
     js += output_exec_dw_disable_js(key, options, form)
     js += output_exec_dw_hide_js(key, options, form)

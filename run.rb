@@ -196,7 +196,7 @@ def show_website(job_id = nil, error_msg = nil, error_params = nil)
   @script_name   = request.script_name
   @path_info     = request.path_info
   @cluster_name  = if @conf.key?("cluster")
-                     params[@path_info == "/history" ? "cluster" : HEADER_CLUSTER_NAME] || @conf["cluster"].first["name"]
+                     escape_html(params[@path_info == "/history" ? "cluster" : HEADER_CLUSTER_NAME] || @conf["cluster"].first["name"])
                    else
                      nil
                    end
@@ -218,8 +218,8 @@ def show_website(job_id = nil, error_msg = nil, error_params = nil)
     @error_msg     = update_status(@conf, @scheduler, @bin, @bin_overrides, @ssh_wrapper, @cluster_name)
     return erb :error if @error_msg != nil
 
-    @status       = params["status"] || "all"
-    @filter       = params["filter"]
+    @status       = escape_html(params["status"] || "all")
+    @filter       = escape_html(params["filter"])
     all_jobs      = get_all_jobs(@conf, @cluster_name, @status, @filter)
     @jobs_size    = all_jobs.size
     @rows         = [[(params["rows"] || HISTORY_ROWS).to_i, 1].max, @jobs_size].min
@@ -293,11 +293,11 @@ def show_website(job_id = nil, error_msg = nil, error_params = nil)
 
         replace_with_cache(@header, cache)
         replace_with_cache(@body["form"], cache)
-        @script_content = cache[SCRIPT_CONTENT]
+        @script_content = escape_html(cache[SCRIPT_CONTENT])
       elsif !error_msg.nil? # When job submission failed
         replace_with_cache(@header, error_params)
         replace_with_cache(@body["form"], error_params)
-        @script_content = error_params[SCRIPT_CONTENT]
+        @script_content = escape_html(error_params[SCRIPT_CONTENT])
       end
 
       # Set script content
@@ -515,7 +515,7 @@ post "/*" do
 
     # Submit a job script
     Dir.chdir(File.dirname(script_path)) do
-      job_id, error_msg = scheduler.submit(script_path, job_name.strip, submit_options, bin, bin_overrides, ssh_wrapper)
+      job_id, error_msg = scheduler.submit(script_path, escape_html(job_name.strip), submit_options, bin, bin_overrides, ssh_wrapper)
       params[JOB_SUBMISSION_TIME] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
     end
 
@@ -527,7 +527,7 @@ post "/*" do
         db[id] = params
       end
     end
-    
+
     return show_website(job_id, error_msg, params)
   end
 end
