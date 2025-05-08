@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.5.0] - 2025-05-08
+### Add
+- Add highlights to filtered results in history page.
+- Support multiple clusters.
+
+### Changed
+- Filter in history page searches all job information.
+
+### Fixed
+- Sanitization for XSS
+
 ## [1.4.0] - 2025-04-08
 
 ### Added
