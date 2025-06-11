@@ -49,7 +49,7 @@ class Pbspro < Scheduler
     cur_id = nil
     output.each_line do |line|
       case line
-      when /Job Id:\s*(\d+)(\[\d+\])?\.opbs/
+      when /Job Id:\s*(\d+)(\[\d+\])?\..+$/
         base_id = $1
         index = $2 || ""
         cur_id = "#{base_id}#{index}"
@@ -96,8 +96,8 @@ class Pbspro < Scheduler
                                
     qstat = get_command_path("qstat", bin, bin_overrides)
 
-    # Try to get info for running jobs
-    command = [ssh_wrapper, qstat, "-f -t", jobs.join(" ")].compact.join(" ")
+    # Try to get info for running jobs 
+    command = [ssh_wrapper, qstat, "-f -t -x", jobs.join(" ")].compact.join(" ")
     stdout1, stderr1, status1 = Open3.capture3(command)
     return nil, [stdout1, stderr1].join(" ") unless status1.success?
 
@@ -106,8 +106,8 @@ class Pbspro < Scheduler
     remaining_jobs = jobs.reject { |id| info.key?(id) }
     return info, nil if remaining_jobs.empty?
 
-    # Try to get info for completed jobs (past 7 days)
-    command = [ssh_wrapper, qstat, "-f -t -H --hday 7", remaining_jobs.join(" ")].compact.join(" ")
+    # Try to get info for completed jobs 
+    command = [ssh_wrapper, qstat, "-f -t -x", remaining_jobs.join(" ")].compact.join(" ")
     stdout2, stderr2, status2 = Open3.capture3(command)
     return nil, [stdout2, stderr2].join(" ") unless status2.success?
   
