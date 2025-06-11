@@ -10,12 +10,12 @@ class Pbspro < Scheduler
     return nil, [stdout, stderr].join(" ") unless status.success?
 
     # For a normal job, the output will be "123.opbs".
-    if (job_id_match = stdout.match(/^(\d+)\.opbs$/))
+    if (job_id_match = stdout.match(/^(\d+)\..+$/))
       return job_id_match[1], nil
     end
 
     # For an array job, the output will be "123[].opbs".
-    if (job_id_match = stdout.match(/^(\d+)\[\]\.opbs$/))
+    if (job_id_match = stdout.match(/^(\d+)\[\]\..+$/))
       qstat = get_command_path("qstat", bin, bin_overrides)
       command = [ssh_wrapper, qstat, "-t", "#{job_id_match[1]}[]"].compact.join(" ") # "-t" option also shows array jobs.
       stdout, stderr, status = Open3.capture3(command)
