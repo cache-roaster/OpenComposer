@@ -97,7 +97,7 @@ class Pbspro < Scheduler
     qstat = get_command_path("qstat", bin, bin_overrides)
 
     # Try to get info for running jobs 
-    command = [ssh_wrapper, qstat, "-f -t -x", jobs.join(" ")].compact.join(" ")
+    command = [ssh_wrapper, qstat, "-f -t", jobs.join(" ")].compact.join(" ")
     stdout1, stderr1, status1 = Open3.capture3(command)
     return nil, [stdout1, stderr1].join(" ") unless status1.success?
 
