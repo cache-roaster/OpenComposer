@@ -96,22 +96,14 @@ class Pbspro < Scheduler
                                
     qstat = get_command_path("qstat", bin, bin_overrides)
 
-    # Try to get info for running jobs 
-    command = [ssh_wrapper, qstat, "-f -t", jobs.join(" ")].compact.join(" ")
-    stdout1, stderr1, status1 = Open3.capture3(command)
-    return nil, [stdout1, stderr1].join(" ") unless status1.success?
-
     info = {}
-    parse_qstat_output(stdout1, info)
-    remaining_jobs = jobs.reject { |id| info.key?(id) }
-    return info, nil if remaining_jobs.empty?
-
-    # Try to get info for completed jobs 
-    command = [ssh_wrapper, qstat, "-f -t -x", remaining_jobs.join(" ")].compact.join(" ")
-    stdout2, stderr2, status2 = Open3.capture3(command)
-    return nil, [stdout2, stderr2].join(" ") unless status2.success?
+    # Try to get info for both running and completed jobs 
+    # command = [ssh_wrapper, qstat, "-f -t -x", jobs.join(" ")].compact.join(" ")
+    command = [ssh_wrapper, qstat, "-f -t -x"].compact.join(" ")
+    stdout, stderr, status = Open3.capture3(command)
+    return nil, [stdout, stderr].join(" ") unless status.success?
   
-    parse_qstat_output(stdout2, info)
+    parse_qstat_output(stdout, info)
     return info, nil
   rescue Exception => e
     return nil, e.message
