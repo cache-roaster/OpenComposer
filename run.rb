@@ -7,8 +7,8 @@ require "./lib/form"
 require "./lib/history"
 require "./lib/scheduler"
 
-set :environment, :production
-#set :environment, :development
+# set :environment, :production
+set :environment, :development
 set :erb, trim: "-"
 
 # Internal Constants
@@ -102,6 +102,10 @@ def create_conf
   else
     conf["history_db"] = File.join(conf["data_dir"], conf["scheduler"] + ".db")
   end
+  
+  ENV['PBS_API_ENDPOINT'] ||= conf["pbs_api_endpoint"]
+  token_path = File.expand_path(conf["pbs_api_token_path"])
+  ENV['PBS_API_TOKEN'] ||= File.read(token_path).strip
 
   return conf
 end

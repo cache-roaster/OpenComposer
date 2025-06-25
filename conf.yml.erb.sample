@@ -30,6 +30,13 @@ scheduler: "slurm"
 #  qacct:    "/usr/local/bin/qacct"
 #sge_root: "/apps/t4/rhel9/uge/latest"
 
+# PBS GraphQL Related Settings
+## graphql api endpoint:
+# pbs_api_endpoint: 'http://pbs-server:8080/graphql'
+## per-user PBS API token path:
+# pbs_api_token_path: '~/.pbs_token'
+
+
 ## Layout
 #footer:            "RIKEN Center for Computational Science"
 #thumbnail_width:   "100"
