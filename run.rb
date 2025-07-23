@@ -185,7 +185,7 @@ def create_scheduler(conf)
   schedulers
 end
 
-# Create a website of Top, Application, and History.
+# Create a website of Home, Application, and History.
 def show_website(job_id = nil, error_msg = nil, error_params = nil)
   @conf          = create_conf
   @apps_dir      = @conf["apps_dir"]
@@ -206,7 +206,7 @@ def show_website(job_id = nil, error_msg = nil, error_params = nil)
 
   case @path_info
   when "/"
-    @name = "Top"
+    @name = "Home"
     return erb :index
   when "/history"
     @name          = "History"

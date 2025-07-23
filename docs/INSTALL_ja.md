@@ -21,11 +21,11 @@ Open Composerは[Open OnDemand](https://openondemand.org/)上で動作します�
 | bin_overrides | ジョブスケジューラの各コマンドのパス |
 | sge_root | Grid Engineのルート用ディレクトリ（SGE_ROOT） |
 | footer | フッタに記載する文字 |
-| thumbnail_width | トップページの各アプリケーションのサムネイルの横幅 |
+| thumbnail_width | ホームページの各アプリケーションのサムネイルの横幅 |
 | navbar_color | ナビゲーションバーの色 |
 | dropdown_color | ドロップダウンメニューの色 |
 | footer_color | フッタの色 |
-| category_color | トップページのカテゴリの背景色 |
+| category_color | ホームページのカテゴリの背景色 |
 | description_color | アプリケーションページのアプリケーション説明の背景色 |
 | form_color | アプリケーションページのテキストエリアの背景色 |
 
@@ -83,9 +83,9 @@ cluster:
 ```
 
 ## 管理者によるOpen OnDemandへの登録
-Open Composerを`/var/www/ood/apps/sys/`に保存すると、Open OnDemandのトップページにOpen Composerのアイコンが表示されます。Open Composerのアイコンが表示されない場合は、Open OnDemand用の設定ファイル`./manifest.yml`を確認してください。
+Open Composerを`/var/www/ood/apps/sys/`に保存すると、Open OnDemandのホームページにOpen Composerのアイコンが表示されます。Open Composerのアイコンが表示されない場合は、Open OnDemand用の設定ファイル`./manifest.yml`を確認してください。
 
-Open Composer上のアプリケーションをOpen OnDemandのトップページに表示することもできます。例えば、`./sample_apps/Slurm/`というアプリケーションを表示させたい場合は、同名のディレクトリをOpen OnDemandのアプリケーションディレクトリに作成します（`# mkdir /var/www/ood/apps/sys/Slurm`）。そして、そのディレクトリ内に下記のようなOpen OnDemand用の設定ファイル`manifest.yml`を作成します。
+Open Composer上のアプリケーションをOpen OnDemandのホームページに表示することもできます。例えば、`./sample_apps/Slurm/`というアプリケーションを表示させたい場合は、同名のディレクトリをOpen OnDemandのアプリケーションディレクトリに作成します（`# mkdir /var/www/ood/apps/sys/Slurm`）。そして、そのディレクトリ内に下記のようなOpen OnDemand用の設定ファイル`manifest.yml`を作成します。
 
 ```
 # cat /var/www/ood/apps/sys/Slurm/manifest.yml

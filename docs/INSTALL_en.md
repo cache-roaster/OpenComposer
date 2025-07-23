@@ -23,11 +23,11 @@ The `apps_dir` is required and either `scheduler` or `cluster` is required.
 | bin_overrides | PATH of each command of job scheduler |
 | sge_root | Directory for the Grid Engine root (SGE_ROOT) |
 | footer | Text in the footer |
-| thumbnail_width | Width of thumbnails for each application on the top page |
+| thumbnail_width | Width of thumbnails for each application on the home page |
 | navbar_color | Color of navigation bar |
 | dropdown_color | Color of dropdown menu |
 | footer_color | Color of footer |
-| category_color | Background color of the top page category |
+| category_color | Background color of the home page category |
 | description_color | Background color of the application description in the application page |
 | form_color | Background color of the text area in the application page |
 
@@ -87,10 +87,10 @@ cluster:
 ```
 
 ## Registration for Open OnDemand by administrator
-When you save Open Composer to `/var/www/ood/apps/sys/`, the Open Composer icon will be displayed on the Open OnDemand top page.
+When you save Open Composer to `/var/www/ood/apps/sys/`, the Open Composer icon will be displayed on the Open OnDemand page.
 If it is not displayed, check `./manifest.yml`.
 
-You can also display Open Composer applications on the Open OnDemand top page.
+You can also display Open Composer applications on the Open OnDemand page.
 For example, if you want to display an application `./sample_apps/apps/Slurm/`,
 create a directory with the same name in the Open OnDemand application directory (`# mkdir /var/www/ood/apps/sys/Slurm`).
 Then, create the following Open OnDemand configuration file `manifest.yml` in that directory.

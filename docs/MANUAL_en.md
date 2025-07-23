@@ -2,13 +2,13 @@
 Open Composer is a web application to submit batch jobs to a job scheduler directly from a web browser.
 
 ## Overview of web page
-### Top Page
+### Home Page
 Displays application icons by category.
-On the left side of the navigation bar are links to the "Top Page", "Application Page", and "History Page".
+On the left side of the navigation bar are links to the "Home Page", "Application Page", and "History Page".
 On the right side of the navigation bar are links to the Open OnDemand "Home Directory", "Shell Access", and "Dashboard".
 Note that "Shell Access" is only displayed if `login_node` is set in `conf.yml.erb`.
 
-![Top page](img/top_page.png)
+![Home page](img/home_page.png)
 
 ### Application page
 Generates a job script.
